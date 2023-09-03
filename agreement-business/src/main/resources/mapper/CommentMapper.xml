@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.data.mapper.CommentMapper">
+
+    <select id="listCommentVO" resultType="com.vhans.bus.data.domain.Comment">
+        SELECT c.id,
+        fu.avatar,
+        fu.nickname AS from_nickname,
+        tu.nickname AS to_nickname,
+        c.content,
+        c.like_number,
+        COALESCE(r.title, q.title) as title,
+        c.type,
+        c.is_check,
+        c.create_time
+        FROM d_comment c
+        LEFT JOIN d_agree_record r ON c.type_id = r.id
+        LEFT JOIN d_quiz q ON c.type_id = q.id
+        LEFT JOIN u_user fu ON c.from_uid = fu.id
+        LEFT JOIN u_user tu ON c.to_uid = tu.id
+        <where>
+            <if test="query.type != null">
+                c.type = #{query.type}
+            </if>
+            <if test="query.fromNickname != null">
+                and fu.nickname LIKE concat('%', #{query.fromNickname} ,'%')
+            </if>
+            <if test="query.isCheck != null">
+                and c.is_check = #{query.isCheck}
+            </if>
+            <if test="query.title != null">
+                and r.title like concat('%',#{query.title},'%') or q.title like concat('%',#{query.title},'%')
+            </if>
+        </where>
+        ORDER BY c.id DESC
+    </select>
+
+    <select id="selectCommentIdByParentId" resultType="java.lang.Integer">
+        SELECT id
+        FROM d_comment
+        WHERE parent_id = #{parentId}
+    </select>
+
+    <select id="selectRecentComment" resultType="com.vhans.bus.data.domain.Comment">
+        SELECT c.id,
+               u.nickname as from_nickname,
+               u.avatar,
+               c.content,
+               c.like_number,
+               c.create_time
+        FROM d_comment c
+                 INNER JOIN u_user u ON c.from_uid = u.id
+        WHERE c.is_check = 1
+        ORDER BY c.create_time DESC
+        LIMIT 5
+    </select>
+
+    <select id="selectParentComment" resultType="com.vhans.bus.data.domain.Comment">
+        SELECT c.id,
+        c.from_uid,
+        u.avatar,
+        u.nickname as from_nickname,
+        c.content,
+        c.like_number,
+        c.create_time
+        FROM d_comment c
+        INNER JOIN u_user u ON c.from_uid = u.id
+        WHERE c.is_check = 1 AND parent_id IS NULL
+        <if test="query.typeId != null">
+            AND type_id = #{query.typeId}
+        </if>
+        <if test="query.type != null">
+            AND type = #{query.type}
+        </if>
+        ORDER BY c.id DESC
+    </select>
+
+    <select id="selectReplyLimitByParentId" resultType="com.vhans.bus.data.domain.vo.ReplyVO">
+        SELECT c.id,
+               c.parent_id,
+               c.from_uid,
+               fu.avatar,
+               fu.nickname as from_nickname,
+               c.to_uid,
+               tu.nickname as to_nickname,
+               c.content,
+               c.like_number,
+               c.create_time
+        FROM d_comment c
+                 JOIN u_user fu ON c.from_uid = fu.id
+                 JOIN u_user tu ON c.to_uid = tu.id
+        WHERE c.is_check = 1
+          AND c.parent_id = #{commentId}
+        ORDER BY c.create_time
+        LIMIT 3
+    </select>
+
+    <select id="selectReplyByParentId" resultType="com.vhans.bus.data.domain.vo.ReplyVO">
+        SELECT c.id,
+               c.from_uid,
+               fu.avatar,
+               fu.nickname,
+               c.to_uid,
+               tu.nickname as to_nickname,
+               c.parent_id,
+               c.content,
+               c.like_number,
+               c.create_time
+        FROM d_comment c
+                 JOIN u_user fu ON c.from_uid = fu.id
+                 JOIN u_user tu ON c.to_uid = tu.id
+        WHERE c.is_check = 1
+          AND parent_id = #{commentId}
+        ORDER BY c.id
+    </select>
+</mapper>

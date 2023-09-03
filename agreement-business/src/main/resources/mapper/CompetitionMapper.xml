@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.agree.mapper.CompetitionMapper">
+
+    <select id="selectCompetitionVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT c.id,
+        c.user_id,
+        u.avatar,
+        u.nickname,
+        c.cover,
+        c.title,
+        c.people_number,
+        c.time_start,
+        c.time_end,
+        c.`status`,
+        c.is_wager
+        FROM a_competition c
+        LEFT JOIN u_user u ON c.user_id = u.id
+        <where>
+            <if test="query.title != null">
+                and c.title like concat('%',#{query.title},'%')
+            </if>
+            <if test="query.userId != null">
+                and c.user_id = #{query.userId}
+            </if>
+            <if test="query.status != null">
+                and c.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <select id="selectCompetitionInfoById" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT c.id,
+               c.user_id,
+               c.cover,
+               c.title,
+               c.content,
+               c.people_number,
+               c.is_wager,
+               c.wager_content,
+               c.time_start,
+               c.time_end,
+               c.`status`,
+               u.avatar,
+               u.nickname
+        From a_competition c
+                 LEFT JOIN u_user u on u.id = c.user_id
+        WHERE c.id = #{competitionId}
+    </select>
+
+    <select id="listCompetitionHomeVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT c.id,
+               c.cover,
+               c.user_id,
+               c.title,
+               c.time_start,
+               c.time_end,
+               u.avatar,
+               u.nickname
+        FROM a_competition c
+                 LEFT JOIN u_user u ON u.id = c.user_id
+        WHERE c.`status` = 1 OR c.`status` = 3
+        ORDER BY c.create_time DESC, c.time_start, c.time_end
+    </select>
+
+    <select id="selectCompetitionAgreementById" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        select c.id,
+               c.cover,
+               c.title,
+               c.content,
+               c.people_number,
+               c.is_wager,
+               c.wager_content,
+               c.time_start,
+               c.time_end,
+               c.user_id,
+               u.avatar,
+               u.nickname
+        from (SELECT id,
+                     user_id,
+                     cover,
+                     title,
+                     content,
+                     people_number,
+                     is_wager,
+                     wager_content,
+                     time_start,
+                     time_end
+              From a_competition
+              WHERE `status` = 1
+                AND id = #{competitionId}) c
+                 LEFT JOIN u_user u ON c.user_id = u.id
+    </select>
+
+    <select id="selectLastCompetition" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM a_competition
+        WHERE `status` = 1
+          AND id &lt; #{competitionId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextCompetition" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM a_competition
+        WHERE `status` = 1
+          AND id &gt; #{competitionId}
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="selectCompetitionExpire" resultType="Integer">
+        SELECT id
+        FROM a_competition
+        WHERE status != 5
+          AND sysdate() >= time_start;
+    </select>
+</mapper>

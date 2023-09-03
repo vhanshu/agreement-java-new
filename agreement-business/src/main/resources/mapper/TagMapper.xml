@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.data.mapper.TagMapper">
+
+    <select id="selectTag" resultType="com.vhans.bus.data.domain.Tag">
+        SELECT t.id, t.tag_name, t.create_time, tt.type, COUNT(t.id) as count
+        FROM d_tag t
+        LEFT JOIN d_tag_text tt
+        ON t.id = tt.tag_id
+        <where>
+            <if test="query.tagName != null">
+                t.tag_name like concat('%',#{query.tagName},'%')
+            </if>
+            <if test="query.type != null">
+                tt.type = #{query.type}
+            </if>
+        </where>
+        GROUP BY t.id
+        ORDER BY t.id DESC
+    </select>
+
+    <select id="selectTagList" resultType="com.vhans.bus.data.domain.Tag">
+        select id, tag_name from d_tag where tag_name in
+        <foreach collection="tagNameList" item="tagName" open="(" separator="," close=")">
+            #{tagName}
+        </foreach>
+    </select>
+
+    <select id="selectTagNameByTypeId" resultType="java.lang.String">
+        SELECT t.tag_name
+        FROM d_tag t
+                 INNER JOIN d_tag_text tt
+                            ON t.id = tt.tag_id AND tt.type = #{type}
+        WHERE tt.type_id = #{typeId}
+    </select>
+
+    <select id="selectTagByTypeId" resultType="com.vhans.bus.data.domain.vo.TagOptionVO">
+        SELECT t.id, t.tag_name
+        FROM d_tag t
+                 INNER JOIN d_tag_text tt
+                            ON t.id = tt.tag_id AND tt.type = #{type}
+        WHERE tt.type_id = #{typeId}
+    </select>
+
+    <select id="selectTagVOList" resultType="com.vhans.bus.data.domain.vo.TagStatisticsVO">
+        SELECT t.id,
+               t.tag_name,
+               COUNT(tt.tag_id) AS count
+        FROM d_tag t
+                 LEFT JOIN d_tag_text tt
+                           ON t.id = tt.tag_id
+        where tt.type = #{type}
+        GROUP BY t.id
+    </select>
+
+    <select id="selectTagOptionList" resultType="com.vhans.bus.data.domain.vo.TagOptionVO">
+        SELECT t.id, t.tag_name
+        FROM d_tag t
+                 INNER JOIN d_tag_text tt
+                            ON t.id = tt.tag_id AND tt.type = #{type}
+    </select>
+
+    <select id="selectTagOptionAllList" resultType="com.vhans.bus.data.domain.vo.TagOptionVO">
+        SELECT t.id, t.tag_name
+        FROM d_tag t
+    </select>
+
+</mapper>

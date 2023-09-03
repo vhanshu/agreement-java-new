@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.data.mapper.AgreeRecordMapper">
+
+    <select id="selectAgreeRecord" resultType="com.vhans.bus.data.domain.AgreeRecord">
+        SELECT id,
+        user_id,
+        cover,
+        title,
+        type,
+        like_number,
+        collect_number,
+        is_top,
+        is_check,
+        is_recommend,
+        is_delete,
+        `status`,
+        create_time
+        FROM d_agree_record
+        <where>
+            <if test="query.isDelete != null">
+                is_delete = #{query.isDelete}
+            </if>
+            <if test="query.isCheck != null">
+                and is_check = #{query.isCheck}
+            </if>
+            <if test="query.userId != null">
+                and user_id = #{query.userId}
+            </if>
+            <if test="query.title != null">
+                and title like concat('%',#{query.title},'%')
+            </if>
+            <if test="query.status != null">
+                and status = #{query.status}
+            </if>
+            <if test="query.type != null">
+                and type = #{query.type}
+            </if>
+        </where>
+        ORDER BY is_top DESC, is_recommend DESC, id DESC
+    </select>
+
+    <select id="searchRecord" resultType="com.vhans.core.web.model.vo.SearchVO">
+        SELECT id,
+        title,
+        type,
+        content,
+        is_check,
+        is_delete,
+        `status`
+        FROM d_agree_record
+        <where>
+            is_delete = 0 and `status` = 1
+            <if test="keyword != null">
+                and (title like concat('%',#{keyword},'%')
+                or content like concat('%',#{keyword},'%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRecordHomeById" resultType="com.vhans.bus.data.domain.AgreeRecord">
+        SELECT ar.id,
+               ar.user_id,
+               ar.cover,
+               ar.title,
+               ar.content,
+               ar.type,
+               ar.like_number,
+               ar.collect_number,
+               ar.is_top,
+               ar.is_check,
+               ar.is_recommend,
+               ar.is_delete,
+               ar.`status`,
+               ar.video,
+               ar.images,
+               ar.create_time,
+               ar.update_time,
+               u.nickname,
+               u.avatar
+        FROM d_agree_record ar
+                 LEFT JOIN u_user u ON u.id = ar.user_id
+        where ar.id = #{recordId}
+    </select>
+
+    <select id="listAgreeRecord" resultType="com.vhans.bus.data.domain.AgreeRecord">
+        SELECT r.id,
+        r.user_id,
+        r.cover,
+        r.type,
+        r.title,
+        SUBSTR(r.content, 1, 200) AS content,
+        r.images,
+        r.video,
+        r.like_number,
+        r.collect_number,
+        r.is_top,
+        r.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_agree_record r
+        LEFT JOIN u_user u ON u.id = r.user_id
+        <where>
+            is_delete = 0 and `status` = 1
+            <if test="keyword!=null">
+                and (r.title like concat('%',#{keyword},'%')
+                or u.nickname like concat('%',#{keyword},'%'))
+            </if>
+        </where>
+        ORDER BY is_top DESC, create_time DESC
+    </select>
+
+    <select id="selectLastRecord" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM d_agree_record
+        WHERE is_delete = 0
+          AND `status` = 1
+          AND id &lt; #{recordId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextRecord" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM d_agree_record
+        WHERE is_delete = 0
+          AND `status` = 1
+          AND id &gt; #{recordId}
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="selectOverviewRecordList" resultType="com.vhans.bus.data.domain.vo.OverviewVO">
+        select id, title, cover as img, type, create_time
+        from d_agree_record
+        where is_delete = 0
+          and `status` = 1
+        order by create_time
+    </select>
+
+    <select id="selectRecordStatistics" resultType="com.vhans.bus.data.domain.vo.StatisticsVO">
+        SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS date,
+               COUNT(*)                             AS count
+        FROM d_agree_record
+        GROUP BY date
+        ORDER BY date DESC
+    </select>
+</mapper>

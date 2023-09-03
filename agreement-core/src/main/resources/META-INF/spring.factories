@@ -1,0 +1,13 @@
+#org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+#  com.vhans.core.redis.RedisService,\
+#  com.vhans.core.config.properties.CosProperties,\
+#  com.vhans.core.config.properties.OssProperties,\
+#  com.vhans.core.strategy.context.UploadStrategyContext,\
+#  com.vhans.core.strategy.context.SearchStrategyContext,\
+#  com.vhans.core.strategy.context.LikeStrategyContext,\
+#  com.vhans.core.strategy.upload.LocalUploadStrategyImpl,\
+#  com.vhans.core.strategy.upload.CosUploadStrategyImpl,\
+#  com.vhans.core.strategy.upload.OssUploadStrategyImpl,\
+#  com.vhans.core.strategy.search.EsSearchStrategyImpl,\
+#  co.elastic.clients.elasticsearch.ElasticsearchClient
+

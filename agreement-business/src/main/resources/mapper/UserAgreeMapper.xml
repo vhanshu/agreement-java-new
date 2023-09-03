@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.vhans.bus.user.mapper.UserAgreeMapper">
+
+    <insert id="saveAppointmentUser">
+        insert into u_user_agree(agree_id, type,limit_type, user_id)
+        values (#{agreementId}, 1, 0, #{userId})
+    </insert>
+
+    <insert id="saveAppointmentDestinedUser">
+        insert into u_user_agree(agree_id, type,limit_type, user_id)
+        values (#{agreementId}, 1, 1, #{userId})
+    </insert>
+
+    <insert id="saveActivityUser">
+        insert into u_user_agree(agree_id, type,limit_type, user_id)
+        values (#{agreementId}, 2, 0, #{userId})
+    </insert>
+
+    <insert id="saveCompetitionUser">
+        insert into u_user_agree(agree_id, type,limit_type, user_id)
+        values (#{agreementId}, 3, 0, #{userId})
+    </insert>
+
+    <insert id="saveCompetitionAudience">
+        insert into u_user_agree(agree_id, type,limit_type, user_id)
+        values (#{agreementId}, 3, 2, #{userId})
+    </insert>
+
+    <insert id="saveHelpUser">
+        insert into u_user_agree(agree_id, type,limit_type, user_id)
+        values (#{agreementId}, 4, 0, #{userId})
+    </insert>
+
+    <select id="selectAppointmentUser" resultType="com.vhans.bus.user.domain.UserAgree">
+        select * from u_user_agree
+        where type = 1 and agree_id = #{appointmentId}
+            and (limit_type = 0 or limit_type = 1 and `status` = 1)
+    </select>
+
+    <select id="selectUserListByAgreeId" resultType="com.vhans.bus.user.domain.vo.UserIntroVO">
+        select ua.user_id,
+               u.avatar,
+               u.nickname,
+               u.intro
+        from u_user_agree ua
+                 left join u_user u on u.id = ua.user_id
+        where ua.agree_id = #{agreeId}
+          and ua.type = #{type}
+          and ua.limit_type = #{limitType}
+    </select>
+</mapper>

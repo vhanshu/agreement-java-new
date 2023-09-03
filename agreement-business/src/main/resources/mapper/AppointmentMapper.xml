@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.agree.mapper.AppointmentMapper">
+
+    <select id="selectAppointmentVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT a.id,
+        a.user_id,
+        u.avatar,
+        u.nickname,
+        a.cover,
+        a.title,
+        a.type,
+        a.time_start,
+        a.time_end,
+        a.`status`
+        FROM a_appointment a
+        LEFT JOIN u_user u ON a.user_id = u.id
+        <where>
+            <if test="query.title != null">
+                and a.title like concat('%',#{query.title},'%')
+            </if>
+            <if test="query.userId != null">
+                and a.user_id = #{query.userId}
+            </if>
+            <if test="query.status != null">
+                and a.status = #{query.status}
+            </if>
+            <if test="query.issuingType != null">
+                and a.type = #{query.issuingType}
+            </if>
+        </where>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectAppointmentInfoById" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT a.id,
+               a.user_id,
+               a.cover,
+               a.title,
+               a.content,
+               a.type,
+               a.time_start,
+               a.time_end,
+               a.`status`,
+               u.avatar,
+               u.nickname
+        FROM a_appointment a
+        LEFT JOIN u_user u on u.id = a.user_id
+        WHERE a.id = #{appointmentId}
+    </select>
+
+    <select id="listAppointmentHomeVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT a.id,
+               a.cover,
+               a.type,
+               a.title,
+               a.time_start,
+               a.time_end,
+               a.user_id,
+               u.avatar,
+               u.nickname
+        FROM a_appointment a
+                 LEFT JOIN u_user u ON u.id = a.user_id
+        WHERE a.type = 1
+          AND a.`status` = 1
+        ORDER BY a.create_time DESC, a.time_start, a.time_end
+    </select>
+
+    <select id="selectAppointmentAgreementById" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        select a.id,
+               a.cover,
+               a.title,
+               a.content,
+               a.time_start,
+               a.time_end,
+               a.user_id,
+               u.avatar,
+               u.nickname
+        from (SELECT id,
+                     user_id,
+                     cover,
+                     title,
+                     content,
+                     time_start,
+                     time_end
+              From a_appointment
+              WHERE type = #{type}
+                AND `status` = 1
+                AND id = #{appointmentId}) a
+                 LEFT JOIN u_user u ON a.user_id = u.id
+    </select>
+
+    <select id="selectLastAppointment" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM a_appointment
+        WHERE type = 1
+          AND `status` = 1
+          AND id &lt; #{appointmentId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextAppointment" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM a_appointment
+        WHERE type = 1
+          AND `status` = 1
+          AND id &gt; #{appointmentId}
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="selectAppointmentExpire" resultType="Integer">
+        SELECT id
+        FROM a_appointment
+        WHERE status != 5
+          AND sysdate() >= time_start;
+    </select>
+</mapper>

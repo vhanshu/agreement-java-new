@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.chat.mapper.GroupMsgMapper">
+
+    <select id="selectGroupMsgList" resultType="com.vhans.bus.chat.domain.GroupMsg">
+        select
+        id,
+        group_id,
+        user_id,
+        msg_type,
+        content,
+        create_time,
+        update_time
+        from c_group_msg
+        <where>
+            <if test="query.groupId != null">
+                group_id = #{query.groupId}
+            </if>
+            <if test="query.userId != null">
+                user_id = #{query.userId}
+            </if>
+            <if test="query.msgType != null">
+                and msg_type = #{query.msgType}
+            </if>
+            <if test="query.content != null">
+                and content like concat('%',#{query.content},'%')
+            </if>
+            <if test="query.startTime != null">
+                and date_format(create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d %H:%i:%s')
+            </if>
+            <if test="query.endTime != null">
+                and date_format(create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectGroupMsgInfoById" resultType="com.vhans.bus.chat.domain.GroupMsg">
+        select
+        id,
+        group_id,
+        user_id,
+        msg_type,
+        content,
+        create_time,
+        update_time
+        from c_group_msg
+        where id = #{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,36 @@
+package com.vhans.bus.website.service;
+
+import com.vhans.bus.website.domain.vo.WebsiteHomeInfoVO;
+import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
+
+/**
+ * 网站信息业务接口
+ *
+ * @author vhans
+ **/
+public interface IWebsiteInfoService {
+    /**
+     * 上传访客信息
+     */
+    void report();
+    /**
+     * 查看网站前台信息
+     *
+     * @return 网站信息
+     */
+    WebsiteHomeInfoVO getWebsiteHomeInfo();
+
+    /**
+     * 查看网站信息
+     *
+     * @return 网站后台信息
+     */
+    WebsiteInfoVO getWebsiteInfo();
+
+    /**
+     * 查看关于开发者信息
+     *
+     * @return 关于我信息
+     */
+    String getAbout();
+}

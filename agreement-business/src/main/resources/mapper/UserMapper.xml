@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.user.mapper.UserMapper">
+    <select id="listUser" resultType="com.vhans.bus.user.domain.User">
+        SELECT id,
+        nickname,
+        username,
+        avatar,
+        ip_address,
+        ip_source,
+        login_type,
+        login_time,
+        is_disable,
+        email,
+        degree,
+        grade,
+        create_time
+        FROM u_user
+        <where>
+            <if test="query.isDisable != null">
+                is_disable = #{query.isDisable}
+            </if>
+            <if test="query.loginType != null">
+                and login_type = #{query.loginType}
+            </if>
+            <if test="query.name != null">
+                and (nickname like concat('%',#{query.name},'%')
+                or username like concat('%',#{query.name},'%'))
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <update id="updateDegree">
+        UPDATE u_user
+        SET degree = degree + #{score}
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updateGrade">
+        UPDATE u_user
+        SET grade = grade + #{score}
+        WHERE id = #{userId}
+    </update>
+</mapper>

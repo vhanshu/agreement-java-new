@@ -1,0 +1,121 @@
+spring:
+  # 文件上传限制
+  servlet:
+    multipart:
+      max-request-size: 200MB
+      max-file-size: 200MB
+  # redis配置
+  redis:
+    host: 43.142.156.249
+    port: 6379
+    password: luowei4628@()
+    # 超时时间
+    timeout: 10s
+    lettuce:
+      pool:
+        # 连接池最大连接数
+        max-active: 150
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: 5000ms
+        # 连接池中的最大空闲连接
+        max-idle: 100
+        # 连接池中的最小空闲连接
+        min-idle: 50
+
+  # rabbitmq配置
+  rabbitmq:
+    host: 43.142.156.249
+    port: 5672
+    username: vhans
+    password: luowei4628@()
+    listener:
+      simple:
+        retry:
+          enabled: true
+          # 重试间隔时间
+          initial-interval: 3000
+          # 最大重试次数
+          max-attempts: 3
+
+  # 邮箱配置
+  mail:
+    host: smtp.qq.com
+    # 用户名
+    username: 2873585297@qq.com
+    # 授权码
+    password: wqbnyyssvlkrdcjc
+
+# 线程池配置
+thread:
+  pool:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 50
+    keep-alive-seconds: 60
+
+# 文件上传策略 local、oss、cos
+upload:
+  strategy: cos
+  local:
+    # nginx映射本地文件路径
+    url: https://uplaod.vhans.cloud
+    # 本地文件存储路径
+    path: /usr/local/docker/agreement/upload
+  # oss存储
+  oss:
+    url: http://Bucket域名
+    endpoint: OSS配置endpoint
+    bucketName: OSS配置bucketName
+    accessKeyId: OSS配置accessKeyId
+    accesskeySecret: OSS配置accesskeySecret
+  # cos存储
+  cos:
+    url: https://vhans-bucket-1314157378.cos.ap-shanghai.myqcloud.com
+    secretId: AKIDZzC6tTpAZoojY9Vt63jAbtxnTv621pQo
+    secretKey: GLCm6B3f23qQ1TlnY4QfiXErIcAXhdLr
+    region: ap-shanghai
+    bucketName: vhans-bucket-1314157378
+  # minio存储
+  minio:
+    endpointUrl: http://43.142.156.249:9000
+    accessKey: root
+    secretKey: luowei4628@()
+    bucketName: vhans
+
+# 搜索模式 可选 elasticsearch、mysql
+search:
+  mode: mysql
+
+# elasticsearch配置
+elasticsearch:
+  # elasticsearch用户名
+  username: elastic
+  password: luowei4628@()
+  hostname: 43.142.156.249
+  port: 9200
+  scheme: http
+  connTimeout: 1000
+  socketTimeout: 30000
+  connectionRequestTimeout: 5000
+
+# 第三方登录
+oauth:
+  gitee:
+    client-id: 976f80afb4fd019427661c5ec5ef298071b806d7a7682cc9966b8b58fd8b36b3
+    client-secret: 063c33a2dfc87f20856c754916a0f7b2cc96eec96a19eb39b26b78a9cc7bd061
+    grant_type: authorization_code
+#    redirect-url: https://agree.vhans.cloud/oauth/login/gitee
+    redirect-url: https://89a9-39-188-154-193.ngrok-free.app/oauth/login/gitee
+    access-token-url: https://gitee.com/oauth/token
+    user-info-url: https://gitee.com/api/v5/user?access_token={access_token}
+  github:
+    client-id: 3f55882bc21e719526c3
+    client-secret: 77fcf7496fd801764b7c6c0b2c5cd4de79d6e9cc
+#    redirect-url: https://agree.vhans.cloud/oauth/login/github
+    redirect-url: https://89a9-39-188-154-193.ngrok-free.app/oauth/login/github
+    access-token-url: https://github.com/login/oauth/access_token
+    user-info-url: https://api.github.com/user
+  qq:
+    app-id: QQ的APPID
+    check-token-url: https://graph.qq.com/oauth2.0/me?access_token={access_token}
+    user-info-url: https://graph.qq.com/user/get_user_info?openid={openid}&access_token={access_token}&oauth_consumer_key={oauth_consumer_key}

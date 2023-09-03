@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.chat.mapper.FriendMapper">
+
+    <select id="selectFriendList" resultType="com.vhans.bus.chat.domain.Friend">
+        select f.id,
+               f.user_id,
+               f.friend_id,
+               f.friend_remark,
+               f.create_time,
+               f.is_delete,
+               u.avatar,
+               u.login_time
+        from c_friend f
+                 left join u_user u on f.friend_id = u.id
+        <where>
+            <if test="query.friendRemark != null">
+                f.friend_remark like concat('%',#{query.friendRemark},'%')
+            </if>
+            <if test="query.userId != null">
+                and f.user_id = #{query.userId}
+            </if>
+            <if test="query.isDelete != null">
+                and f.is_delete = #{query.isDelete}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRecentConversation" resultType="com.vhans.bus.chat.domain.vo.ConversationVO">
+        select
+        f.friend_id as id,
+        f.friend_remark as name,
+        f.create_time as time,
+        f.is_delete,
+        u.avatar as img
+        from c_friend f
+        left join u_user u on u.id = f.friend_id
+        where f.user_id = #{userId}
+        and f.friend_id in
+        <foreach collection="friendIds" item="friendId" open="(" separator="," close=")">
+            #{friendId}
+        </foreach>
+    </select>
+
+</mapper>

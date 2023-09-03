@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.agree.mapper.HelpMapper">
+
+    <select id="selectHelpVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT h.id,
+        h.user_id,
+        u.avatar,
+        u.nickname,
+        h.cover,
+        h.title,
+        h.people_number,
+        h.time_start,
+        h.time_end,
+        h.`status`
+        FROM a_help h
+        LEFT JOIN u_user u ON h.user_id = u.id
+        <where>
+            <if test="query.title != null">
+                and h.title like concat('%',#{query.title},'%')
+            </if>
+            <if test="query.userId != null">
+                and h.user_id = #{query.userId}
+            </if>
+            <if test="query.status != null">
+                and h.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY h.create_time DESC
+    </select>
+
+    <select id="selectHelpInfoById" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT h.id,
+               h.user_id,
+               h.cover,
+               h.title,
+               h.content,
+               h.people_number,
+               h.reward,
+               h.time_start,
+               h.time_end,
+               h.`status`,
+               u.avatar,
+               u.nickname
+        From a_help h
+                 LEFT JOIN u_user u on u.id = h.user_id
+        WHERE h.id = #{helpId}
+    </select>
+
+    <select id="listHelpHomeVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        SELECT h.id,
+               h.cover,
+               h.user_id,
+               h.title,
+               h.time_start,
+               h.time_end,
+               u.avatar,
+               u.nickname
+        FROM a_help h
+                 LEFT JOIN u_user u ON u.id = h.user_id
+        WHERE h.`status` = 1
+        ORDER BY h.create_time DESC, h.time_start, h.time_end
+    </select>
+
+    <select id="selectHelpAgreementById" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
+        select h.id,
+               h.cover,
+               h.title,
+               h.content,
+               h.people_number,
+               h.reward,
+               h.time_start,
+               h.time_end,
+               h.user_id,
+               u.avatar,
+               u.nickname
+        from (SELECT id,
+                     user_id,
+                     cover,
+                     title,
+                     content,
+                     people_number,
+                     reward,
+                     time_start,
+                     time_end
+              From a_help
+              WHERE `status` = 1
+                AND id = #{helpId}) h
+                 LEFT JOIN u_user u ON h.user_id = u.id
+    </select>
+
+    <select id="selectLastHelp" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM a_help
+        WHERE `status` = 1
+          AND id &lt; #{helpId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextHelp" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM a_help
+        WHERE `status` = 1
+          AND id &gt; #{helpId}
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="selectHelpExpire" resultType="Integer">
+        SELECT id
+        FROM a_help
+        WHERE status != 5
+          AND sysdate() >= time_start;
+    </select>
+</mapper>
