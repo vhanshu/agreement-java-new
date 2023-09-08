@@ -106,12 +106,12 @@ public class AgreeController extends BaseController {
      *
      * @param agreeId 约起id
      * @param type    类型
-     * @return {@link Result<AgreeVO>} 约起info
+     * @return {@link Result<String>} 约起info
      */
     @SaCheckLogin
     @ApiOperation(value = "加入约起")
     @PostMapping("/join/{type}/{agreeId}")
-    public Result<?> joinAgreement(@PathVariable Integer type, @PathVariable Integer agreeId) {
+    public Result<String> joinAgreement(@PathVariable Integer type, @PathVariable Integer agreeId) {
         return Result.success(agreeService.joinAgreement(agreeId, type));
     }
 

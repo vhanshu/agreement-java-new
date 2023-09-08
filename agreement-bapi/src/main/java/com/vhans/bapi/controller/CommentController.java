@@ -98,8 +98,11 @@ public class CommentController extends BaseController {
      */
     @ApiOperation(value = "查看回复评论")
     @GetMapping("/{commentId}/reply")
-    public Result<List<ReplyVO>> listReply(@PathVariable("commentId") Integer commentId) {
-        return Result.success(commentService.listReply(commentId));
+    public TableDataInfo<ReplyVO> listReply(@PathVariable("commentId") Integer commentId) {
+        startPage();
+        List<ReplyVO> list = commentService.listReply(commentId);
+        clearPage();
+        return getDataTable(list);
     }
 
 }
