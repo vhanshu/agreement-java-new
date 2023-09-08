@@ -83,7 +83,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         users.add(ctx.channel());
-        log.info("channelId[ {} ]获得连接", ctx.channel().id().asShortText());
+        log.info("获得连接,channelId={}", ctx.channel().id().asShortText());
     }
 
     /**
@@ -110,14 +110,17 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     }
 
     /**
-     * 处理 websocket 第一次open的时候
+     * 处理 websocket 第一次open的时候,绑定channel和userid,同时发送用户在线ids
      */
     private void connect(DataContent content, Channel channel) {
         // 把channel和userid关联起来
         manager.put(content.getExtend().getUserId(), channel);
-        log.info("开始打印用户连接信息");
         for (Map.Entry<Integer, Channel> entry : manager.entrySet()) {
             log.info("UserId={},ChannelId={} 连接成功", entry.getKey(), entry.getValue().id().asLongText());
+            Channel chanel = getChanel(entry.getKey());
+            if (StringUtils.isNotNull(chanel)) {
+                chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(getOnlineUserIds())));
+            }
         }
     }
 
@@ -127,12 +130,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private void chat(DataContent content) {
         Msg chatMsg = content.getChatMsg();
         // 保存消息到数据库
-        content.setChatMsg(msgService.insertMsg(Msg.builder()
-                .fromUid(chatMsg.getFromUid())
-                .toUid(chatMsg.getToUid())
-                .msgType(chatMsg.getMsgType())
-                .content(chatMsg.getContent())
-                .build()));
+        content.setChatMsg(msgService.insertMsg(chatMsg));
         // 给自己发送成功消息
         Channel fromUidChannel = manager.get(chatMsg.getFromUid());
         fromUidChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
@@ -154,12 +152,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         // 群消息发送
         GroupMsg chatGroupMsg = content.getChatGroupMsg();
         // 保存消息到数据库
-        content.setChatGroupMsg(groupMsgService.insertGroupMsg(GroupMsg.builder()
-                .groupId(chatGroupMsg.getGroupId())
-                .userId(chatGroupMsg.getUserId())
-                .msgType(chatGroupMsg.getMsgType())
-                .content(chatGroupMsg.getContent())
-                .build()));
+        content.setChatGroupMsg(groupMsgService.insertGroupMsg(chatGroupMsg));
         // 获取群用户ids
         List<Integer> userIds = groupService.getUserIds(chatGroupMsg.getGroupId());
         // 在指定群给所有在线群用户发送信息
@@ -182,12 +175,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         // 好友请求
         if (chatRequest.getType() == 1) {
             // 保存请求到数据库
-            content.setChatRequest(requestService.insertRequest(Request.builder()
-                    .type(chatRequest.getType())
-                    .fromUid(chatRequest.getFromUid())
-                    .toUid(chatRequest.getToUid())
-                    .reason(chatRequest.getReason())
-                    .build()));
+            content.setChatRequest(requestService.insertRequest(chatRequest));
             // 发送请求 从全局用户Channel关系中获取接受方的channel
             Channel chanel = getChanel(chatRequest.getToUid());
             if (StringUtils.isNotNull(chanel)) {
@@ -201,13 +189,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         // 入群请求
         else if (chatRequest.getType() == 2) {
             // 保存请求到数据库
-            content.setChatRequest(requestService.insertRequest(Request.builder()
-                    .groupId(chatRequest.getGroupId())
-                    .type(chatRequest.getType())
-                    .fromUid(chatRequest.getFromUid())
-                    .toUid(chatRequest.getToUid())
-                    .reason(chatRequest.getReason())
-                    .build()));
+            content.setChatRequest(requestService.insertRequest(chatRequest));
             // 群主id
             Integer masterId = groupService.selectGroupInfoById(chatRequest.getGroupId()).getMasterId();
             // 发送请求 从全局用户Channel关系中获取群主的channel
@@ -385,6 +367,13 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private Channel getChanel(Integer userId) {
         Channel toChannel = manager.get(userId);
         return StringUtils.isNotNull(toChannel) ? users.find(toChannel.id()) : null;
+    }
+
+    /**
+     * 获取在线用户ids
+     */
+    private List<Integer> getOnlineUserIds() {
+        return manager.keySet().stream().toList();
     }
 
     /**
