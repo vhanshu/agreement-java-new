@@ -4,45 +4,47 @@
 
     <select id="selectGroupMsgList" resultType="com.vhans.bus.chat.domain.GroupMsg">
         select
-        id,
-        group_id,
-        user_id,
-        msg_type,
-        content,
-        create_time,
-        update_time
-        from c_group_msg
+        gm.id,
+        gm.group_id,
+        gm.user_id,
+        gm.msg_type,
+        gm.content,
+        gm.create_time,
+        gm.update_time,
+        u.avatar,
+        u.nickname
+        from c_group_msg gm
+        left join u_user u on u.id = gm.user_id
         <where>
             <if test="query.groupId != null">
-                group_id = #{query.groupId}
+                gm.group_id = #{query.groupId}
             </if>
             <if test="query.userId != null">
-                user_id = #{query.userId}
+                and gm.user_id = #{query.userId}
             </if>
             <if test="query.msgType != null">
-                and msg_type = #{query.msgType}
+                and gm.msg_type = #{query.msgType}
             </if>
             <if test="query.content != null">
-                and content like concat('%',#{query.content},'%')
+                and gm.content like concat('%',#{query.content},'%')
             </if>
             <if test="query.startTime != null">
-                and date_format(create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d %H:%i:%s')
+                and gm.date_format(create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d %H:%i:%s')
             </if>
             <if test="query.endTime != null">
-                and date_format(create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
+                and gm.date_format(create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
             </if>
         </where>
     </select>
 
     <select id="selectGroupMsgInfoById" resultType="com.vhans.bus.chat.domain.GroupMsg">
-        select
-        id,
-        group_id,
-        user_id,
-        msg_type,
-        content,
-        create_time,
-        update_time
+        select id,
+               group_id,
+               user_id,
+               msg_type,
+               content,
+               create_time,
+               update_time
         from c_group_msg
         where id = #{id}
     </select>

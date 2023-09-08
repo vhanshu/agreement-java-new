@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.GroupMsg;
 import com.vhans.bus.chat.mapper.GroupMsgMapper;
 import com.vhans.bus.chat.service.IGroupMsgService;
-import com.vhans.core.utils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +28,8 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
 
     @Override
     public GroupMsg insertGroupMsg(GroupMsg groupMsg) {
-        // 要添加的群聊天信息
-        GroupMsg newGroupMsg = BeanUtils.copyBean(groupMsg, GroupMsg.class);
-        groupMsgMapper.insert(newGroupMsg);
-        return newGroupMsg;
+        groupMsgMapper.insert(groupMsg);
+        return groupMsg;
     }
 
     @Override
@@ -58,7 +55,8 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
 
     @Override
     public List<GroupMsg> getRecentGroupMsg(Integer groupId) {
-        return groupMsgMapper.selectList(new LambdaQueryWrapper<GroupMsg>()
-                .eq(GroupMsg::getGroupId, groupId));
+        GroupMsg.Query query = new GroupMsg.Query();
+        query.setGroupId(groupId);
+        return groupMsgMapper.selectGroupMsgList(query);
     }
 }

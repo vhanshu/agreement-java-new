@@ -75,6 +75,21 @@ public class GroupMsg {
     @ApiModelProperty(value = "更新时间")
     private LocalDateTime updateTime;
 
+    /* 除数据表的额外字段 */
+    /**
+     * 用户头像
+     */
+    @ApiModelProperty(value = "用户头像")
+    @TableField(exist = false)
+    private String avatar;
+
+    /**
+     * 用户昵称
+     */
+    @ApiModelProperty(value = "用户昵称")
+    @TableField(exist = false)
+    private String nickname;
+
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {
