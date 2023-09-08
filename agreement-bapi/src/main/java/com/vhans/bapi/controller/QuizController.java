@@ -2,8 +2,8 @@ package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.service.IQuizService;
 import com.vhans.bus.data.domain.vo.OverviewVO;
+import com.vhans.bus.data.service.IQuizService;
 import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.annotation.VisitLogger;
 import com.vhans.core.enums.LikeTypeEnum;
@@ -18,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
