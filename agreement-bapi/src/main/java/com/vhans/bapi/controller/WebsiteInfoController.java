@@ -1,8 +1,10 @@
 package com.vhans.bapi.controller;
 
+import com.vhans.bus.website.domain.SiteConfig;
+import com.vhans.bus.website.service.ISiteConfigService;
 import com.vhans.core.annotation.VisitLogger;
 import com.vhans.core.web.model.Result;
-import com.vhans.bus.website.domain.vo.WebsiteHomeInfoVO;
+import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
 import com.vhans.bus.website.service.IWebsiteInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -23,6 +25,9 @@ public class WebsiteInfoController {
     @Autowired
     private IWebsiteInfoService websiteInfoService;
 
+    @Autowired
+    public ISiteConfigService siteConfigService;
+
     /**
      * 上传访客信息
      *
@@ -38,13 +43,25 @@ public class WebsiteInfoController {
     /**
      * 查看网站信息
      *
-     * @return {@link Result<WebsiteHomeInfoVO>}  网站信息
+     * @return {@link Result<WebsiteInfoVO>}  网站信息
      */
     @ApiOperation(value = "查看网站信息")
     @GetMapping("/info")
-    public Result<WebsiteHomeInfoVO> getBlogInfo() {
-        return Result.success(websiteInfoService.getWebsiteHomeInfo());
+    public Result<WebsiteInfoVO> getWebInfo() {
+        return Result.success(websiteInfoService.getWebsiteInfo());
     }
+
+    /**
+     * 查看系统配置信息
+     *
+     * @return {@link Result<SiteConfig>}  配置信息
+     */
+    @ApiOperation(value = "查看系统配置信息")
+    @GetMapping("/config")
+    public Result<SiteConfig> getSiteInfo() {
+        return Result.success(siteConfigService.getSiteConfig());
+    }
+
 
     /**
      * 查看关于我信息

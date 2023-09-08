@@ -56,7 +56,7 @@ public class WebsiteInfoVO {
      * 标签列表
      */
     @ApiModelProperty(value = "标签列表")
-    private List<TagOptionVO> tagVOList;
+    private List<TagOptionVO> tagList;
 
     /**
      * 记录贡献统计
@@ -67,24 +67,24 @@ public class WebsiteInfoVO {
     /**
      * 题目贡献统计
      */
-    @ApiModelProperty(value = "记录贡献统计")
+    @ApiModelProperty(value = "题目贡献统计")
     private List<StatisticsVO> quizStatisticsList;
 
     /**
      * 记录浏览量排行
      */
     @ApiModelProperty(value = "记录浏览量排行")
-    private List<RankVO> recordRankVOList;
+    private List<RankVO> recordRankList;
 
     /**
      * 题目浏览量排行
      */
     @ApiModelProperty(value = "题目浏览量排行")
-    private List<RankVO> quizRankVOList;
+    private List<RankVO> quizRankList;
 
     /**
      * 一周访问量
      */
     @ApiModelProperty(value = "一周访问量")
-    private List<UserViewVO> userViewVOList;
+    private List<UserViewVO> userViewList;
 }

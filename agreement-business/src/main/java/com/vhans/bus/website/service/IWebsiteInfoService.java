@@ -1,6 +1,5 @@
 package com.vhans.bus.website.service;
 
-import com.vhans.bus.website.domain.vo.WebsiteHomeInfoVO;
 import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
 
 /**
@@ -13,12 +12,6 @@ public interface IWebsiteInfoService {
      * 上传访客信息
      */
     void report();
-    /**
-     * 查看网站前台信息
-     *
-     * @return 网站信息
-     */
-    WebsiteHomeInfoVO getWebsiteHomeInfo();
 
     /**
      * 查看网站信息

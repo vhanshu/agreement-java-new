@@ -37,7 +37,7 @@ public class CommentDTO {
     private Integer typeId;
 
     /**
-     * 评论类型 (1记录 2题目)
+     * 评论类型(1记录 2题目)
      */
     @CommentType(values = {1, 2}, message = "评论类型只能为1记录、2题目")
     @NotNull(message = "评论类型不能为空")

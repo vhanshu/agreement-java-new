@@ -5,12 +5,12 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * 记录贡献统计
+ * 数据统计
  *
  * @author vhans
  */
 @Data
-@ApiModel(description = "记录贡献统计")
+@ApiModel(description = "数据统计")
 public class StatisticsVO {
     /**
      * 日期

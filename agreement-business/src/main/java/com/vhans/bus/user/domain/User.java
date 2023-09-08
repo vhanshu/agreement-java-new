@@ -91,15 +91,15 @@ public class User {
     private String ipSource;
 
     /**
-     * 登录方式 (1邮箱 2QQ 3Gitee 4Github)
+     * 登录方式(1邮箱 2QQ 3Gitee 4Github)
      */
-    @ApiModelProperty(value = "登录方式 (1邮箱 2QQ 3Gitee 4Github)")
+    @ApiModelProperty(value = "登录方式(1邮箱 2QQ 3Gitee 4Github)")
     private Integer loginType;
 
     /**
-     * 是否禁用 (0否 1是)
+     * 是否禁用(0否 1是)
      */
-    @ApiModelProperty(value = "是否禁用 (0否 1是)")
+    @ApiModelProperty(value = "是否禁用(0否 1是)")
     private Integer isDisable;
 
     /**
@@ -132,15 +132,15 @@ public class User {
         private String name;
 
         /**
-         * 登录方式 (1邮箱 2QQ 3Gitee 4Github)
+         * 登录方式(1邮箱 2QQ 3Gitee 4Github)
          */
-        @ApiModelProperty(value = "登录方式 (1邮箱 2QQ 3Gitee 4Github)")
+        @ApiModelProperty(value = "登录方式(1邮箱 2QQ 3Gitee 4Github)")
         private Integer loginType;
 
         /**
-         * 是否禁用 (0否 1是)
+         * 是否禁用(0否 1是)
          */
-        @ApiModelProperty(value = "是否禁用 (0否 1是)")
+        @ApiModelProperty(value = "是否禁用(0否 1是)")
         private Integer isDisable;
     }
 }

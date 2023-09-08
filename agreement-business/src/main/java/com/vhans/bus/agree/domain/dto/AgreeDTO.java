@@ -106,7 +106,7 @@ public class AgreeDTO {
      * 约起人员
      */
     @ApiModelProperty(value = "约起人员")
-    private List<UserIntroVO> userIntroVOList;
+    private List<UserIntroVO> userList;
 
     /**
      * 发出类型 (1广播 2指定)
@@ -145,7 +145,7 @@ public class AgreeDTO {
     @AssertTrue(message = "请指定您的挚爱", groups = {Appointment.class})
     public boolean isUserIntroListValid() {
         if (StringUtils.isNotNull(type) && type == TWO) {
-            return StringUtils.isNotEmpty(userIntroVOList);
+            return StringUtils.isNotEmpty(userList);
         }
         return true;
     }

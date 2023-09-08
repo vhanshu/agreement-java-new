@@ -61,9 +61,9 @@ public class FileRecord {
     private String filePath;
 
     /**
-     * 是否为目录 (0否 1是)
+     * 是否为目录(0否 1是)
      */
-    @ApiModelProperty(value = "是否为目录 (0否 1是)")
+    @ApiModelProperty(value = "是否为目录(0否 1是)")
     private Integer isDir;
 
     /**

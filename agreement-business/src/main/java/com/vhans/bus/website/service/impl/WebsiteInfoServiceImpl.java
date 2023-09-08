@@ -14,19 +14,17 @@ import com.vhans.bus.agree.service.ICompetitionService;
 import com.vhans.bus.agree.service.IHelpService;
 import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.mapper.AgreeRecordMapper;
-import com.vhans.bus.data.mapper.QuizMapper;
-import com.vhans.bus.data.mapper.TagMapper;
-import com.vhans.bus.log.mapper.VisitLogMapper;
 import com.vhans.bus.data.domain.vo.RankVO;
 import com.vhans.bus.data.domain.vo.StatisticsVO;
 import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.mapper.AgreeRecordMapper;
+import com.vhans.bus.data.mapper.QuizMapper;
+import com.vhans.bus.data.mapper.TagMapper;
 import com.vhans.bus.log.domain.vo.UserViewVO;
-import com.vhans.bus.website.domain.vo.WebsiteHomeInfoVO;
-import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
+import com.vhans.bus.log.mapper.VisitLogMapper;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.bus.website.domain.SiteConfig;
-import com.vhans.bus.website.service.ISiteConfigService;
+import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
 import com.vhans.bus.website.service.IWebsiteInfoService;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.utils.SpringUtils;
@@ -45,7 +43,6 @@ import static com.vhans.core.constant.NumberConstant.ONE;
 import static com.vhans.core.constant.NumberConstant.THREE;
 import static com.vhans.core.constant.RedisConstant.*;
 import static com.vhans.core.enums.CheckStatusEnum.PASS;
-import static com.vhans.core.enums.RecordStatusEnum.PUBLIC;
 
 /**
  * 网站信息业务接口实现类
@@ -74,9 +71,6 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
     private RedisService redisService;
 
     @Autowired
-    private ISiteConfigService siteConfigService;
-
-    @Autowired
     private HttpServletRequest request;
 
     @Override
@@ -97,30 +91,6 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
             // 保存唯一标识
             redisService.setSet(UNIQUE_VISITOR, md5);
         }
-    }
-
-    @Override
-    public WebsiteHomeInfoVO getWebsiteHomeInfo() {
-        // 记录数量
-        Long recordCount = agreeRecordMapper.selectCount(new LambdaQueryWrapper<AgreeRecord>()
-                .eq(AgreeRecord::getStatus, PUBLIC.getStatus()).eq(AgreeRecord::getIsDelete, FALSE));
-        // 题目数量
-        Long quizCount = quizMapper.selectCount(new LambdaQueryWrapper<Quiz>()
-                .eq(Quiz::getIsCheck, PASS.getStatus()));
-        // 标签数量
-        Long tagCount = tagMapper.selectCount(null);
-        // 网站访问量
-        Integer count = redisService.getObject(WEBSITE_VIEW_COUNT);
-        String viewCount = Optional.ofNullable(count).orElse(0).toString();
-        // 网站配置
-        SiteConfig siteConfig = siteConfigService.getSiteConfig();
-        return WebsiteHomeInfoVO.builder()
-                .recordCount(recordCount)
-                .quizCount(quizCount)
-                .tagCount(tagCount)
-                .viewCount(viewCount)
-                .siteConfig(siteConfig)
-                .build();
     }
 
     @Override
@@ -151,8 +121,8 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
         Map<Object, Double> recordMap = redisService.zReverseRangeWithScore(RECORD_VIEW_COUNT, 0, 4);
         // 查询访问量前五的题目
         Map<Object, Double> quizMap = redisService.zReverseRangeWithScore(QUIZ_VIEW_COUNT, 0, 4);
-        WebsiteInfoVO websiteInfoVO = WebsiteInfoVO.builder()
-                .tagVOList(tagVOList)
+        WebsiteInfoVO websiteInfo = WebsiteInfoVO.builder()
+                .tagList(tagVOList)
                 .viewCount(viewCount)
                 .userCount(userCount)
                 .recordCount(recordCount)
@@ -160,17 +130,17 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
                 .agreeCount(agreeCount)
                 .recordStatisticsList(recordStatisticsList)
                 .quizStatisticsList(quizStatisticsList)
-                .userViewVOList(userViewVOList)
+                .userViewList(userViewVOList)
                 .build();
         if (CollectionUtils.isNotEmpty(recordMap)) {
             // 查询记录排行
             List<RankVO> recordRankVOList = listRecordRank(recordMap);
-            websiteInfoVO.setRecordRankVOList(recordRankVOList);
+            websiteInfo.setRecordRankList(recordRankVOList);
             // 查询题目排行
             List<RankVO> quizRankVOList = listQuizRank(quizMap);
-            websiteInfoVO.setQuizRankVOList(quizRankVOList);
+            websiteInfo.setQuizRankList(quizRankVOList);
         }
-        return websiteInfoVO;
+        return websiteInfo;
     }
 
     @Override
