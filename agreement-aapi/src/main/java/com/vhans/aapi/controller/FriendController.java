@@ -31,14 +31,15 @@ public class FriendController extends BaseController {
      * 查询好友列表
      *
      * @param query 条件
-     * @return 题目列表
+     * @return {@link Friend} 好友列表
      */
     @ApiOperation(value = "查询好友列表")
 //    @SaCheckPermission("chat:friend:list")
     @GetMapping("/list")
-    public TableDataInfo list(Friend.Query query) {
+    public TableDataInfo<Friend> list(Friend.Query query) {
         startPage();
         List<Friend> list = friendService.selectFriendList(query);
+        clearPage();
         return getDataTable(list);
     }
 }

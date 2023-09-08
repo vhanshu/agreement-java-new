@@ -32,14 +32,15 @@ public class AgreeController extends BaseController {
     /**
      * 查看约起列表
      *
-     * @return {@link TableDataInfo}
+     * @return {@link AgreeVO}
      */
     @VisitLogger(value = "约起中心")
     @ApiOperation(value = "查看约起列表")
     @GetMapping("/list/{type}")
-    public TableDataInfo listAgreementVO(@PathVariable Integer type) {
+    public TableDataInfo<AgreeVO> listAgreementVO(@PathVariable Integer type) {
         startPage();
         List<AgreeVO> list = agreeService.listAgreementHomeVO(type);
+        clearPage();
         return getDataTable(list);
     }
 

@@ -137,14 +137,15 @@ public class AgreeRecordController extends BaseController {
      * 查看前台记录列表
      *
      * @param keyword 标题或者发起人昵称
-     * @return {@link Result<AgreeRecord>} 记录列表
+     * @return {@link AgreeRecord} 记录列表
      */
     @VisitLogger(value = "记录中心")
     @ApiOperation(value = "查看前台记录列表")
     @GetMapping("/list")
-    public TableDataInfo listAgreeRecord(String keyword) {
+    public TableDataInfo<AgreeRecord> listAgreeRecord(String keyword) {
         startPage();
         List<AgreeRecord> list = recordService.listHomeAgreeRecord(keyword);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -174,14 +175,15 @@ public class AgreeRecordController extends BaseController {
     /**
      * 查看记录总览
      *
-     * @return {@link TableDataInfo} 记录总览列表
+     * @return {@link OverviewVO} 记录总览列表
      */
     @VisitLogger(value = "总览")
     @ApiOperation(value = "查看记录总览")
     @GetMapping("/overview")
-    public TableDataInfo listRecordOverviewVO() {
+    public TableDataInfo<OverviewVO> listRecordOverviewVO() {
         startPage();
         List<OverviewVO> list = recordService.listRecordOverviewVO();
+        clearPage();
         return getDataTable(list);
     }
 

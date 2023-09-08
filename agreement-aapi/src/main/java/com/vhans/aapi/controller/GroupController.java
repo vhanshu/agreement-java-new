@@ -25,6 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/group")
 public class GroupController extends BaseController {
+
     @Autowired
     private IGroupService groupService;
 
@@ -37,9 +38,10 @@ public class GroupController extends BaseController {
     @ApiOperation(value = "查询群组列表")
 //    @SaCheckPermission("chat:group:list")
     @GetMapping("/list")
-    public TableDataInfo list(Group.Query query) {
+    public TableDataInfo<Group> list(Group.Query query) {
         startPage();
         List<Group> list = groupService.selectGroupList(query);
+        clearPage();
         return getDataTable(list);
     }
 

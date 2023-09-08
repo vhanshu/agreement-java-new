@@ -41,9 +41,10 @@ public class RoleController extends BaseController {
     @ApiOperation(value = "查看角色列表")
     @SaCheckPermission("system:role:list")
     @GetMapping("/list")
-    public TableDataInfo listRoleVO(Role.Query query) {
+    public TableDataInfo<Role> listRoleVO(Role.Query query) {
         startPage();
         List<Role> list = roleService.listRoleVO(query);
+        clearPage();
         return getDataTable(list);
     }
 

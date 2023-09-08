@@ -41,9 +41,10 @@ public class UserController extends BaseController {
     @ApiOperation(value = "查看用户列表")
     @SaCheckPermission("web:user:list")
     @GetMapping("/list")
-    public TableDataInfo listUserBackVO(User.Query query) {
+    public TableDataInfo<User> listUserBackVO(User.Query query) {
         startPage();
         List<User> list = userService.listUser(query);
+        clearPage();
         return getDataTable(list);
     }
 

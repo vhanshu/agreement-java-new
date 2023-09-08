@@ -45,7 +45,7 @@ public class AgreeRecordController extends BaseController {
     @ApiOperation(value = "查看记录列表")
     @SaCheckPermission("agree:record:list")
     @GetMapping("/list")
-    public TableDataInfo listAgreeRecord(AgreeRecord.Query query) {
+    public TableDataInfo<AgreeRecord> listAgreeRecord(AgreeRecord.Query query) {
         startPage();
         List<AgreeRecord> list = recordService.listAgreeRecord(query);
         return getDataTable(list);

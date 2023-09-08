@@ -121,14 +121,15 @@ public class QuizController extends BaseController {
     /**
      * 查看前台题目列表
      *
-     * @return {@link Result<Quiz>}
+     * @return {@link Quiz}
      */
     @VisitLogger(value = "学习中心")
     @ApiOperation(value = "查看前台题目列表")
     @GetMapping("/list")
-    public TableDataInfo listQuizStudyVO() {
+    public TableDataInfo<Quiz> listQuizStudyVO() {
         startPage();
         List<Quiz> list = quizService.listQuizHome();
+        clearPage();
         return getDataTable(list);
     }
 
@@ -158,14 +159,15 @@ public class QuizController extends BaseController {
     /**
      * 查看题目总览
      *
-     * @return {@link TableDataInfo} 题目总览列表
+     * @return {@link OverviewVO} 题目总览列表
      */
     @VisitLogger(value = "总览")
     @ApiOperation(value = "查看题目总览")
     @GetMapping("/overview")
-    public TableDataInfo listQuizOverviewVO() {
+    public TableDataInfo<OverviewVO> listQuizOverviewVO() {
         startPage();
         List<OverviewVO> list = quizService.listQuizOverviewVO();
+        clearPage();
         return getDataTable(list);
     }
 }

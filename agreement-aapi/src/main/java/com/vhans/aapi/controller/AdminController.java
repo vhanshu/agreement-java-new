@@ -71,9 +71,10 @@ public class AdminController extends BaseController {
     @ApiOperation(value = "查看管理员列表")
     @SaCheckPermission("system:admin:list")
     @GetMapping("/list")
-    public TableDataInfo listAdminVO(Admin.Query query) {
+    public TableDataInfo<Admin> listAdminVO(Admin.Query query) {
         startPage();
         List<Admin> list = adminService.listAdmin(query);
+        clearPage();
         return getDataTable(list);
     }
 

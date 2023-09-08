@@ -38,9 +38,10 @@ public class MsgController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "获取聊天列表")
     @GetMapping("/list")
-    public TableDataInfo listRecent(Integer friendId) {
+    public TableDataInfo<Msg> listRecent(Integer friendId) {
         startPage();
         List<Msg> list = msgService.getRecentMsg(friendId);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -66,9 +67,10 @@ public class MsgController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "查询用户历史聊天记录")
     @GetMapping("/listHistory")
-    public TableDataInfo listHistory(Msg.Query query) {
+    public TableDataInfo<Msg> listHistory(Msg.Query query) {
         startPage();
         List<Msg> list = msgService.selectMsgList(query);
+        clearPage();
         return getDataTable(list);
     }
 }

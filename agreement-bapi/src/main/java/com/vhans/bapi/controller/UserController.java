@@ -107,14 +107,15 @@ public class UserController extends BaseController {
      * 获取用户发布的约起
      *
      * @param type 约起类型
-     * @return 发布的约起
+     * @return {@link AgreeVO} 发布的约起
      */
     @SaCheckLogin
     @ApiOperation(value = "获取用户发布的约起")
     @GetMapping("/getAgree/issue/{type}")
-    public TableDataInfo getIssueAgreement(@PathVariable Integer type) {
+    public TableDataInfo<AgreeVO> getIssueAgreement(@PathVariable Integer type) {
         startPage();
         List<AgreeVO> list = userService.getIssueAgree(type);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -133,28 +134,30 @@ public class UserController extends BaseController {
     /**
      * 获取用户发表的记录
      *
-     * @return 发表的记录
+     * @return {@link AgreeRecord} 发表的记录
      */
     @SaCheckLogin
     @ApiOperation(value = "获取用户发表的记录")
     @GetMapping("/getRecord/issue")
-    public TableDataInfo getIssueRecord() {
+    public TableDataInfo<AgreeRecord> getIssueRecord() {
         startPage();
         List<AgreeRecord> list = userService.getIssueRecord();
+        clearPage();
         return getDataTable(list);
     }
 
     /**
      * 获取用户发表的题目
      *
-     * @return 发表的题目
+     * @return {@link Quiz} 发表的题目
      */
     @SaCheckLogin
     @ApiOperation(value = "获取用户发表的题目")
     @GetMapping("/getQuiz/issue")
-    public TableDataInfo getIssueQuiz() {
+    public TableDataInfo<Quiz> getIssueQuiz() {
         startPage();
         List<Quiz> list = userService.getIssueQuiz();
+        clearPage();
         return getDataTable(list);
     }
 

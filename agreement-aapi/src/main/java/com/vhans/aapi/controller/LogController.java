@@ -50,9 +50,10 @@ public class LogController extends BaseController {
     @ApiOperation(value = "查看操作日志")
     @SaCheckPermission("log:operation:list")
     @GetMapping("/operation/list")
-    public TableDataInfo listOperationLogVO(OperationLog.Query query) {
+    public TableDataInfo<OperationLog> listOperationLogVO(OperationLog.Query query) {
         startPage();
         List<OperationLog> list = operationLogService.listOperationLog(query);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -74,14 +75,15 @@ public class LogController extends BaseController {
      * 查看异常日志
      *
      * @param query 条件
-     * @return {@link OperationLog} 异常日志列表
+     * @return {@link ExceptionLog} 异常日志列表
      */
     @ApiOperation(value = "查看异常日志")
     @SaCheckPermission("log:exception:list")
     @GetMapping("/exception/list")
-    public TableDataInfo listExceptionLog(ExceptionLog.Query query) {
+    public TableDataInfo<ExceptionLog> listExceptionLog(ExceptionLog.Query query) {
         startPage();
         List<ExceptionLog> list = exceptionLogService.listExceptionLog(query);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -108,9 +110,10 @@ public class LogController extends BaseController {
     @ApiOperation(value = "查看访问日志")
     @SaCheckPermission("log:visit:list")
     @GetMapping("/visit/list")
-    public TableDataInfo listVisitLog(VisitLog.Query query) {
+    public TableDataInfo<VisitLog> listVisitLog(VisitLog.Query query) {
         startPage();
         List<VisitLog> list = visitLogService.listVisitLog(query);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -137,9 +140,10 @@ public class LogController extends BaseController {
     @ApiOperation("查看定时任务日志")
     @SaCheckPermission("log:task:list")
     @GetMapping("/taskLog/list")
-    public TableDataInfo listTaskLog(TaskLog.Query query) {
+    public TableDataInfo<TaskLog> listTaskLog(TaskLog.Query query) {
         startPage();
         List<TaskLog> list = taskLogService.listTaskLog(query);
+        clearPage();
         return getDataTable(list);
     }
 

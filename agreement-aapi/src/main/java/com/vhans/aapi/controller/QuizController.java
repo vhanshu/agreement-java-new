@@ -39,9 +39,10 @@ public class QuizController extends BaseController {
     @ApiOperation(value = "查看题目列表")
     @SaCheckPermission("agree:quiz:list")
     @GetMapping("/list")
-    public TableDataInfo listQuizVO(Quiz.Query query) {
+    public TableDataInfo<Quiz> listQuizVO(Quiz.Query query) {
         startPage();
         List<Quiz> list = quizService.listQuiz(query);
+        clearPage();
         return getDataTable(list);
     }
 

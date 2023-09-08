@@ -35,9 +35,10 @@ public class GroupMsgController extends BaseController {
     @ApiOperation(value = "查询群聊天信息列表")
 //    @SaCheckPermission("chat:groupMsg:list")
     @GetMapping("/list")
-    public TableDataInfo list(GroupMsg.Query query) {
+    public TableDataInfo<GroupMsg> list(GroupMsg.Query query) {
         startPage();
         List<GroupMsg> list = groupMsgService.selectGroupMsgList(query);
+        clearPage();
         return getDataTable(list);
     }
 

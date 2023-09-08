@@ -21,7 +21,7 @@ public class Forward {
     private Integer toUid;
 
     /**
-     * 转发类型(1:单聊 2:群聊)
+     * 转发类型(1单聊 2群聊)
      */
     private Integer type;
 
@@ -31,7 +31,7 @@ public class Forward {
     private String content;
 
     /**
-     * 转发消息类型(1:文本 2:文件 3:图片 4:视频 5:语音)
+     * 转发消息类型(1文本 2文件 3图片 4视频 5语音)
      */
     private Integer msgType;
 }

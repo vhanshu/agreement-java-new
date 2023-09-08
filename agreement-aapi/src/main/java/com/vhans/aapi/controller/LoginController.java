@@ -91,9 +91,10 @@ public class LoginController extends BaseController {
     @ApiOperation(value = "查看在线人员")
     @SaCheckPermission("monitor:online:list")
     @GetMapping("/online/list")
-    public TableDataInfo listOnlineAdmin(String name, Integer type) {
+    public TableDataInfo<OnlineVO> listOnlineAdmin(String name, Integer type) {
         startPage();
         List<OnlineVO> list = loginService.listOnline(name, type);
+        clearPage();
         return getDataTable(list);
     }
 }

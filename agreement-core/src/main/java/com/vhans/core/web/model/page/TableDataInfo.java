@@ -10,7 +10,7 @@ import java.util.List;
  * @author vhans
  */
 @Data
-public class TableDataInfo{
+public class TableDataInfo<T> {
     /**
      * 总记录数
      */
@@ -19,7 +19,7 @@ public class TableDataInfo{
     /**
      * 列表数据
      */
-    private List<?> rows;
+    private List<T> rows;
 
     /**
      * 消息状态码
@@ -30,21 +30,4 @@ public class TableDataInfo{
      * 消息内容
      */
     private String msg;
-
-    /**
-     * 表格数据对象
-     */
-    public TableDataInfo() {
-    }
-
-    /**
-     * 分页
-     *
-     * @param list  列表数据
-     * @param total 总记录数
-     */
-    public TableDataInfo(List<?> list, int total) {
-        this.rows = list;
-        this.total = total;
-    }
 }

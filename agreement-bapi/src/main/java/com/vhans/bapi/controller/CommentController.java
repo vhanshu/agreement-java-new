@@ -83,9 +83,10 @@ public class CommentController extends BaseController {
      */
     @ApiOperation(value = "查看评论列表")
     @GetMapping("/list")
-    public TableDataInfo listCommentVO(Comment.Query query) {
+    public TableDataInfo<Comment> listCommentVO(Comment.Query query) {
         startPage();
         List<Comment> list = commentService.listCommentHomeVO(query);
+        clearPage();
         return getDataTable(list);
     }
 

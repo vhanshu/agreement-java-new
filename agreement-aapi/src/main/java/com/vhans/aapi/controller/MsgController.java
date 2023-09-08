@@ -35,9 +35,10 @@ public class MsgController extends BaseController {
     @ApiOperation(value = "查询用户聊天信息列表")
 //    @SaCheckPermission("chat:msg:list")
     @GetMapping("/list")
-    public TableDataInfo list(Msg.Query query) {
+    public TableDataInfo<Msg> list(Msg.Query query) {
         startPage();
         List<Msg> list = msgService.selectMsgList(query);
+        clearPage();
         return getDataTable(list);
     }
 

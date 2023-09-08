@@ -41,9 +41,10 @@ public class CommentController extends BaseController {
     @ApiOperation(value = "查看评论列表")
     @SaCheckPermission("web:comment:list")
     @GetMapping("/list")
-    public TableDataInfo listCommentVO(Comment.Query query) {
+    public TableDataInfo<Comment> listCommentVO(Comment.Query query) {
         startPage();
         List<Comment> list = commentService.listCommentVO(query);
+        clearPage();
         return getDataTable(list);
     }
 

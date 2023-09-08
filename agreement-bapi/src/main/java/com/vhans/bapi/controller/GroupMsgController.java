@@ -36,9 +36,10 @@ public class GroupMsgController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "获取群消息列表")
     @GetMapping("/list")
-    public TableDataInfo listRecent(Integer groupId) {
+    public TableDataInfo<GroupMsg> listRecent(Integer groupId) {
         startPage();
         List<GroupMsg> list = groupMsgService.getRecentGroupMsg(groupId);
+        clearPage();
         return getDataTable(list);
     }
 
@@ -51,9 +52,10 @@ public class GroupMsgController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "查询群历史消息")
     @GetMapping(value = "/listHistory")
-    public TableDataInfo listHistory(GroupMsg.Query query) {
+    public TableDataInfo<GroupMsg> listHistory(GroupMsg.Query query) {
         startPage();
         List<GroupMsg> list = groupMsgService.selectGroupMsgList(query);
+        clearPage();
         return getDataTable(list);
     }
 }

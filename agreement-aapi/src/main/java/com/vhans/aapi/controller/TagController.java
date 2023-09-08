@@ -35,14 +35,15 @@ public class TagController extends BaseController {
      * 查看标签列表
      *
      * @param query 查询条件
-     * @return {@link List<Tag>} 后台标签
+     * @return {@link Tag} 后台标签
      */
     @ApiOperation(value = "查看标签列表(加上类型)")
     @SaCheckPermission("agree:tag:list")
     @GetMapping("/list")
-    public TableDataInfo listTagBackVO(Tag.Query query) {
+    public TableDataInfo<Tag> listTagBackVO(Tag.Query query) {
         startPage();
         List<Tag> list = tagService.listTagVO(query);
+        clearPage();
         return getDataTable(list);
     }
 

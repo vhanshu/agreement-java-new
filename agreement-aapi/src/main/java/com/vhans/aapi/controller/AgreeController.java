@@ -32,12 +32,19 @@ public class AgreeController extends BaseController {
     @Autowired
     private IAgreeService agreeService;
 
+    /**
+     * 查看约起列表
+     *
+     * @param query 查询条件
+     * @return {@link AgreeVO}
+     */
     @ApiOperation(value = "查看约起列表")
     @SaCheckPermission("agree:agreement:list")
     @GetMapping("/list")
-    public TableDataInfo listAdminVO(AgreeQueryDTO query) {
+    public TableDataInfo<AgreeVO> listAdminVO(AgreeQueryDTO query) {
         startPage();
         List<AgreeVO> list = agreeService.listAgreementVO(query);
+        clearPage();
         return getDataTable(list);
     }
 

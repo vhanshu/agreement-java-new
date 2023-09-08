@@ -35,9 +35,10 @@ public class RequestController extends BaseController {
     @ApiOperation(value = "查询请求列表")
 //    @SaCheckPermission("chat:request:list")
     @GetMapping("/list")
-    public TableDataInfo list(Request.Query query) {
+    public TableDataInfo<Request> list(Request.Query query) {
         startPage();
         List<Request> list = cRequestService.selectRequestList(query);
+        clearPage();
         return getDataTable(list);
     }
 

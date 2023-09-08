@@ -3,8 +3,8 @@ package com.vhans.aapi.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
 import com.vhans.bus.subsidiary.model.dto.StatusDTO;
-import com.vhans.bus.website.domain.dto.TaskRunDTO;
 import com.vhans.bus.website.domain.Task;
+import com.vhans.bus.website.domain.dto.TaskRunDTO;
 import com.vhans.bus.website.service.ITaskService;
 import com.vhans.core.annotation.OptLogger;
 import com.vhans.core.web.controller.BaseController;
@@ -42,9 +42,10 @@ public class TaskController extends BaseController {
     @ApiOperation("查看定时任务列表")
     @SaCheckPermission("monitor:task:list")
     @GetMapping("/list")
-    public TableDataInfo listTask(Task.Query query) {
+    public TableDataInfo<Task> listTask(Task.Query query) {
         startPage();
         List<Task> list = taskService.listTask(query);
+        clearPage();
         return getDataTable(list);
     }
 

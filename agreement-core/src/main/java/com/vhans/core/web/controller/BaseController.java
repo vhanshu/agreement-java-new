@@ -32,13 +32,12 @@ public class BaseController {
     /**
      * 响应请求分页数据
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    protected TableDataInfo getDataTable(List<?> list) {
-        TableDataInfo rspData = new TableDataInfo();
+    protected <T> TableDataInfo<T> getDataTable(List<T> list) {
+        TableDataInfo<T> rspData = new TableDataInfo<>();
         rspData.setCode(SUCCESS.getCode());
         rspData.setRows(list);
         rspData.setMsg("操作成功");
-        rspData.setTotal(new PageInfo(list).getTotal());
+        rspData.setTotal(new PageInfo<>(list).getTotal());
         return rspData;
     }
 
@@ -50,15 +49,5 @@ public class BaseController {
      */
     protected Result<?> toAjax(int rows) {
         return rows > 0 ? Result.success() : Result.fail(FAIL.getMsg());
-    }
-
-    /**
-     * 响应返回结果
-     *
-     * @param result 结果
-     * @return 操作结果
-     */
-    protected Result<?> toAjax(boolean result) {
-        return result ? Result.success() : Result.fail(FAIL.getMsg());
     }
 }

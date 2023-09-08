@@ -37,14 +37,15 @@ public class FileController extends BaseController {
      * 查看文件列表
      *
      * @param filePath 文件路径
-     * @return {@link Result<FileRecord>} 文件列表
+     * @return {@link FileRecord} 文件列表
      */
     @ApiOperation(value = "查看文件列表")
     @SaCheckPermission("system:file:list")
     @GetMapping("/list")
-    public TableDataInfo listFileRecordList(String filePath) {
+    public TableDataInfo<FileRecord> listFileRecordList(String filePath) {
         startPage();
         List<FileRecord> list = fileService.listFileRecordList(filePath);
+        clearPage();
         return getDataTable(list);
     }
 

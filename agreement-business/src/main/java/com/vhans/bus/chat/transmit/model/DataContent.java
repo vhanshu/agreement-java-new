@@ -25,6 +25,7 @@ public class DataContent {
      * {@link com.vhans.bus.chat.domain.Msg} 单聊内容
      * {@link com.vhans.bus.chat.domain.GroupMsg} 群聊内容
      * {@link com.vhans.bus.chat.domain.Request} 请求内容
+     * {@link Forward} 转发内容
      */
     private String data;
 
