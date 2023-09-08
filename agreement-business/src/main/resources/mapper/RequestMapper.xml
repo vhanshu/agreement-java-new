@@ -10,8 +10,8 @@
         to_uid,
         type,
         reason,
-        request_status,
-        look_status,
+        status,
+        is_look,
         create_time,
         update_time
         from c_request
@@ -25,11 +25,11 @@
             <if test="query.type != null">
                 and type = #{query.type}
             </if>
-            <if test="query.requestStatus != null">
-                and request_status = #{query.requestStatus}
+            <if test="query.status != null">
+                and status = #{query.status}
             </if>
-            <if test="query.lookStatus != null">
-                and look_status = #{query.lookStatus}
+            <if test="query.isLook != null">
+                and is_look = #{query.isLook}
             </if>
         </where>
     </select>
@@ -38,11 +38,11 @@
         select r.id,
                r.from_uid,
                r.to_uid,
-               r.request_status,
+               r.status,
                r.reason,
                r.type,
                r.group_id,
-               r.look_status,
+               r.is_look,
                r.create_time,
                r.update_time,
                u.avatar,
@@ -60,8 +60,8 @@
                r.reason,
                r.type,
                r.group_id,
-               r.request_status,
-               r.look_status,
+               r.status,
+               r.is_look,
                r.create_time,
                r.update_time,
                u.avatar,

@@ -65,13 +65,19 @@ public class UserInfoVO {
     private Integer grade;
 
     /**
+     * 登录方式(1邮箱 2QQ 3Gitee 4Github)
+     */
+    @ApiModelProperty(value = "登录方式(1邮箱 2QQ 3Gitee 4Github)")
+    private Integer loginType;
+
+    /**
      * 约起参与ids信息
      */
     @ApiModelProperty(value = "约起参与ids信息")
     private List<MyIssueAgree> agreeIssueSet;
 
     /**
-     * 点赞文章集合
+     * 点赞记录集合
      */
     @ApiModelProperty(value = "点赞记录集合")
     private List<Integer> recordLikeSet;
@@ -87,10 +93,4 @@ public class UserInfoVO {
      */
     @ApiModelProperty(value = "点赞评论集合")
     private List<Integer> commentLikeSet;
-
-    /**
-     * 登录类型
-     */
-    @ApiModelProperty(value = "登录类型")
-    private Integer loginType;
 }

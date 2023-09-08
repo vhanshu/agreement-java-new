@@ -230,7 +230,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         // 好友请求
         if (chatRequest.getType() == 1) {
             // 同意
-            if (chatRequest.getRequestStatus() == 1) {
+            if (chatRequest.getStatus() == 1) {
                 // 添加好友入库,好友备注从扩展字段里取
                 int row = friendService.insertFriend(Friend.builder()
                         .userId(chatRequest.getToUid())
@@ -253,7 +253,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 }
             }
             // 拒绝
-            else if (chatRequest.getRequestStatus() == 2) {
+            else if (chatRequest.getStatus() == 2) {
                 // 通知发送方拒绝请求
                 // 获取发送方channel
                 Channel chanel = getChanel(chatRequest.getFromUid());
@@ -267,12 +267,12 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 }
             }
             // 更改请求状态
-            requestService.changeFriendRequestStatus(chatRequest.getId(), chatRequest.getRequestStatus());
+            requestService.changeFriendRequestStatus(chatRequest.getId(), chatRequest.getStatus());
         }
         // 入群请求
         else if (chatRequest.getType() == 2) {
             // 同意
-            if (chatRequest.getRequestStatus() == 1) {
+            if (chatRequest.getStatus() == 1) {
                 // 添加群友入库并设置入群欢迎信息
                 content.setChatGroupMsg(groupService.addNewGroupUser(Request.builder()
                         .groupId(chatRequest.getGroupId())
@@ -290,7 +290,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 }
             }
             // 拒绝
-            else if (chatRequest.getRequestStatus() == 2) {
+            else if (chatRequest.getStatus() == 2) {
                 // 通知发送方拒绝请求
                 // 获取发送方channel
                 Channel chanel = getChanel(chatRequest.getFromUid());
@@ -304,7 +304,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 }
             }
             // 更改请求状态
-            requestService.changeFriendRequestStatus(chatRequest.getId(), chatRequest.getRequestStatus());
+            requestService.changeFriendRequestStatus(chatRequest.getId(), chatRequest.getStatus());
         }
     }
 

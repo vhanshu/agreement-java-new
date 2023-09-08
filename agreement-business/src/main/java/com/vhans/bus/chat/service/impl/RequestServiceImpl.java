@@ -11,8 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.vhans.core.constant.NumberConstant.ZERO;
-
 /**
  * 好友请求Service业务层处理
  *
@@ -36,7 +34,6 @@ public class RequestServiceImpl implements IRequestService {
         // 查询好友请求信息
         Request cRequest = requestMapper.selectById(id);
         Assert.notNull(cRequest, "没有该好友请求");
-        // 下面可以扩展信息delete
         return cRequest;
     }
 
@@ -62,16 +59,16 @@ public class RequestServiceImpl implements IRequestService {
     public void changeFriendRequestStatus(Integer requestId, Integer status) {
         requestMapper.updateById(Request.builder()
                 .id(requestId)
-                .requestStatus(status).build());
+                .status(status).build());
     }
 
     @Override
     public Request insertRequest(Request request) {
+        //这里要考虑之前拒绝的情况,之后在写,先过滤
         if (!requestMapper.exists(new LambdaQueryWrapper<Request>()
                 .select(Request::getId)
                 .eq(Request::getFromUid, request.getFromUid())
-                .eq(Request::getToUid, request.getToUid())
-                .eq(Request::getRequestStatus, ZERO))) {
+                .eq(Request::getToUid, request.getToUid()))) {
             // 添加好友请求
             requestMapper.insert(request);
             return request;

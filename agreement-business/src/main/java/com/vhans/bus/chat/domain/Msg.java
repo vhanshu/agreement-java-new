@@ -81,8 +81,6 @@ public class Msg {
     @ApiModelProperty(value = "查看时间")
     private LocalDateTime updateTime;
 
-    /* 除数据表的额外字段 */
-
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {

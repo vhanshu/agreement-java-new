@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
- * 好友请求对象 c_request
+ * 用户请求对象 c_request
  *
  * @author vhans
  * @date 2023-05-21
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description = "好友请求对象")
+@ApiModel(description = "用户请求对象")
 @TableName("c_request")
 public class Request {
 
@@ -70,13 +70,13 @@ public class Request {
      * 请求状态(1通过 2拒绝 3申请中)
      */
     @ApiModelProperty(value = "请求状态(1通过 2拒绝 3申请中)")
-    private Integer requestStatus;
+    private Integer status;
 
     /**
-     * 查看状态(1已查看 2未查看)
+     * 是否查看
      */
-    @ApiModelProperty(value = "查看状态(1已查看 2未查看)")
-    private Integer lookStatus;
+    @ApiModelProperty(value = "是否查看")
+    private Integer isLook;
 
     /**
      * 添加时间
@@ -132,13 +132,13 @@ public class Request {
          * 请求状态(1通过 2拒绝 3申请中)
          */
         @ApiModelProperty(value = "请求状态(1通过 2拒绝 3申请中)")
-        private Integer requestStatus;
+        private Integer status;
 
         /**
-         * 查看状态(1已查看 2未查看)
+         * 是否查看
          */
-        @ApiModelProperty(value = "查看状态(1已查看 2未查看)")
-        private Integer lookStatus;
+        @ApiModelProperty(value = "是否查看")
+        private Integer isLook;
     }
 
 }
