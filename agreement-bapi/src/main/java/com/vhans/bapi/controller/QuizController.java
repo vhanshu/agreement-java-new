@@ -113,8 +113,8 @@ public class QuizController extends BaseController {
      * @return {@link Result<SearchVO>} 题目列表
      */
     @ApiOperation(value = "搜索题目")
-    @GetMapping("/search")
-    public Result<List<SearchVO>> listQuizSBySearch(String keyword) {
+    @GetMapping("/search/{keyword}")
+    public Result<List<SearchVO>> searchQuiz(@PathVariable String keyword) {
         return Result.success(quizService.listQuizBySearch(keyword));
     }
 

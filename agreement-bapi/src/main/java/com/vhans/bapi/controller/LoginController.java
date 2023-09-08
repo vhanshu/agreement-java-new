@@ -78,13 +78,13 @@ public class LoginController {
     }
 
     /**
-     * 忘记密码时修改用户密码
+     * 忘记密码时重新设置密码
      *
      * @param password 验证对象
      * @return 结果
      */
     @SaCheckLogin
-    @ApiOperation(value = "修改用户密码")
+    @ApiOperation(value = "忘记密码时重新设置密码")
     @PutMapping("/password")
     public Result<?> updatePassword(@Validated @RequestBody RegisterDTO password) {
         loginService.updatePasswd(password);

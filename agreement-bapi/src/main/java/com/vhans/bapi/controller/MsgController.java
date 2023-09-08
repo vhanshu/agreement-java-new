@@ -37,8 +37,8 @@ public class MsgController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "获取聊天列表")
-    @GetMapping("/list")
-    public TableDataInfo<Msg> listRecent(Integer friendId) {
+    @GetMapping("/list/{friendId}")
+    public TableDataInfo<Msg> listMsg(@PathVariable Integer friendId) {
         startPage();
         List<Msg> list = msgService.getRecentMsg(friendId);
         clearPage();
@@ -49,6 +49,7 @@ public class MsgController extends BaseController {
      * 标记消息已读
      *
      * @param friendId 好友id
+     * @return {@link Result} 结果
      */
     @SaCheckLogin
     @ApiOperation(value = "标记消息已读")
