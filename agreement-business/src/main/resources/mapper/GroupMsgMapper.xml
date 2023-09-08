@@ -37,16 +37,4 @@
         </where>
     </select>
 
-    <select id="selectGroupMsgInfoById" resultType="com.vhans.bus.chat.domain.GroupMsg">
-        select id,
-               group_id,
-               user_id,
-               msg_type,
-               content,
-               create_time,
-               update_time
-        from c_group_msg
-        where id = #{id}
-    </select>
-
 </mapper>
