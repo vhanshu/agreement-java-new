@@ -97,7 +97,7 @@ public class CommentController extends BaseController {
      * @return {@link Result<ReplyVO>} 回复评论列表
      */
     @ApiOperation(value = "查看回复评论")
-    @GetMapping("/{commentId}/reply")
+    @GetMapping("/reply/{commentId}")
     public TableDataInfo<ReplyVO> listReply(@PathVariable("commentId") Integer commentId) {
         startPage();
         List<ReplyVO> list = commentService.listReply(commentId);

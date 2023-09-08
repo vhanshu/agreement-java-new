@@ -61,7 +61,7 @@ public class FriendController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "修改好友备注")
-    @PostMapping("/update/{id}/{friendRemark}")
+    @PutMapping("/update/{id}/{friendRemark}")
     public Result<?> updateFriendRemark(@PathVariable("id") Integer id, @PathVariable("friendRemark") String friendRemark) {
         return toAjax(friendService.updateFriendRemark(id, friendRemark));
     }
