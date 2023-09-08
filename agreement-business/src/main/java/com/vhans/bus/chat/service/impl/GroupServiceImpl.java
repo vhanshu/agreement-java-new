@@ -217,12 +217,13 @@ public class GroupServiceImpl implements IGroupService {
             boolean isFriend = friendMapper.exists(new LambdaQueryWrapper<Friend>()
                     .eq(Friend::getUserId, userId)
                     .eq(Friend::getFriendId, user.getId()));
+            int type = isFriend ? TWO : (user.getId() == userId ? THREE : (groupInfo.getMasterId() == userId ? FOUR : ONE));
             return GroupUserIntroVO.builder()
                     .id(user.getId())
                     .avatar(user.getAvatar())
                     .nickname(user.getNickname())
                     .intro(user.getIntro())
-                    .type(isFriend ? TWO : (user.getId() == userId ? THREE : ONE)).build();
+                    .type(type).build();
         }).toList();
         groupInfo.setUserList(groupUserList);
         return groupInfo;

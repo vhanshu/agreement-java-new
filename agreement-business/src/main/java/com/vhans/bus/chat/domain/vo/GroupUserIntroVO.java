@@ -39,8 +39,8 @@ public class GroupUserIntroVO {
     private String intro;
 
     /**
-     * 类型(1普通 2好友 3自己)
+     * 类型(1普通 2好友 3自己 4群主)
      */
-    @ApiModelProperty(value = "类型(1普通 2好友 3自己)")
+    @ApiModelProperty(value = "类型(1普通 2好友 3自己 4群主)")
     private Integer type;
 }
