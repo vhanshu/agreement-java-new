@@ -1,11 +1,10 @@
 package com.vhans.bus.chat.transmit.model;
 
-import com.vhans.bus.chat.domain.GroupMsg;
-import com.vhans.bus.chat.domain.Msg;
-import com.vhans.bus.chat.domain.Request;
 import lombok.Data;
 
 /**
+ * 通讯传输对象
+ *
  * @author vhans
  */
 @Data
@@ -17,22 +16,41 @@ public class DataContent {
     private Integer action;
 
     /**
-     * 用户的聊天内容
+     * 返回状态
      */
-    private Msg chatMsg;
+    private Boolean flag;
 
     /**
-     * 群聊天内容
+     * 传输数据(对象用json格式)
+     * {@link com.vhans.bus.chat.domain.Msg} 单聊内容
+     * {@link com.vhans.bus.chat.domain.GroupMsg} 群聊内容
+     * {@link com.vhans.bus.chat.domain.Request} 请求内容
      */
-    private GroupMsg chatGroupMsg;
+    private String data;
 
     /**
-     * 请求内容
+     * 返回信息
      */
-    private Request chatRequest;
+    private String msg;
 
-    /**
-     * 扩展内容
-     */
-    private Extend extend;
+    public static DataContent success(Integer action) {
+        return buildDataContent(action, true, null, "发送成功");
+    }
+
+    public static DataContent success(Integer action, String data) {
+        return buildDataContent(action, true, data, "发送成功");
+    }
+
+    public static DataContent fail() {
+        return buildDataContent(null, false, null, "发送失败");
+    }
+
+    private static DataContent buildDataContent(Integer action, Boolean flag, String data, String message) {
+        DataContent r = new DataContent();
+        r.setAction(action);
+        r.setFlag(flag);
+        r.setData(data);
+        r.setMsg(message);
+        return r;
+    }
 }

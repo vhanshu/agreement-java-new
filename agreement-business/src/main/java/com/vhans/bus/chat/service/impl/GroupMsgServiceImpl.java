@@ -27,9 +27,8 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
     }
 
     @Override
-    public GroupMsg insertGroupMsg(GroupMsg groupMsg) {
-        groupMsgMapper.insert(groupMsg);
-        return groupMsg;
+    public int insertGroupMsg(GroupMsg groupMsg) {
+        return groupMsgMapper.insert(groupMsg);
     }
 
     @Override

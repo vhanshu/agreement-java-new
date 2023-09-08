@@ -1,7 +1,6 @@
 package com.vhans.bus.chat.service;
 
 import com.vhans.bus.chat.domain.Group;
-import com.vhans.bus.chat.domain.GroupMsg;
 import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.domain.vo.ConversationVO;
 
@@ -95,8 +94,9 @@ public interface IGroupService {
      * 添加群成员
      *
      * @param request 请求信息
+     * @return 影响行
      */
-    GroupMsg addNewGroupUser(Request request);
+    int addNewGroupUser(Request request);
 
     /**
      * 获取最近的群会话列表
@@ -108,9 +108,18 @@ public interface IGroupService {
 
     /**
      * 获取群用户ids
+     *
      * @param groupId 群id
      * @return 群用户ids
      */
     List<Integer> getUserIds(Integer groupId);
+
+    /**
+     * 获取群主id
+     *
+     * @param groupId 群id
+     * @return 群主id
+     */
+    Integer getGroupMasterId(Integer groupId);
 
 }

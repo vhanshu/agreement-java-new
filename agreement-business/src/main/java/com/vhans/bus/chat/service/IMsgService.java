@@ -48,9 +48,9 @@ public interface IMsgService {
      * 新增用户聊天信息
      *
      * @param msg 用户聊天信息
-     * @return 新增聊天信息id
+     * @return 影响行
      */
-    Msg insertMsg(Msg msg);
+    int insertMsg(Msg msg);
 
     /**
      * 删除用户聊天信息

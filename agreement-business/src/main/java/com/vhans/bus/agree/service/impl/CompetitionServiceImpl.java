@@ -125,7 +125,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
                 "赛事已发出,不允许保存为草稿");
         if (competition.getStatus() == 3) {
             // 保存赛事观众
-            competition.getUserIntroVOList().forEach(
+            competition.getUserList().forEach(
                     item -> {
                         Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                                 "用户 [" + item.getNickname() + "] 未注册");
@@ -155,7 +155,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
                 sendEmail(newCompetition, fromUser, toUser);
             }
             // 要发送的观众列表
-            List<User> toUserList = competition.getUserIntroVOList().stream()
+            List<User> toUserList = competition.getUserList().stream()
                     .map(item -> userMapper.selectById(item.getId())).toList();
             // 分别给观众发送邮件,提醒赛事取消
             toUserList.forEach(toUser -> sendEmail(newCompetition, fromUser, toUser));
@@ -163,7 +163,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
             return "取消成功,发送邮件通知赛事相关人员,约起分数减少 " + -2 * COMPETITION_SCORE;
         }
         // 保存赛事观众
-        Optional.ofNullable(competition.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(
+        Optional.ofNullable(competition.getUserList()).orElse(new ArrayList<>()).forEach(
                 item -> {
                     Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                             "用户 [" + item.getNickname() + "] 未注册");

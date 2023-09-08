@@ -81,6 +81,22 @@ public class Msg {
     @ApiModelProperty(value = "查看时间")
     private LocalDateTime updateTime;
 
+    /* 除数据表的额外字段 */
+    /**
+     * 用户头像
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "用户头像")
+    private String avatar;
+
+    /**
+     * 用户昵称
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "用户昵称")
+    private String nickname;
+
+
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {

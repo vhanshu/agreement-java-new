@@ -8,7 +8,12 @@ package com.vhans.core.constant;
 public class MsgActionConstant {
 
     /**
-     * 第一次(或重连)初始化连接
+     * 客户端保持心跳
+     */
+    public static final int KEEPALIVE = 0;
+
+    /**
+     * 绑定用户通道
      */
     public static final int CONNECT = 1;
 
@@ -23,57 +28,27 @@ public class MsgActionConstant {
     public static final int GROUP_MSG = 3;
 
     /**
-     * 消息签收
-     */
-    public static final int SIGNED = 4;
-
-    /**
      * 发送请求
      */
-    public static final int SEND_REQUEST = 5;
+    public static final int SEND_REQUEST = 4;
 
     /**
      * 处理请求
      */
-    public static final int DEAL_REQUEST = 6;
+    public static final int DEAL_REQUEST = 5;
 
     /**
-     * 客户端保持心跳
+     * 解散群
      */
-    public static final int KEEPALIVE = 7;
+    public static final int DELETE_GROUP = 6;
 
     /**
-     * 解散群或者退出群聊
+     * 退出群聊
      */
-    public static final int CLOSE_GROUP = 8;
+    public static final int QUIT_GROUP = 7;
 
     /**
      * 处理转发
      */
-    public static final int FORWARD = 9;
-
-    /**
-     * 转发申请
-     */
-    public static final int FORWARD_APPLICATION = 10;
-
-    /**
-     * 转发回答
-     */
-    public static final int FORWARD_ANSWER = 11;
-
-    /**
-     * 转发ICE
-     */
-    public static final int FORWARD_ICE = 12;
-
-    /**
-     * 转发通知
-     */
-    public static final int FORWARD_OFFER = 13;
-
-    /**
-     * 转发挂起
-     */
-    public static final int FORWARD_HANGUP = 14;
+    public static final int FORWARD = 8;
 }

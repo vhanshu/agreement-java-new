@@ -102,14 +102,14 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
         userMapper.updateDegree(userId, 2 * APPOINTMENT_SCORE);
         // 保存指定的约会人员
         if (newAppointment.getType() == 2) {
-            Assert.isTrue(StringUtils.isNotEmpty(appointment.getUserIntroVOList()), "未指定约会人员");
-            appointment.getUserIntroVOList().forEach(item ->
+            Assert.isTrue(StringUtils.isNotEmpty(appointment.getUserList()), "未指定约会人员");
+            appointment.getUserList().forEach(item ->
                     userAgreeMapper.saveAppointmentDestinedUser(appointment.getId(), item.getId()));
             if (newAppointment.getStatus() == 1) {
                 // 查询用户信息
                 User fromUser = userMapper.selectById(userId);
                 // 要发送的用户列表
-                List<User> toUserList = appointment.getUserIntroVOList().stream()
+                List<User> toUserList = appointment.getUserList().stream()
                         .map(item -> userMapper.selectById(item.getId())).toList();
                 // 分别发送邮件
                 toUserList.forEach(toUser -> sendEmail(newAppointment, fromUser, toUser));
@@ -148,7 +148,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
             // 查询用户信息
             User fromUser = userMapper.selectById(userId);
             // 要发送的用户列表
-            List<User> toUserList = appointment.getUserIntroVOList().stream()
+            List<User> toUserList = appointment.getUserList().stream()
                     .map(item -> userMapper.selectById(item.getId())).toList();
             // 分别发送邮件,提醒约会取消
             toUserList.forEach(toUser -> sendEmail(newAppointment, fromUser, toUser));
@@ -157,7 +157,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
         }
         if (newAppointment.getType() == 2) {
             // 保存指定的约会人员
-            Optional.ofNullable(appointment.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(
+            Optional.ofNullable(appointment.getUserList()).orElse(new ArrayList<>()).forEach(
                     item -> {
                         Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                                 "用户 [" + item.getNickname() + "] 未注册");
@@ -167,7 +167,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                 // 查询用户信息
                 User fromUser = userMapper.selectById(userId);
                 // 要发送的用户列表
-                List<User> toUserList = appointment.getUserIntroVOList().stream()
+                List<User> toUserList = appointment.getUserList().stream()
                         .map(item -> userMapper.selectById(item.getId())).toList();
                 // 分别发送邮件,提醒邀请应约
                 toUserList.forEach(toUser -> sendEmail(newAppointment, fromUser, toUser));

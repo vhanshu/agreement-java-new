@@ -103,19 +103,6 @@ public class GroupController extends BaseController {
     }
 
     /**
-     * 退出群聊
-     *
-     * @param group 群组
-     */
-    @SaCheckLogin
-    @ApiOperation(value = "退出群聊")
-    @PostMapping("/quit")
-    public Result<?> quitGroup(@RequestBody Group group) {
-        groupService.quitGroup(group);
-        return Result.success();
-    }
-
-    /**
      * 修改群组
      *
      * @param group 需要修改的群组

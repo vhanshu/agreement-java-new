@@ -108,7 +108,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         // 修改活动
         Activity newActivity = BeanUtils.copyBean(activity, Activity.class);
         // 已参与活动的人数
-        int peopleNumber = Optional.ofNullable(activity.getUserIntroVOList()).orElse(new ArrayList<>()).toArray().length;
+        int peopleNumber = Optional.ofNullable(activity.getUserList()).orElse(new ArrayList<>()).toArray().length;
         Assert.isFalse(newActivity.getPeopleNumber() < peopleNumber,
                 "活动参与人数超出限制");
         Assert.isFalse(editActivity(activity.getId()).getStatus() == 1 && activity.getStatus() == 2,
@@ -124,7 +124,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         activityMapper.updateById(newActivity);
         if (newActivity.getStatus() == 3) {
             // 保存新的活动参与者
-            Optional.ofNullable(activity.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(item -> {
+            Optional.ofNullable(activity.getUserList()).orElse(new ArrayList<>()).forEach(item -> {
                 Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                         "用户 [" + item.getNickname() + "] 未注册");
                 userAgreeMapper.saveCompetitionAudience(newActivity.getId(), item.getId());
@@ -137,7 +137,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
             userMapper.updateDegree(newActivity.getUserId(), -4 * ACTIVITY_SCORE);
             // 活动取消,发送邮件通知活动已参与者
             User fromUser = userMapper.selectById(newActivity.getUserId());
-            Optional.ofNullable(activity.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(item -> {
+            Optional.ofNullable(activity.getUserList()).orElse(new ArrayList<>()).forEach(item -> {
                 Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                         "用户 [" + item.getNickname() + "] 未注册");
                 User toUser = userMapper.selectById(item.getId());
@@ -147,7 +147,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
             return "活动取消,正在发送邮件通知活动已参与者,约起分数减少: " + ACTIVITY_SCORE;
         }
         // 保存新的活动参与者
-        Optional.ofNullable(activity.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(
+        Optional.ofNullable(activity.getUserList()).orElse(new ArrayList<>()).forEach(
                 item -> {
                     Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                             "用户 [" + item.getNickname() + "] 未注册");

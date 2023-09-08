@@ -70,9 +70,8 @@ public class MsgServiceImpl implements IMsgService {
     }
 
     @Override
-    public Msg insertMsg(Msg msg) {
-        msgMapper.insert(msg);
-        return msg;
+    public int insertMsg(Msg msg) {
+        return msgMapper.insert(msg);
     }
 
     @Override

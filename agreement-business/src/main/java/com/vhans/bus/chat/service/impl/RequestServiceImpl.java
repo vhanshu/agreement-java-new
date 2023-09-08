@@ -63,16 +63,15 @@ public class RequestServiceImpl implements IRequestService {
     }
 
     @Override
-    public Request insertRequest(Request request) {
+    public int insertRequest(Request request) {
         //这里要考虑之前拒绝的情况,之后在写,先过滤
         if (!requestMapper.exists(new LambdaQueryWrapper<Request>()
                 .select(Request::getId)
                 .eq(Request::getFromUid, request.getFromUid())
                 .eq(Request::getToUid, request.getToUid()))) {
             // 添加好友请求
-            requestMapper.insert(request);
-            return request;
+            return requestMapper.insert(request);
         }
-        return null;
+        return 0;
     }
 }

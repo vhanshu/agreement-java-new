@@ -151,22 +151,20 @@ public class GroupServiceImpl implements IGroupService {
 
     @Transactional
     @Override
-    public GroupMsg addNewGroupUser(Request request) {
-        // 默认用户在群中的名称为昵称
-        String nickname = userMapper.selectById(request.getFromUid()).getNickname();
+    public int addNewGroupUser(Request request) {
+        // 默认用户在群中的称呼为昵称
         // 增加群用户
         groupUserMapper.insert(GroupUser.builder()
                 .groupId(request.getGroupId())
                 .userId(request.getFromUid())
-                .username(nickname).build());
+                .username(request.getNickname()).build());
         //添加一条群消息
         GroupMsg groupMsg = GroupMsg.builder()
                 .groupId(request.getGroupId())
                 .msgType(ONE)
                 .userId(request.getFromUid())
-                .content(nickname + " 加入群,热烈欢迎").build();
-        groupMsgMapper.insert(groupMsg);
-        return groupMsg;
+                .content(request.getNickname() + " 加入群,热烈欢迎").build();
+        return groupMsgMapper.insert(groupMsg);
     }
 
     @Override
@@ -199,6 +197,11 @@ public class GroupServiceImpl implements IGroupService {
         return groupUserMapper.selectList(new LambdaQueryWrapper<GroupUser>()
                 .select(GroupUser::getUserId)
                 .eq(GroupUser::getGroupId, groupId)).stream().map(GroupUser::getUserId).toList();
+    }
+
+    @Override
+    public Integer getGroupMasterId(Integer groupId) {
+        return groupMapper.selectById(groupId).getMasterId();
     }
 
     /**

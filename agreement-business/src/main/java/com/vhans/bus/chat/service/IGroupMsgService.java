@@ -24,9 +24,9 @@ public interface IGroupMsgService {
      * 新增群聊天信息
      *
      * @param groupMsg 群聊天信息
-     * @return 新增的群聊天信息id
+     * @return 影响行
      */
-    GroupMsg insertGroupMsg(GroupMsg groupMsg);
+    int insertGroupMsg(GroupMsg groupMsg);
 
     /**
      * 删除群中指定用户聊天信息

@@ -110,7 +110,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
         // 修改帮助
         Help newHelp = BeanUtils.copyBean(help, Help.class);
         // 已参与帮助的人数
-        int peopleNumber = Optional.ofNullable(help.getUserIntroVOList()).orElse(new ArrayList<>()).toArray().length;
+        int peopleNumber = Optional.ofNullable(help.getUserList()).orElse(new ArrayList<>()).toArray().length;
         Assert.isFalse(newHelp.getPeopleNumber() < peopleNumber,
                 "帮助参与人数超出限制");
         Assert.isFalse(editHelp(help.getId()).getStatus() == 1 && help.getStatus() == 2,
@@ -126,7 +126,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
         helpMapper.updateById(newHelp);
         if (newHelp.getStatus() == 3) {
             // 保存新地帮助参与者
-            Optional.ofNullable(help.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(item -> {
+            Optional.ofNullable(help.getUserList()).orElse(new ArrayList<>()).forEach(item -> {
                 Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                         "用户 [" + item.getNickname() + "] 未注册");
                 userAgreeMapper.saveCompetitionAudience(newHelp.getId(), item.getId());
@@ -138,7 +138,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
         if (newHelp.getStatus() == 5) {
             // 帮助取消,发送邮件通知帮助已参与者
             User fromUser = userMapper.selectById(newHelp.getUserId());
-            Optional.ofNullable(help.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(item -> {
+            Optional.ofNullable(help.getUserList()).orElse(new ArrayList<>()).forEach(item -> {
                 Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                         "用户 [" + item.getNickname() + "] 未注册");
                 User toUser = userMapper.selectById(item.getId());
@@ -149,7 +149,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
             return "帮助取消,正在发送邮件通知帮助已参与者,约起分数减少: " + HELP_SCORE;
         }
         // 保存新地帮助参与者
-        Optional.ofNullable(help.getUserIntroVOList()).orElse(new ArrayList<>()).forEach(
+        Optional.ofNullable(help.getUserList()).orElse(new ArrayList<>()).forEach(
                 item -> {
                     Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                             "用户 [" + item.getNickname() + "] 未注册");

@@ -59,8 +59,8 @@ public interface IRequestService {
      * 新增请求
      *
      * @param request 请求
-     * @return 请求响应
+     * @return 影响行
      */
-    Request insertRequest(Request request);
+    int insertRequest(Request request);
 
 }

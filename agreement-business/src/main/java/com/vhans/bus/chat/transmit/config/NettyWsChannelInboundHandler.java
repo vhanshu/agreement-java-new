@@ -7,6 +7,7 @@ import com.vhans.bus.chat.domain.Msg;
 import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.service.*;
 import com.vhans.bus.chat.transmit.model.DataContent;
+import com.vhans.bus.chat.transmit.model.Forward;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
 import io.netty.channel.Channel;
@@ -21,6 +22,7 @@ import lombok.extern.log4j.Log4j2;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.vhans.core.constant.MsgActionConstant.*;
@@ -58,21 +60,26 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 从channel缓冲区读数据,开始处理
      */
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-        // 获得channel
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) {
+        // 获得当前channel
         Channel currentChannel = ctx.channel();
         // 获取客户端发来的消息并转换JSON为entity
-        DataContent dataContent = JSONUtil.toBean(msg.text(), DataContent.class);
-        switch (dataContent.getAction()) {
-            case CONNECT -> connect(dataContent, currentChannel);
-            case CHAT -> chat(dataContent);
-            case GROUP_MSG -> groupMsg(dataContent);
-            case SEND_REQUEST -> sendRequest(dataContent);
-            case DEAL_REQUEST -> dealRequest(dataContent);
-            case KEEPALIVE -> keepalive(currentChannel);
-            case CLOSE_GROUP -> closeGroup(dataContent);
-            case FORWARD -> forward(dataContent);
-            default -> log.info("非法操作 channelId={}", ctx.channel().id().asShortText());
+        try {
+            DataContent dataContent = JSONUtil.toBean(msg.text(), DataContent.class);
+            switch (dataContent.getAction()) {
+                case KEEPALIVE -> keepalive(currentChannel);
+                case CONNECT -> connect(Integer.valueOf(dataContent.getData()), currentChannel);
+                case CHAT -> chat(JSONUtil.toBean(dataContent.getData(), Msg.class));
+                case GROUP_MSG -> groupChat(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
+                case SEND_REQUEST -> sendRequest(JSONUtil.toBean(dataContent.getData(), Request.class));
+                case DEAL_REQUEST -> dealRequest(JSONUtil.toBean(dataContent.getData(), Request.class));
+                case DELETE_GROUP -> deleteGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
+                case QUIT_GROUP -> quitGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
+                case FORWARD -> forward(JSONUtil.toBean(dataContent.getData(), Forward.class));
+                default -> currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
+            }
+        } catch (Exception e) {
+            currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
         }
     }
 
@@ -81,7 +88,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 获取客户端的channel，并且放到ChannelGroup中去进行管理
      */
     @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) {
         users.add(ctx.channel());
         log.info("获得连接,channelId={}", ctx.channel().id().asShortText());
     }
@@ -90,7 +97,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 当触发handlerRemoved，ChannelGroup会自动移除对应客户端的channel
      */
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         users.remove(ctx.channel());
         removeByChannel(ctx.channel());
         log.info("客户端被移除,channelId={}", ctx.channel().id().asShortText());
@@ -100,194 +107,13 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 发生异常之后关闭channel
      */
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.channel().close();
         // 从ChannelGroup中移除channel
         users.remove(ctx.channel());
         removeByChannel(ctx.channel());
         log.info("连接异常!!!,channelId={}", ctx.channel().id().asShortText());
-    }
-
-    /**
-     * 处理 websocket 第一次open的时候,绑定channel和userid,同时发送用户在线ids
-     */
-    private void connect(DataContent content, Channel channel) {
-        // 把channel和userid关联起来
-        manager.put(content.getExtend().getUserId(), channel);
-        for (Map.Entry<Integer, Channel> entry : manager.entrySet()) {
-            log.info("UserId={},ChannelId={} 连接成功", entry.getKey(), entry.getValue().id().asLongText());
-            Channel chanel = getChanel(entry.getKey());
-            if (StringUtils.isNotNull(chanel)) {
-                chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(getOnlineUserIds())));
-            }
-        }
-    }
-
-    /**
-     * 单独聊天类型的消息，把聊天记录保存到数据库，同时标记消息的签收状态[数据库默认未签收]
-     */
-    private void chat(DataContent content) {
-        Msg chatMsg = content.getChatMsg();
-        // 保存消息到数据库
-        content.setChatMsg(msgService.insertMsg(chatMsg));
-        // 给自己发送成功消息
-        Channel fromUidChannel = manager.get(chatMsg.getFromUid());
-        fromUidChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-        // 发送消息 从全局用户Channel关系中获取接受方的channel
-        Channel chanel = getChanel(chatMsg.getToUid());
-        if (StringUtils.isNotNull(chanel)) {
-            // 用户在线
-            chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-            log.info("发送单聊消息 fromUid={},toUid={}", chatMsg.getFromUid(), chatMsg.getToUid());
-        } else {
-            log.info("发送单聊消息(对方离线) fromUid={},toUid={}", chatMsg.getFromUid(), chatMsg.getToUid());
-        }
-    }
-
-    /**
-     * 发送群消息
-     */
-    private void groupMsg(DataContent content) {
-        // 群消息发送
-        GroupMsg chatGroupMsg = content.getChatGroupMsg();
-        // 保存消息到数据库
-        content.setChatGroupMsg(groupMsgService.insertGroupMsg(chatGroupMsg));
-        // 获取群用户ids
-        List<Integer> userIds = groupService.getUserIds(chatGroupMsg.getGroupId());
-        // 在指定群给所有在线群用户发送信息
-        userIds.forEach(item -> {
-            // 获取用户通道
-            Channel chanel = getChanel(item);
-            if (StringUtils.isNotNull(chanel)) {
-                // 用户在线
-                chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-            }
-        });
-        log.info("发送群聊消息 groupId={},userId={}", chatGroupMsg.getGroupId(), chatGroupMsg.getUserId());
-    }
-
-    /**
-     * 发送请求
-     */
-    private void sendRequest(DataContent content) {
-        Request chatRequest = content.getChatRequest();
-        // 好友请求
-        if (chatRequest.getType() == 1) {
-            // 保存请求到数据库
-            content.setChatRequest(requestService.insertRequest(chatRequest));
-            // 发送请求 从全局用户Channel关系中获取接受方的channel
-            Channel chanel = getChanel(chatRequest.getToUid());
-            if (StringUtils.isNotNull(chanel)) {
-                // 用户在线
-                chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                log.info("发送好友请求 fromUid={},toUid={}", chatRequest.getFromUid(), chatRequest.getToUid());
-            } else {
-                log.info("发送好友请求(对方离线) fromUid={},toUid={}", chatRequest.getFromUid(), chatRequest.getToUid());
-            }
-        }
-        // 入群请求
-        else if (chatRequest.getType() == 2) {
-            // 保存请求到数据库
-            content.setChatRequest(requestService.insertRequest(chatRequest));
-            // 群主id
-            Integer masterId = groupService.selectGroupInfoById(chatRequest.getGroupId()).getMasterId();
-            // 发送请求 从全局用户Channel关系中获取群主的channel
-            Channel chanel = getChanel(masterId);
-            if (StringUtils.isNotNull(chanel)) {
-                // 群主在线
-                chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                log.info("发送入群请求 fromUid={},masterId={}", chatRequest.getFromUid(), masterId);
-            } else {
-                log.info("发送入群请求(对方离线) fromUid={},masterId={}", chatRequest.getFromUid(), masterId);
-            }
-        }
-    }
-
-    /**
-     * 处理请求
-     */
-    private void dealRequest(DataContent content) {
-        Request chatRequest = content.getChatRequest();
-        // 好友请求
-        if (chatRequest.getType() == 1) {
-            // 同意
-            if (chatRequest.getStatus() == 1) {
-                // 添加好友入库,好友备注从扩展字段里取
-                int row = friendService.insertFriend(Friend.builder()
-                        .userId(chatRequest.getToUid())
-                        .friendId(chatRequest.getFromUid())
-                        .friendRemark(content.getExtend().getNickName()).build());
-                if (row <= 0) {
-                    log.info("同意好友请求失败 fromUid={},toUid={}", chatRequest.getFromUid(), chatRequest.getToUid());
-                    return;
-                }
-                // 通知发送方同意请求
-                // 获取发送方channel
-                Channel chanel = getChanel(chatRequest.getFromUid());
-                if (StringUtils.isNotNull(chanel)) {
-                    // 发送方在线
-                    chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                    // 这里是通知发送方,ft反置
-                    log.info("同意好友请求 fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                } else {
-                    log.info("同意好友请求(对方离线) fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                }
-            }
-            // 拒绝
-            else if (chatRequest.getStatus() == 2) {
-                // 通知发送方拒绝请求
-                // 获取发送方channel
-                Channel chanel = getChanel(chatRequest.getFromUid());
-                if (StringUtils.isNotNull(chanel)) {
-                    // 发送方在线
-                    chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                    // 这里是通知发送方,ft反置
-                    log.info("拒绝好友请求 fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                } else {
-                    log.info("拒绝好友请求(对方离线) fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                }
-            }
-            // 更改请求状态
-            requestService.changeFriendRequestStatus(chatRequest.getId(), chatRequest.getStatus());
-        }
-        // 入群请求
-        else if (chatRequest.getType() == 2) {
-            // 同意
-            if (chatRequest.getStatus() == 1) {
-                // 添加群友入库并设置入群欢迎信息
-                content.setChatGroupMsg(groupService.addNewGroupUser(Request.builder()
-                        .groupId(chatRequest.getGroupId())
-                        .fromUid(chatRequest.getFromUid()).build()));
-                // 给发送方发送同意请求
-                // 获取发送方channel
-                Channel chanel = getChanel(chatRequest.getFromUid());
-                if (StringUtils.isNotNull(chanel)) {
-                    // 发送方在线
-                    chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                    // 这里是通知发送方,ft反置
-                    log.info("同意入群请求 fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                } else {
-                    log.info("同意入群请求(对方离线) fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                }
-            }
-            // 拒绝
-            else if (chatRequest.getStatus() == 2) {
-                // 通知发送方拒绝请求
-                // 获取发送方channel
-                Channel chanel = getChanel(chatRequest.getFromUid());
-                if (StringUtils.isNotNull(chanel)) {
-                    // 发送方在线
-                    chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                    // 这里是通知发送方,ft反置
-                    log.info("拒绝入群请求 fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                } else {
-                    log.info("拒绝入群请求(对方离线) fromUid={},toUid={}", chatRequest.getToUid(), chatRequest.getFromUid());
-                }
-            }
-            // 更改请求状态
-            requestService.changeFriendRequestStatus(chatRequest.getId(), chatRequest.getStatus());
-        }
     }
 
     /**
@@ -298,75 +124,172 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     }
 
     /**
-     * 退出或删除群聊,系统通知
+     * 处理 websocket 第一次open的时候,绑定channel和userid,同时发送用户在线ids
      */
-    private void closeGroup(DataContent content) {
-        // 获取系统通知消息
-        Msg chatMsg = content.getChatMsg();
-        // 扩展字段里存放处理方式(quit退出 delete删除)
-        String type = content.getExtend().getGroupDealType();
-        // 退出群聊,通知群主
-        if ("quit".equals(type)) {
-            // 增加一条系统通知,chatMsg.getContent()存放用户信息
-            content.setChatMsg(msgService.insertMsg(Msg.builder()
-                    .msgType(0)
-                    .fromUid(chatMsg.getFromUid())
-                    .toUid(chatMsg.getToUid())
-                    .content("群友" + chatMsg.getContent() + "退出群").build()));
-            // 群主chanel
-            Channel chanel = getChanel(chatMsg.getToUid());
-            if (StringUtils.isNotNull(chanel)) {
-                // 群主在线
-                chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-                log.info("退出群聊 fromUid={},toUid={}", chatMsg.getFromUid(), chatMsg.getToUid());
-            } else {
-                log.info("退出群聊(群主离线) fromUid={},toUid={}", chatMsg.getFromUid(), chatMsg.getToUid());
-            }
+    private void connect(Integer userId, Channel channel) {
+        // 把channel和userid关联起来
+        manager.put(userId, channel);
+        sendTo(userId, JSONUtil.toJsonStr(getOnlineUserIds()), true);
+        log.info("userId={} 绑定通道成功", userId);
+    }
+
+    /**
+     * 单独聊天类型的消息，把聊天记录保存到数据库，同时标记消息的签收状态[数据库默认未签收]
+     */
+    private void chat(Msg msg) {
+        // 保存消息到数据库
+        int row = msgService.insertMsg(msg);
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(CHAT, JSONUtil.toJsonStr(msg)));
+        // 给自己发送响应消息
+        sendTo(msg.getFromUid(), jsonData, row > 0);
+        // 发送消息
+        if (row > 0) {
+            sendTo(msg.getToUid(), jsonData, true);
         }
-        // 删除群聊,通知群友
-        else if ("delete".equals(type)) {
-            // 获取群友列表
-            List<Integer> userIdList = groupService.getUserIds(content.getExtend().getGroupId());
-            // 给所有在线群用户发送群删除的系统通知
-            userIdList.forEach(item -> {
-                // 增加一条系统通知,chatMsg.getContent()存放群信息
-                content.setChatMsg(msgService.insertMsg(Msg.builder()
-                        .msgType(0)
-                        .fromUid(chatMsg.getFromUid())
-                        .toUid(item)
-                        .content(chatMsg.getContent() + "群已被删除").build()));
-                Channel chanel = getChanel(item);
-                if (StringUtils.isNotNull(chanel)) {
-                    // 用户在线
-                    chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
+    }
+
+    /**
+     * 发送群消息
+     */
+    private void groupChat(GroupMsg groupMsg) {
+        // 保存消息到数据库
+        int row = groupMsgService.insertGroupMsg(groupMsg);
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(GROUP_MSG, JSONUtil.toJsonStr(groupMsg)));
+        // 给自己发送响应消息
+        sendTo(groupMsg.getUserId(), jsonData, row > 0);
+        if (row > 0) {
+            // 获取群用户ids
+            List<Integer> userIds = groupService.getUserIds(groupMsg.getGroupId());
+            // 在指定群给所有在线群用户发送信息
+            userIds.forEach(item -> {
+                if (!Objects.equals(item, groupMsg.getUserId())) {
+                    sendTo(item, jsonData, true);
                 }
             });
-            log.info("删除群聊 masterId={}", chatMsg.getFromUid());
+        }
+    }
+
+    /**
+     * 发送请求
+     */
+    private void sendRequest(Request request) {
+        // 保存请求到数据库
+        int row = requestService.insertRequest(request);
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(SEND_REQUEST, JSONUtil.toJsonStr(request)));
+        // 给自己发送响应消息
+        sendTo(request.getFromUid(), jsonData, row > 0);
+        if (row > 0) {
+            // 给接收方发送请求
+            sendTo(request.getToUid(), jsonData, true);
+        }
+    }
+
+    /**
+     * 处理请求
+     */
+    private void dealRequest(Request request) {
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(DEAL_REQUEST, JSONUtil.toJsonStr(request)));
+        if (request.getStatus() == 1) { // 同意
+            // 添加好友或者群友
+            int row = request.getType() == 1 ? friendService.insertFriend(
+                    Friend.builder().userId(request.getToUid())
+                            .friendId(request.getFromUid())
+                            .friendRemark(request.getNickname()).build()) :
+                    (request.getType() == 2 ? groupService.addNewGroupUser(
+                            Request.builder().groupId(request.getGroupId())
+                                    .fromUid(request.getFromUid()).build()) : 0);
+            // 给自己发送响应消息
+            sendTo(request.getFromUid(), jsonData, row > 0);
+            if (row > 0) {
+                // 通知发送方,你的请求我同意了
+                sendTo(request.getFromUid(), jsonData, true);
+            }
+        } else if (request.getStatus() == 2) { // 拒绝
+            // 给自己发送响应消息
+            sendTo(request.getFromUid(), jsonData, true);
+            // 通知发送方,你的请求我拒绝了
+            sendTo(request.getFromUid(), jsonData, true);
+        }
+        // 更改请求状态
+        requestService.changeFriendRequestStatus(request.getId(), request.getStatus());
+    }
+
+    /**
+     * 删除群聊
+     */
+    private void deleteGroup(GroupMsg groupMsg) {
+        // 获取群友ids
+        List<Integer> userIdList = groupService.getUserIds(groupMsg.getGroupId());
+        // 给所有在线群用户发送群删除的系统通知
+        userIdList.forEach(item -> {
+            // 增加一条系统通知,groupMsg.getContent()存放群信息
+            Msg sysMsg = Msg.builder()
+                    .msgType(0)
+                    .fromUid(groupMsg.getUserId())
+                    .toUid(item)
+                    .content(groupMsg.getContent() + "群已被删除").build();
+            int row = msgService.insertMsg(sysMsg);
+            if (row > 0) {
+                String jsonData = JSONUtil.toJsonStr(DataContent.success(DELETE_GROUP, JSONUtil.toJsonStr(sysMsg)));
+                sendTo(item, jsonData, true);
+            }
+        });
+    }
+
+    /**
+     * 退出群聊,在请求退群接口后执行
+     */
+    private void quitGroup(GroupMsg groupMsg) {
+        // 增加一条系统通知来通知群主,groupMsg.getContent存放用户信息
+        // 获取群主id
+        int masterId = groupService.getGroupMasterId(groupMsg.getGroupId());
+        Msg sysMsg = Msg.builder()
+                .msgType(0)
+                .fromUid(groupMsg.getUserId())
+                .toUid(masterId)
+                .content("群友" + groupMsg.getContent() + "退出群").build();
+        int row = msgService.insertMsg(sysMsg);
+        if (row > 0) {
+            String jsonData = JSONUtil.toJsonStr(DataContent.success(QUIT_GROUP, JSONUtil.toJsonStr(sysMsg)));
+            sendTo(masterId, jsonData, true);
         }
     }
 
     /**
      * 处理转发
      */
-    private void forward(DataContent content) {
-        Msg chatMsg = content.getChatMsg();
-        String forwardType = content.getExtend().getForwardType();
-        Channel chanel = getChanel(chatMsg.getFromUid());
-        if (StringUtils.isNotNull(chanel)) {
-            chanel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(content)));
-            log.info("{}转发 fromUid={},toUid={}", forwardType, chatMsg.getFromUid(), chatMsg.getToUid());
+    private void forward(Forward forward) {
+        //转发至单聊或者群聊
+        if (forward.getType() == 1) {
+            chat(Msg.builder()
+                    .fromUid(forward.getFromUid())
+                    .toUid(forward.getToUid())
+                    .msgType(forward.getMsgType())
+                    .content(forward.getContent())
+                    .build());
+        } else if (forward.getType() == 2) {
+            groupChat(GroupMsg.builder()
+                    .userId(forward.getFromUid())
+                    .groupId(forward.getToUid())
+                    .msgType(forward.getMsgType())
+                    .content(forward.getContent())
+                    .build());
         }
     }
 
     /**
-     * 获取用户的通道
+     * 给指定用户发送数据
      *
      * @param userId 用户id
-     * @return 通道
+     * @param data   数据
+     * @param isOk   是否成功
      */
-    private Channel getChanel(Integer userId) {
-        Channel toChannel = manager.get(userId);
-        return StringUtils.isNotNull(toChannel) ? users.find(toChannel.id()) : null;
+    private void sendTo(Integer userId, String data, Boolean isOk) {
+        Channel channel = manager.get(userId);
+        if (StringUtils.isNotNull(channel)) {
+            String jsonData = isOk ? data : JSONUtil.toJsonStr(DataContent.fail());
+            channel.writeAndFlush(new TextWebSocketFrame(jsonData));
+        }
     }
 
     /**
