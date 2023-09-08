@@ -125,7 +125,7 @@ public class AgreeRecordController extends BaseController {
      * 搜索记录
      *
      * @param keyword 关键字
-     * @return {@link Result<SearchVO>} 记录列表
+     * @return {@link Result<SearchVO>} 记录搜索内容列表
      */
     @ApiOperation(value = "搜索记录")
     @GetMapping("/search/{keyword}")
@@ -141,8 +141,8 @@ public class AgreeRecordController extends BaseController {
      */
     @VisitLogger(value = "记录中心")
     @ApiOperation(value = "查看前台记录列表")
-    @GetMapping("/list")
-    public TableDataInfo<AgreeRecord> listAgreeRecord(String keyword) {
+    @GetMapping("/list/{keyword}")
+    public TableDataInfo<AgreeRecord> listAgreeRecord(@PathVariable String keyword) {
         startPage();
         List<AgreeRecord> list = recordService.listHomeAgreeRecord(keyword);
         clearPage();
@@ -153,16 +153,16 @@ public class AgreeRecordController extends BaseController {
      * 查看记录
      *
      * @param recordId 记录id
-     * @return {@link Result<AgreeRecord>} 首页记录
+     * @return {@link Result<AgreeRecord>} 记录信息
      */
     @ApiOperation(value = "查看记录")
     @GetMapping("/look/{recordId}")
-    public Result<AgreeRecord> getRecordHomeById(@PathVariable("recordId") Integer recordId) {
+    public Result<AgreeRecord> lookRecord(@PathVariable("recordId") Integer recordId) {
         return Result.success(recordService.getRecordHomeById(recordId));
     }
 
     /**
-     * 查看推荐记录
+     * 获取推荐记录
      *
      * @return {@link Result<AgreeRecord>} 推荐记录
      */

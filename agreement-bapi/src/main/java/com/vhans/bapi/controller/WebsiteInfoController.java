@@ -1,11 +1,10 @@
 package com.vhans.bapi.controller;
 
 import com.vhans.bus.website.domain.SiteConfig;
-import com.vhans.bus.website.service.ISiteConfigService;
-import com.vhans.core.annotation.VisitLogger;
-import com.vhans.core.web.model.Result;
 import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
 import com.vhans.bus.website.service.IWebsiteInfoService;
+import com.vhans.core.annotation.VisitLogger;
+import com.vhans.core.web.model.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,6 @@ public class WebsiteInfoController {
 
     @Autowired
     private IWebsiteInfoService websiteInfoService;
-
-    @Autowired
-    public ISiteConfigService siteConfigService;
 
     /**
      * 上传访客信息
@@ -51,27 +47,16 @@ public class WebsiteInfoController {
         return Result.success(websiteInfoService.getWebsiteInfo());
     }
 
+
     /**
-     * 查看系统配置信息
+     * 查看系统配置信息(关于系统)
      *
-     * @return {@link Result<SiteConfig>}  配置信息
+     * @return {@link Result<String>} 配置信息
      */
+    @VisitLogger(value = "关于")
     @ApiOperation(value = "查看系统配置信息")
     @GetMapping("/config")
     public Result<SiteConfig> getSiteInfo() {
-        return Result.success(siteConfigService.getSiteConfig());
-    }
-
-
-    /**
-     * 查看关于我信息
-     *
-     * @return {@link Result<String>} 关于我信息
-     */
-    @VisitLogger(value = "关于")
-    @ApiOperation(value = "查看关于我信息")
-    @GetMapping("/about")
-    public Result<String> getAbout() {
-        return Result.success(websiteInfoService.getAbout());
+        return Result.success(websiteInfoService.getSiteConfig());
     }
 }

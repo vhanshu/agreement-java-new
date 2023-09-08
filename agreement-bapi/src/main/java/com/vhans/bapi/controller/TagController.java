@@ -31,7 +31,7 @@ public class TagController {
      * 查看相应标签统计列表
      *
      * @param type 类型(1:记录标签,2:题目标签)
-     * @return {@link Result<Tag>} 标签列表
+     * @return {@link Result<TagStatisticsVO>} 标签统计列表
      */
     @VisitLogger(value = "标签")
     @ApiOperation(value = "查看相应标签统计列表")

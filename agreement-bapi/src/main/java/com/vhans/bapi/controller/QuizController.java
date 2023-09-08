@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -110,7 +112,7 @@ public class QuizController extends BaseController {
      * 搜索题目
      *
      * @param keyword 关键字
-     * @return {@link Result<SearchVO>} 题目列表
+     * @return {@link Result<SearchVO>} 题目搜索内容列表
      */
     @ApiOperation(value = "搜索题目")
     @GetMapping("/search/{keyword}")
@@ -141,12 +143,12 @@ public class QuizController extends BaseController {
      */
     @ApiOperation(value = "查看题目")
     @GetMapping("/look/{quizId}")
-    public Result<Quiz> getQuizStudyById(@PathVariable("quizId") Integer quizId) {
+    public Result<Quiz> lookQuiz(@PathVariable("quizId") Integer quizId) {
         return Result.success(quizService.getQuizHomeById(quizId));
     }
 
     /**
-     * 查看推荐题目
+     * 获取推荐题目
      *
      * @return {@link Result<Quiz>} 推荐题目
      */
@@ -169,5 +171,18 @@ public class QuizController extends BaseController {
         List<OverviewVO> list = quizService.listQuizOverviewVO();
         clearPage();
         return getDataTable(list);
+    }
+
+    /**
+     * 删除题目
+     * @param quizIds 题目ids
+     * @return 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "删除题目")
+    @DeleteMapping("/delete")
+    public Result<?> deleteQuiz(@RequestBody List<Integer> quizIds) {
+        quizService.deleteQuiz(quizIds);
+        return Result.success();
     }
 }

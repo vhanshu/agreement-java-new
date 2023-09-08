@@ -1,5 +1,6 @@
 package com.vhans.bus.website.service;
 
+import com.vhans.bus.website.domain.SiteConfig;
 import com.vhans.bus.website.domain.vo.WebsiteInfoVO;
 
 /**
@@ -25,5 +26,5 @@ public interface IWebsiteInfoService {
      *
      * @return 关于我信息
      */
-    String getAbout();
+    SiteConfig getSiteConfig();
 }

@@ -144,9 +144,8 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
     }
 
     @Override
-    public String getAbout() {
-        SiteConfig siteConfig = redisService.getObject(SITE_SETTING);
-        return siteConfig.getAboutMe();
+    public SiteConfig getSiteConfig() {
+        return redisService.getObject(SITE_SETTING);
     }
 
     /**

@@ -35,7 +35,7 @@ public class RequestController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "查询用户的好友请求列表")
     @GetMapping("/listFriend")
-    public Result<List<Request>> listFR() {
+    public Result<List<Request>> getFRequest() {
         return Result.success(requestService.selectUserRequestList());
     }
 
@@ -47,7 +47,7 @@ public class RequestController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "查询我的请求列表")
     @GetMapping("/listMy")
-    public Result<List<Request>> listIR() {
+    public Result<List<Request>> listIRequest() {
         return Result.success(requestService.selectIRequestList());
     }
 }
