@@ -2,9 +2,8 @@ package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
-import com.vhans.bus.subsidiary.model.dto.UpdatePasswdDTO;
-import com.vhans.bus.user.domain.dto.GitDTO;
 import com.vhans.bus.subsidiary.model.dto.LoginDTO;
+import com.vhans.bus.user.domain.dto.GitDTO;
 import com.vhans.bus.user.domain.dto.QqLoginDTO;
 import com.vhans.bus.user.domain.dto.RegisterDTO;
 import com.vhans.bus.user.service.IUserLoginService;
@@ -54,14 +53,14 @@ public class LoginController {
     /**
      * 发送邮箱验证码
      *
-     * @param username 用户账号
+     * @param email 邮箱
      * @return 结果
      */
     @AccessLimit(seconds = 60, maxCount = 1)
     @ApiOperation(value = "发送邮箱验证码")
-    @GetMapping("/code")
-    public Result<?> sendCode(String username) {
-        loginService.sendCode(username);
+    @GetMapping("/code/{email}")
+    public Result<?> sendCode(@PathVariable String email) {
+        loginService.sendCode(email);
         return Result.success();
     }
 
@@ -87,7 +86,7 @@ public class LoginController {
     @SaCheckLogin
     @ApiOperation(value = "修改用户密码")
     @PutMapping("/password")
-    public Result<?> updateAdminPassword(@Validated @RequestBody UpdatePasswdDTO password) {
+    public Result<?> updatePassword(@Validated @RequestBody RegisterDTO password) {
         loginService.updatePasswd(password);
         return Result.success();
     }

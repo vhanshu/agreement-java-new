@@ -8,7 +8,7 @@ import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.web.controller.BaseController;
 import com.vhans.core.web.model.Result;
 import com.vhans.bus.subsidiary.model.dto.LoginDTO;
-import com.vhans.bus.subsidiary.model.dto.UpdatePasswdDTO;
+import com.vhans.bus.system.domain.dto.UpdatePasswdDTO;
 import com.vhans.bus.system.service.IAdminLoginService;
 import com.vhans.core.web.model.page.TableDataInfo;
 import io.swagger.annotations.Api;

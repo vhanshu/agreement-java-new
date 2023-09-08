@@ -6,7 +6,7 @@ import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.subsidiary.model.dto.LoginDTO;
-import com.vhans.bus.subsidiary.model.dto.UpdatePasswdDTO;
+import com.vhans.bus.system.domain.dto.UpdatePasswdDTO;
 import com.vhans.bus.subsidiary.model.vo.OnlineVO;
 import com.vhans.bus.system.domain.Admin;
 import com.vhans.bus.system.mapper.AdminMapper;

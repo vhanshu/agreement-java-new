@@ -6,10 +6,9 @@ import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.vhans.bus.subsidiary.model.dto.UpdatePasswdDTO;
+import com.vhans.bus.subsidiary.model.dto.LoginDTO;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.domain.dto.GitDTO;
-import com.vhans.bus.subsidiary.model.dto.LoginDTO;
 import com.vhans.bus.user.domain.dto.QqLoginDTO;
 import com.vhans.bus.user.domain.dto.RegisterDTO;
 import com.vhans.bus.user.mapper.UserMapper;
@@ -105,12 +104,12 @@ public class UserLoginServiceImpl implements IUserLoginService {
     }
 
     @Override
-    public void updatePasswd(UpdatePasswdDTO passwdDTO) {
-        verifyCode(passwdDTO.getUsername(), passwdDTO.getCode());
+    public void updatePasswd(RegisterDTO passwdDTO) {
+        verifyCode(passwdDTO.getEmail(), passwdDTO.getCode());
         // 查询用户
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                 .select(User::getId)
-                .eq(User::getEmail, passwdDTO.getUsername()));
+                .eq(User::getEmail, passwdDTO.getEmail()));
         Assert.isTrue(StringUtils.isNotNull(user), "邮箱尚未注册!");
         // 更新密码
         userMapper.updateById(User.builder()

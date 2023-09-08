@@ -57,5 +57,5 @@ public interface IGroupMsgService {
      * @param groupId 群id
      * @return 聊天记录
      */
-    List<GroupMsg> getRecentGroupMsg(Integer groupId);
+    List<GroupMsg> getGroupMsgList(Integer groupId);
 }

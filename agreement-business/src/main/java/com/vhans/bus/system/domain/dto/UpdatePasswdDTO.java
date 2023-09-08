@@ -1,4 +1,4 @@
-package com.vhans.bus.subsidiary.model.dto;
+package com.vhans.bus.system.domain.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -16,7 +16,7 @@ import javax.validation.constraints.Size;
 @ApiModel(description = "密码更新DTO")
 public class UpdatePasswdDTO {
     /**
-     * 账号(对于前台为邮箱)
+     * 账号
      */
     @NotBlank(message = "账号不能为空")
     @ApiModelProperty(value = "账号")

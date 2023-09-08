@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,10 +36,10 @@ public class GroupMsgController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "获取群消息列表")
-    @GetMapping("/list")
-    public TableDataInfo<GroupMsg> listRecent(Integer groupId) {
+    @GetMapping("/list/{groupId}")
+    public TableDataInfo<GroupMsg> listGroup(@PathVariable Integer groupId) {
         startPage();
-        List<GroupMsg> list = groupMsgService.getRecentGroupMsg(groupId);
+        List<GroupMsg> list = groupMsgService.getGroupMsgList(groupId);
         clearPage();
         return getDataTable(list);
     }

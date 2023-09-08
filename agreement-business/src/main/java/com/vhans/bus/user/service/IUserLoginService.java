@@ -1,9 +1,8 @@
 package com.vhans.bus.user.service;
 
 
-import com.vhans.bus.subsidiary.model.dto.UpdatePasswdDTO;
-import com.vhans.bus.user.domain.dto.GitDTO;
 import com.vhans.bus.subsidiary.model.dto.LoginDTO;
+import com.vhans.bus.user.domain.dto.GitDTO;
 import com.vhans.bus.user.domain.dto.QqLoginDTO;
 import com.vhans.bus.user.domain.dto.RegisterDTO;
 
@@ -17,9 +16,9 @@ public interface IUserLoginService {
     /**
      * 发送验证码
      *
-     * @param username 用户名
+     * @param email 邮箱
      */
-    void sendCode(String username);
+    void sendCode(String email);
 
     /**
      * 用户注册
@@ -41,7 +40,7 @@ public interface IUserLoginService {
      *
      * @param passwdDTO 更新信息
      */
-    void updatePasswd(UpdatePasswdDTO passwdDTO);
+    void updatePasswd(RegisterDTO passwdDTO);
 
     /**
      * Gitee登录

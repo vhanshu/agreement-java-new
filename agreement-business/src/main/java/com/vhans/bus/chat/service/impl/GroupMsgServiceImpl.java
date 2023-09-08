@@ -53,7 +53,7 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
     }
 
     @Override
-    public List<GroupMsg> getRecentGroupMsg(Integer groupId) {
+    public List<GroupMsg> getGroupMsgList(Integer groupId) {
         GroupMsg.Query query = new GroupMsg.Query();
         query.setGroupId(groupId);
         return groupMsgMapper.selectGroupMsgList(query);

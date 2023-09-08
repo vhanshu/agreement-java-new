@@ -2,7 +2,7 @@ package com.vhans.bus.system.service;
 
 
 import com.vhans.bus.subsidiary.model.dto.LoginDTO;
-import com.vhans.bus.subsidiary.model.dto.UpdatePasswdDTO;
+import com.vhans.bus.system.domain.dto.UpdatePasswdDTO;
 import com.vhans.bus.subsidiary.model.vo.OnlineVO;
 
 import java.util.List;
