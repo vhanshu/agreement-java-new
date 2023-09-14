@@ -59,6 +59,9 @@ public class UserLoginServiceImpl implements IUserLoginService {
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                 .select(User::getId)
                 .eq(User::getUsername, login.getUsername())
+                .eq(User::getPassword, SecurityUtils.sha256Encrypt(login.getPassword()))
+                .or()
+                .eq(User::getEmail, login.getUsername())
                 .eq(User::getPassword, SecurityUtils.sha256Encrypt(login.getPassword())));
         Assert.notNull(user, "用户不存在或密码错误");
         // 校验指定账号是否已被封禁，如果被封禁则抛出异常 `DisableServiceException`
@@ -91,11 +94,13 @@ public class UserLoginServiceImpl implements IUserLoginService {
         Assert.isFalse(userMapper.exists(new LambdaQueryWrapper<User>()
                 .eq(User::getEmail, register.getEmail())), "邮箱已注册!");
         SiteConfig siteConfig = redisService.getObject(SITE_SETTING);
+        String nickname = StringUtils.isNotEmpty(register.getNickname()) ? register.getNickname() :
+                USERNAME_PREFIX + register.getEmail().substring(0, 4);
         // 添加用户
         userMapper.insert(User.builder()
-                .username(register.getEmail())
+                .username(USERNAME_PREFIX + IdWorker.getId())
                 .email(register.getEmail())
-                .nickname(USER_NICKNAME + IdWorker.getId())
+                .nickname(nickname)
                 .avatar(siteConfig.getUserAvatar())
                 .password(SecurityUtils.sha256Encrypt(register.getPassword()))
                 .loginType(EMAIL.getLoginType())

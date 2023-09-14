@@ -17,10 +17,10 @@ import javax.validation.constraints.Size;
 public class LoginDTO {
 
     /**
-     * 账号
+     * 账号或者邮箱
      */
     @NotBlank(message = "账号不能为空")
-    @ApiModelProperty(value = "账号")
+    @ApiModelProperty(value = "账号或者邮箱")
     private String username;
 
     /**

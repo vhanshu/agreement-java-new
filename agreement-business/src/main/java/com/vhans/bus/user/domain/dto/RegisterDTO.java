@@ -18,6 +18,12 @@ import javax.validation.constraints.Size;
 public class RegisterDTO {
 
     /**
+     * 用户昵称
+     */
+    @ApiModelProperty(value = "昵称")
+    private String nickname;
+
+    /**
      * 邮箱
      */
     @NotBlank(message = "邮箱不能为空")

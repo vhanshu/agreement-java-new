@@ -28,9 +28,9 @@ public class CommonConstant {
     public static final String CAPTCHA = "验证码";
 
     /**
-     * 默认用户昵称
+     * 默认用户账号前缀
      */
-    public static final String USER_NICKNAME = "校员恶霸";
+    public static final String USERNAME_PREFIX = "ag";
 
     /**
      * 在线用户
