@@ -8,10 +8,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -40,5 +37,19 @@ public class FileController extends BaseController {
     @PostMapping("/upload")
     public Result<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("type") Integer type) {
         return Result.success(fileService.uploadCommonFile(file, type));
+    }
+
+    /**
+     * 下载文件
+     *
+     * @param fileId 文件id
+     * @return 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "下载文件")
+    @PostMapping("/download/{fileId}")
+    public Result<?> downloadFile(@PathVariable("fileId") Integer fileId) {
+        fileService.downloadFile(fileId);
+        return Result.success();
     }
 }
