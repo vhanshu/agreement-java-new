@@ -55,10 +55,16 @@ public class GroupMsg {
     private Integer msgType;
 
     /**
-     * 消息内容
+     * 文件id
+     */
+    @ApiModelProperty(value = "文件id")
+    private Integer fileId;
+
+    /**
+     * 消息内容(可以是文件名)
      */
     @NotBlank(message = "消息内容不能为空")
-    @ApiModelProperty(value = "消息内容")
+    @ApiModelProperty(value = "消息内容(可以是文件名)")
     private String content;
 
     /**
@@ -89,6 +95,20 @@ public class GroupMsg {
     @ApiModelProperty(value = "用户昵称")
     @TableField(exist = false)
     private String nickname;
+
+    /**
+     * 文件url
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "文件url")
+    private String fileUrl;
+
+    /**
+     * 文件大小
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "文件大小")
+    private Integer fileSize;
 
     /* 定义需要查询的字段对象 */
     @Data

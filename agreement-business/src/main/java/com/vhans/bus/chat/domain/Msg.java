@@ -49,10 +49,16 @@ public class Msg {
     private Integer toUid;
 
     /**
-     * 内容
+     * 文件id
+     */
+    @ApiModelProperty(value = "文件id")
+    private Integer fileId;
+
+    /**
+     * 内容(可以是文件名)
      */
     @NotBlank(message = "消息内容不能为空")
-    @ApiModelProperty(value = "内容")
+    @ApiModelProperty(value = "内容(可以是文件名)")
     private String content;
 
     /**
@@ -96,6 +102,19 @@ public class Msg {
     @ApiModelProperty(value = "用户昵称")
     private String nickname;
 
+    /**
+     * 文件url
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "文件url")
+    private String fileUrl;
+
+    /**
+     * 文件大小
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "文件大小")
+    private Integer fileSize;
 
     /* 定义需要查询的字段对象 */
     @Data

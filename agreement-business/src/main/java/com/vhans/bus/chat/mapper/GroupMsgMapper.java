@@ -24,4 +24,12 @@ public interface GroupMsgMapper extends BaseMapper<GroupMsg> {
      */
     List<GroupMsg> selectGroupMsgList(@Param("query") GroupMsg.Query query);
 
+    /**
+     * 查询群的聊天记录，通过群id来获取
+     *
+     * @param groupId 群id
+     * @return 聊天记录
+     */
+    List<GroupMsg> selectRecentGroupMsg(@Param("groupId") Integer groupId);
+
 }

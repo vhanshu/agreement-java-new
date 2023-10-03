@@ -8,13 +8,17 @@
         gm.group_id,
         gm.user_id,
         gm.msg_type,
+        gm.file_id,
         gm.content,
         gm.create_time,
         gm.update_time,
         u.avatar,
-        u.nickname
+        u.nickname,
+        fr.file_size,
+        fr.file_url
         from c_group_msg gm
         left join u_user u on u.id = gm.user_id
+        left join s_file_record fr on fr.id = gm.file_id
         <where>
             <if test="query.groupId != null">
                 gm.group_id = #{query.groupId}
@@ -29,12 +33,33 @@
                 and gm.content like concat('%',#{query.content},'%')
             </if>
             <if test="query.startTime != null">
-                and gm.date_format(create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d %H:%i:%s')
+                and gm.date_format(create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d
+                %H:%i:%s')
             </if>
             <if test="query.endTime != null">
                 and gm.date_format(create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
             </if>
         </where>
+    </select>
+
+    <select id="selectRecentGroupMsg" resultType="com.vhans.bus.chat.domain.GroupMsg">
+        select
+        gm.id,
+        gm.group_id,
+        gm.user_id,
+        gm.msg_type,
+        gm.file_id,
+        gm.content,
+        gm.create_time,
+        gm.update_time,
+        u.avatar,
+        u.nickname,
+        fr.file_size,
+        fr.file_url
+        from c_group_msg gm
+        left join u_user u on u.id = gm.user_id
+        left join s_file_record fr on fr.id = gm.file_id
+        where group_id = #{groupId}
     </select>
 
 </mapper>

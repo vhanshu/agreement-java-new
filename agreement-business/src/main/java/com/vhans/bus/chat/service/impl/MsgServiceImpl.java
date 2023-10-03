@@ -1,7 +1,6 @@
 package com.vhans.bus.chat.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.Msg;
 import com.vhans.bus.chat.mapper.MsgMapper;
@@ -48,14 +47,7 @@ public class MsgServiceImpl implements IMsgService {
 
     @Override
     public List<Msg> getRecentMsg(Integer friendId) {
-        Assert.notNull(friendId, "好友不能为空");
-        int userId = StpUtil.getLoginIdAsInt();
-        return msgMapper.selectList(new LambdaQueryWrapper<Msg>()
-                .eq(Msg::getFromUid, userId)
-                .eq(Msg::getToUid, friendId)
-                .or()
-                .eq(Msg::getFromUid, friendId)
-                .eq(Msg::getToUid, userId));
+        return msgMapper.selectRecentMsg(StpUtil.getLoginIdAsInt(), friendId);
     }
 
     @Override

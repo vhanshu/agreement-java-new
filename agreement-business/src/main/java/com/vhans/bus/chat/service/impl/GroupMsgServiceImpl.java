@@ -27,6 +27,11 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
     }
 
     @Override
+    public List<GroupMsg> getGroupMsgList(Integer groupId) {
+        return groupMsgMapper.selectRecentGroupMsg(groupId);
+    }
+
+    @Override
     public int insertGroupMsg(GroupMsg groupMsg) {
         return groupMsgMapper.insert(groupMsg);
     }
@@ -49,13 +54,7 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
                 .select(GroupMsg::getId, GroupMsg::getGroupId, GroupMsg::getMsgType, GroupMsg::getContent,
                         GroupMsg::getCreateTime, GroupMsg::getUserId)
                 .eq(GroupMsg::getGroupId, groupId)
-                .orderByDesc(GroupMsg::getCreateTime));
-    }
-
-    @Override
-    public List<GroupMsg> getGroupMsgList(Integer groupId) {
-        GroupMsg.Query query = new GroupMsg.Query();
-        query.setGroupId(groupId);
-        return groupMsgMapper.selectGroupMsgList(query);
+                .orderByDesc(GroupMsg::getCreateTime)
+                .last("limit 1"));
     }
 }

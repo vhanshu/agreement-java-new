@@ -4,19 +4,26 @@
 
     <select id="selectMsgList" resultType="com.vhans.bus.chat.domain.Msg">
         select
-        id,
-        from_uid,
-        to_uid,
-        msg_type,
-        content,
-        is_read,
-        create_time,
-        update_time
-        from c_msg
+        m.id,
+        m.from_uid,
+        m.to_uid,
+        m.msg_type,
+        m.file_id,
+        m.content,
+        m.is_read,
+        m.create_time,
+        m.update_time,
+        u.avatar,
+        u.nickname,
+        fr.file_size,
+        fr.file_url
+        from c_msg m
+        left join u_user u on u.id = m.from_uid
+        left join s_file_record fr on fr.id = m.file_id
         <where>
             <if test="query.msgType != null">
                 msg_type = #{query.msgType}
-            </if>
+            </if>or
             <if test="query.isRead != null">
                 is_read = #{query.isRead}
             </if>
@@ -30,6 +37,27 @@
                 and date_format(create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
             </if>
         </where>
+    </select>
+
+    <select id="selectRecentMsg" resultType="com.vhans.bus.chat.domain.Msg">
+        select m.id,
+               m.from_uid,
+               m.to_uid,
+               m.msg_type,
+               m.file_id,
+               m.content,
+               m.is_read,
+               m.create_time,
+               m.update_time,
+               u.avatar,
+               u.nickname,
+               fr.file_size,
+               fr.file_url
+        from c_msg m
+                 left join u_user u on u.id = m.from_uid
+                 left join s_file_record fr on fr.id = m.file_id
+        where m.from_uid = #{userId} and m.to_uid = #{friendId}
+           or m.from_uid = #{friendId} and m.to_uid = #{userId}
     </select>
 
 </mapper>

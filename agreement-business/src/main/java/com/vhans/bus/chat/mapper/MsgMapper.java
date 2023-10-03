@@ -24,4 +24,13 @@ public interface MsgMapper extends BaseMapper<Msg> {
      */
     List<Msg> selectMsgList(@Param("query") Msg.Query query);
 
+    /**
+     * 查询好友之间的聊天记录
+     *
+     * @param userId 用户id
+     * @param friendId 好友id
+     * @return 聊天记录列表
+     */
+    List<Msg> selectRecentMsg(@Param("userId") Integer userId, @Param("friendId") Integer friendId);
+
 }
