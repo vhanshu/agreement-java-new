@@ -97,4 +97,14 @@ public class RedisConstant {
      */
     public static final String WEBSITE_VIEW_COUNT = "website_view_count";
 
+    /**
+     * 最近好友的ids
+     */
+    public static final String LATELY_FRIEND_IDS = "lately_friend_ids";
+
+    /**
+     * 最近群聊的ids
+     */
+    public static final String LATELY_GROUP_IDS = "lately_group_ids";
+
 }

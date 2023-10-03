@@ -1,6 +1,5 @@
 package com.vhans.bapi.config;
 
-import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.filter.SaServletFilter;
@@ -84,7 +83,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         StpUtil.renewTimeout(1800);
                     }
                     // 输出 API 请求日志，方便调试代码
-                    SaManager.getLog().debug("----- 请求path={}  提交token={}", SaHolder.getRequest().getRequestPath(), StpUtil.getTokenValue());
+//                    SaManager.getLog().debug("----- 请求path={}  提交token={}", SaHolder.getRequest().getRequestPath(), StpUtil.getTokenValue());
                 })
                 //  异常处理函数：每次认证函数发生异常时执行此函数
                 .setError(e -> {

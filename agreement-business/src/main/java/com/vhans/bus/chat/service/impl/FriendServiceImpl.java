@@ -11,14 +11,17 @@ import com.vhans.bus.chat.service.IFriendService;
 import com.vhans.bus.chat.service.IMsgService;
 import com.vhans.bus.chat.domain.vo.ConversationVO;
 import com.vhans.bus.user.mapper.UserMapper;
+import com.vhans.core.redis.RedisService;
 import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
+import static com.vhans.core.constant.RedisConstant.LATELY_FRIEND_IDS;
 
 /**
  * 好友Service业务层处理
@@ -41,6 +44,9 @@ public class FriendServiceImpl implements IFriendService {
     @Autowired
     private IMsgService msgService;
 
+    @Autowired
+    private RedisService redisService;
+
     @Override
     public List<Friend> selectFriendList(Friend.Query query) {
         // 查询好友信息
@@ -58,6 +64,11 @@ public class FriendServiceImpl implements IFriendService {
     public List<ConversationVO> getRecentConversation(List<Integer> friendIds) {
         // 获取用户id
         int userId = StpUtil.getLoginIdAsInt();
+        List<Integer> redisIds = redisService.getObject(LATELY_FRIEND_IDS + userId);
+        // 当用户换浏览器登录时,取上次ids
+        if (StringUtils.isEmpty(friendIds) && StringUtils.isNotEmpty(redisIds)) {
+            friendIds.addAll(redisIds);
+        }
         // 查询最近给我发新消息的用户并加入最近列表
         List<Msg> newFriends = msgMapper.selectList(new LambdaQueryWrapper<Msg>()
                 .select(Msg::getFromUid)
@@ -66,6 +77,11 @@ public class FriendServiceImpl implements IFriendService {
         if (StringUtils.isNotEmpty(newFriends)) {
             friendIds.addAll(newFriends.stream().map(Msg::getFromUid).toList());
         }
+        if (StringUtils.isEmpty(friendIds)) {
+            return new ArrayList<>();
+        }
+        // 将最新的用户ids加入Redis缓存
+        redisService.setObject(LATELY_FRIEND_IDS + userId, friendIds);
         // 获取基本消息(好友id,备注,头像,时间)
         List<ConversationVO> conversations = friendMapper.selectRecentConversation(userId, friendIds);
         conversations.forEach(item -> {
@@ -76,10 +92,8 @@ public class FriendServiceImpl implements IFriendService {
                     .eq(Msg::getIsRead, FALSE)
                     .eq(Msg::getFromUid, item.getId())
                     .eq(Msg::getToUid, userId)));
-            String content = lastMsg.getMsgType() == 1 ? lastMsg.getContent() :
-                    (lastMsg.getMsgType() == 2 ? "[文件]" :
-                            (lastMsg.getMsgType() == 3 ? "[图片]" :
-                                    (lastMsg.getMsgType() == 4 ? "[视频]" : "[语音]")));
+            String content = lastMsg.getMsgType() == 1 ? lastMsg.getContent() : (lastMsg.getMsgType() == 2 ? "[文件]" :
+                    (lastMsg.getMsgType() == 3 ? "[图片]" : (lastMsg.getMsgType() == 4 ? "[视频]" : "[语音]")));
             item.setLastMsg(content);
             if (StringUtils.isNotNull(lastMsg.getCreateTime())) {
                 item.setTime(lastMsg.getCreateTime());

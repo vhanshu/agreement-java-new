@@ -4,26 +4,29 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.*;
+import com.vhans.bus.chat.domain.vo.ConversationVO;
+import com.vhans.bus.chat.domain.vo.GroupUserIntroVO;
 import com.vhans.bus.chat.mapper.FriendMapper;
 import com.vhans.bus.chat.mapper.GroupMapper;
 import com.vhans.bus.chat.mapper.GroupMsgMapper;
 import com.vhans.bus.chat.mapper.GroupUserMapper;
 import com.vhans.bus.chat.service.IGroupMsgService;
 import com.vhans.bus.chat.service.IGroupService;
-import com.vhans.bus.chat.domain.vo.ConversationVO;
-import com.vhans.bus.chat.domain.vo.GroupUserIntroVO;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.mapper.UserMapper;
+import com.vhans.core.redis.RedisService;
 import com.vhans.core.utils.data.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
 import static com.vhans.core.constant.NumberConstant.*;
+import static com.vhans.core.constant.RedisConstant.LATELY_GROUP_IDS;
 
 /**
  * 群组Service业务层处理
@@ -51,6 +54,9 @@ public class GroupServiceImpl implements IGroupService {
 
     @Autowired
     private IGroupMsgService groupMsgService;
+
+    @Autowired
+    private RedisService redisService;
 
 
     @Override
@@ -127,13 +133,21 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public List<Group> selectJoinGroupList() {
-        return groupMapper.getJoinGroupListByUserId(StpUtil.getLoginIdAsInt());
+        List<Group> list = groupMapper.getJoinGroupListByUserId(StpUtil.getLoginIdAsInt());
+        list.forEach(item -> item.setUserNumber(Math.toIntExact(
+                groupUserMapper.selectCount(new LambdaQueryWrapper<GroupUser>()
+                        .eq(GroupUser::getGroupId, item.getId())))));
+        return list;
     }
 
     @Override
     public List<Group> selectMyGroupList() {
-        return groupMapper.selectList(new LambdaQueryWrapper<Group>()
+        List<Group> list = groupMapper.selectList(new LambdaQueryWrapper<Group>()
                 .eq(Group::getMasterId, StpUtil.getLoginIdAsInt()));
+        list.forEach(item -> item.setUserNumber(Math.toIntExact(
+                groupUserMapper.selectCount(new LambdaQueryWrapper<GroupUser>()
+                        .eq(GroupUser::getGroupId, item.getId())))));
+        return list;
     }
 
     @Override
@@ -171,18 +185,27 @@ public class GroupServiceImpl implements IGroupService {
     public List<ConversationVO> getRecentConversation(List<Integer> groupIds) {
         //用户id
         int userId = StpUtil.getLoginIdAsInt();
+        List<Integer> redisIds = redisService.getObject(LATELY_GROUP_IDS + userId);
+        // 当用户换浏览器登录时,取上次ids
+        if (StringUtils.isEmpty(groupIds) && StringUtils.isNotEmpty(redisIds)) {
+            groupIds.addAll(redisIds);
+        }
+        if (StringUtils.isEmpty(groupIds)) {
+            return new ArrayList<>();
+        }
+        // 将最新的群聊ids加入Redis缓存
+        redisService.setObject(LATELY_GROUP_IDS + userId, groupIds);
         // 获取基本消息(id,名称,图像,时间,状态)
         List<ConversationVO> conversations = groupMapper.selectRecentConversation(userId, groupIds);
         conversations.forEach(item -> {
             // 封装最近群聊会话
+            item.setName(item.getName() + "群");
             // 我现在是接收方
             GroupMsg lastMsg = groupMsgService.getLastGroupMsg(item.getId());
             // 未读消息数
             int unread = getUnread(item.getId(), userId);
-            String content = lastMsg.getMsgType() == 1 ? lastMsg.getContent() :
-                    (lastMsg.getMsgType() == 2 ? "[文件]" :
-                            (lastMsg.getMsgType() == 3 ? "[图片]" :
-                                    (lastMsg.getMsgType() == 4 ? "[视频]" : "[语音]")));
+            String content = lastMsg.getMsgType() == 1 ? lastMsg.getContent() : (lastMsg.getMsgType() == 2 ? "[文件]" :
+                    (lastMsg.getMsgType() == 3 ? "[图片]" : (lastMsg.getMsgType() == 4 ? "[视频]" : "[语音]")));
             item.setLastMsg(content);
             if (StringUtils.isNotNull(lastMsg.getCreateTime())) {
                 item.setTime(lastMsg.getCreateTime());
