@@ -204,9 +204,7 @@ public class GroupServiceImpl implements IGroupService {
             GroupMsg lastMsg = groupMsgService.getLastGroupMsg(item.getId());
             // 未读消息数
             int unread = getUnread(item.getId(), userId);
-            String content = lastMsg.getMsgType() == 1 ? lastMsg.getContent() : (lastMsg.getMsgType() == 2 ? "[文件]" :
-                    (lastMsg.getMsgType() == 3 ? "[图片]" : (lastMsg.getMsgType() == 4 ? "[视频]" : "[语音]")));
-            item.setLastMsg(content);
+            item.setLastMsg(lastMsg.getContent());
             if (StringUtils.isNotNull(lastMsg.getCreateTime())) {
                 item.setTime(lastMsg.getCreateTime());
             }

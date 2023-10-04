@@ -92,9 +92,7 @@ public class FriendServiceImpl implements IFriendService {
                     .eq(Msg::getIsRead, FALSE)
                     .eq(Msg::getFromUid, item.getId())
                     .eq(Msg::getToUid, userId)));
-            String content = lastMsg.getMsgType() == 1 ? lastMsg.getContent() : (lastMsg.getMsgType() == 2 ? "[文件]" :
-                    (lastMsg.getMsgType() == 3 ? "[图片]" : (lastMsg.getMsgType() == 4 ? "[视频]" : "[语音]")));
-            item.setLastMsg(content);
+            item.setLastMsg(lastMsg.getContent());
             if (StringUtils.isNotNull(lastMsg.getCreateTime())) {
                 item.setTime(lastMsg.getCreateTime());
             }
