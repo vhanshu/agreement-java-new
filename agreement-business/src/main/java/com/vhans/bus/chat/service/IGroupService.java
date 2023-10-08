@@ -31,6 +31,21 @@ public interface IGroupService {
     List<Group> selectGroupByUserId(Integer userId);
 
     /**
+     * 获取最近的群会话列表
+     *
+     * @param groupIds 群组ids
+     * @return 群组列表
+     */
+    List<ConversationVO> getRecentConversation(List<Integer> groupIds);
+
+    /**
+     * 更新我的访群时间
+     *
+     * @param groupId 群聊id
+     */
+    void updateViewGroup(Integer groupId);
+
+    /**
      * 修改群组
      *
      * @param group 群组
@@ -97,14 +112,6 @@ public interface IGroupService {
      * @return 影响行
      */
     int addNewGroupUser(Request request);
-
-    /**
-     * 获取最近的群会话列表
-     *
-     * @param groupIds 群组ids
-     * @return 群组列表
-     */
-    List<ConversationVO> getRecentConversation(List<Integer> groupIds);
 
     /**
      * 获取群用户ids

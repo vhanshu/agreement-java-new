@@ -65,6 +65,20 @@ public class GroupController extends BaseController {
     }
 
     /**
+     * 更新我的访群时间
+     *
+     * @param groupId 群聊id
+     * @return {@link Result} 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "更新用户的访群时间")
+    @GetMapping("/view/{groupId}")
+    public Result<?> viewGroup(@PathVariable("groupId") Integer groupId) {
+        groupService.updateViewGroup(groupId);
+        return Result.success();
+    }
+
+    /**
      * 获取群组详细信息
      *
      * @param groupId 群组id

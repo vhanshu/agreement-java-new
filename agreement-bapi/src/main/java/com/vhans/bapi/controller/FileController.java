@@ -28,28 +28,25 @@ public class FileController extends BaseController {
      * 上传文件
      *
      * @param file 文件
-     * @param type 存储类型(1头像 2配置 3约起 4记录 5题目)
+     * @param path 上传路径
      * @return 结果
      */
     @SaCheckLogin
     @ApiOperation(value = "上传文件")
     @ApiImplicitParam(name = "file", value = "文件", required = true, dataType = "MultipartFile")
     @PostMapping("/upload")
-    public Result<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("type") Integer type) {
-        return Result.success(fileService.uploadCommonFile(file, type));
+    public Result<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("path") String path) {
+        return Result.success(fileService.uploadCommonFile(file, path));
     }
 
     /**
-     * 下载文件
+     * 响应文件
      *
      * @param fileId 文件id
-     * @return 结果
      */
-    @SaCheckLogin
-    @ApiOperation(value = "下载文件")
-    @PostMapping("/download/{fileId}")
-    public Result<?> downloadFile(@PathVariable("fileId") Integer fileId) {
+    @ApiOperation(value = "响应文件")
+    @GetMapping("/download/{fileId}")
+    public void downloadFile(@PathVariable("fileId") Integer fileId) {
         fileService.downloadFile(fileId);
-        return Result.success();
     }
 }

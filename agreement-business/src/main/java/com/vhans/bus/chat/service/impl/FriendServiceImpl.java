@@ -75,7 +75,7 @@ public class FriendServiceImpl implements IFriendService {
                 .eq(Msg::getIsRead, FALSE)
                 .eq(Msg::getToUid, userId));
         if (StringUtils.isNotEmpty(newFriends)) {
-            friendIds.addAll(newFriends.stream().map(Msg::getFromUid).toList());
+            friendIds.addAll(newFriends.stream().map(Msg::getFromUid).filter(id -> !friendIds.contains(id)).toList());
         }
         if (StringUtils.isEmpty(friendIds)) {
             return new ArrayList<>();

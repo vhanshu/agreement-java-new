@@ -54,9 +54,9 @@ public interface IFileRecordService extends IService<FileRecord> {
     /**
      * 系统通用文件上传
      *
-     * @param file     文件
-     * @param type     存储类型
+     * @param file 文件
+     * @param path 上传路径
      * @return 文件url
      */
-    String uploadCommonFile(MultipartFile file, Integer type);
+    String uploadCommonFile(MultipartFile file, String path);
 }

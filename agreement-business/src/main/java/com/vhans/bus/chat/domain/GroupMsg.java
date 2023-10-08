@@ -35,18 +35,18 @@ public class GroupMsg {
     private Integer id;
 
     /**
-     * 群id
-     */
-    @NotBlank(message = "群id不能为空")
-    @ApiModelProperty(value = "群id")
-    private Integer groupId;
-
-    /**
      * 用户id
      */
     @NotNull(message = "用户不能为空")
     @ApiModelProperty(value = "用户id")
-    private Integer userId;
+    private Integer fromUid;
+
+    /**
+     * 群id
+     */
+    @NotBlank(message = "群id不能为空")
+    @ApiModelProperty(value = "群id")
+    private Integer toUid;
 
     /**
      * 类型(0系统 1文本 2文件 3图片 4视频 5语音)
@@ -114,16 +114,16 @@ public class GroupMsg {
     @Data
     public static class Query {
         /**
-         * 群id
-         */
-        @ApiModelProperty(value = "群id")
-        private Integer groupId;
-
-        /**
          * 用户id
          */
         @ApiModelProperty(value = "用户id")
-        private Integer userId;
+        private Integer fromUid;
+
+        /**
+         * 群id
+         */
+        @ApiModelProperty(value = "群id")
+        private Integer toUid;
 
         /**
          * 类型(0系统 1文本 2文件 3图片 4视频 5语音)

@@ -37,11 +37,12 @@ public interface IGroupMsgService {
     int insertGroupMsg(GroupMsg groupMsg);
 
     /**
-     * 删除群中指定用户聊天信息
+     * 删除群中聊天信息
      *
      * @param msgId 消息id
+     * @return 影响行
      */
-    void deleteGroupMsg(Integer msgId);
+    int deleteGroupMsg(Integer msgId);
 
     /**
      * 批量删除群聊天信息

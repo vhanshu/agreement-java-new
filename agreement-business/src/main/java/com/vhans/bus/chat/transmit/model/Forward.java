@@ -16,7 +16,7 @@ public class Forward {
     private Integer fromUid;
 
     /**
-     * 接收者id
+     * 接收者id(可以是群聊id)
      */
     private Integer toUid;
 

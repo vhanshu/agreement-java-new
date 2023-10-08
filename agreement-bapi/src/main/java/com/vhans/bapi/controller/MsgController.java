@@ -9,10 +9,7 @@ import com.vhans.bus.chat.service.IMsgService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -73,5 +70,18 @@ public class MsgController extends BaseController {
         List<Msg> list = msgService.selectMsgList(query);
         clearPage();
         return getDataTable(list);
+    }
+
+    /**
+     * 撤回聊天信息
+     *
+     * @param msgId 消息id
+     * @return 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "撤回聊天信息")
+    @DeleteMapping("/delete/{msgId}")
+    public Result<?> deleteMsg(@PathVariable("msgId") Integer msgId) {
+        return toAjax(msgService.deleteMsg(msgId));
     }
 }

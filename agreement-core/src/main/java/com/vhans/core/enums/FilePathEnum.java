@@ -34,7 +34,15 @@ public enum FilePathEnum {
     /**
      * 配置文件路径
      */
-    CONFIG(5, "/config/", "/config");
+    CONFIG(5, "/config/", "/config"),
+    /**
+     * 临时文件路径
+     */
+    TEMP(6, "/temp/", "/temp"),
+    /**
+     * 通讯文件路径
+     */
+    MSG(7, "/msg/", "/msg");
 
     /**
      * 上传类型

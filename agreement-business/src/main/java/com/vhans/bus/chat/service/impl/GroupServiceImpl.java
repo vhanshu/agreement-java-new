@@ -21,12 +21,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
 import static com.vhans.core.constant.NumberConstant.*;
 import static com.vhans.core.constant.RedisConstant.LATELY_GROUP_IDS;
+import static com.vhans.core.enums.ZoneEnum.SHANGHAI;
 
 /**
  * 群组Service业务层处理
@@ -65,6 +68,47 @@ public class GroupServiceImpl implements IGroupService {
         return groupMapper.selectList(new LambdaQueryWrapper<Group>()
                 .eq(StringUtils.isNotNull(query.getName()), Group::getName, query.getName())
                 .eq(StringUtils.isNotNull(query.getIsDelete()), Group::getIsDelete, query.getIsDelete()));
+    }
+
+    @Override
+    public List<ConversationVO> getRecentConversation(List<Integer> groupIds) {
+        //用户id
+        int userId = StpUtil.getLoginIdAsInt();
+        List<Integer> redisIds = redisService.getObject(LATELY_GROUP_IDS + userId);
+        // 当用户换浏览器登录时,取上次ids
+        if (StringUtils.isEmpty(groupIds) && StringUtils.isNotEmpty(redisIds)) {
+            groupIds.addAll(redisIds);
+        }
+        if (StringUtils.isEmpty(groupIds)) {
+            return new ArrayList<>();
+        }
+        // 将最新的群聊ids加入Redis缓存
+        redisService.setObject(LATELY_GROUP_IDS + userId, groupIds);
+        // 获取基本消息(id,名称,图像,时间,状态)
+        List<ConversationVO> conversations = groupMapper.selectRecentConversation(userId, groupIds);
+        conversations.forEach(item -> {
+            // 封装最近群聊会话
+            item.setName(item.getName() + "群");
+            // 我现在是接收方
+            GroupMsg lastMsg = groupMsgService.getLastGroupMsg(item.getId());
+            // 未读消息数
+            int unread = getUnread(item.getId(), userId);
+            item.setLastMsg(lastMsg.getContent());
+            if (StringUtils.isNotNull(lastMsg.getCreateTime())) {
+                item.setTime(lastMsg.getCreateTime());
+            }
+            item.setUnread(Math.min(unread, 99));
+        });
+        return conversations;
+    }
+
+    @Override
+    public void updateViewGroup(Integer groupId) {
+        // 获取访问时间
+        LocalDateTime viewTime = LocalDateTime.now(ZoneId.of(SHANGHAI.getZone()));
+        groupUserMapper.update(GroupUser.builder().viewTime(viewTime).build(), new LambdaQueryWrapper<GroupUser>()
+                .eq(GroupUser::getGroupId, groupId)
+                .eq(GroupUser::getUserId, StpUtil.getLoginIdAsInt()));
     }
 
     @Override
@@ -123,7 +167,7 @@ public class GroupServiceImpl implements IGroupService {
     public void deleteGroup(Integer id) {
         // 1、先删除该群中所有信息
         groupMsgMapper.delete(new LambdaQueryWrapper<GroupMsg>()
-                .eq(GroupMsg::getGroupId, id));
+                .eq(GroupMsg::getToUid, id));
         // 2、再删除该群的所有成员
         groupUserMapper.delete(new LambdaQueryWrapper<GroupUser>()
                 .eq(GroupUser::getGroupId, id));
@@ -174,43 +218,11 @@ public class GroupServiceImpl implements IGroupService {
                 .username(request.getNickname()).build());
         //添加一条群消息
         GroupMsg groupMsg = GroupMsg.builder()
-                .groupId(request.getGroupId())
                 .msgType(ONE)
-                .userId(request.getFromUid())
+                .fromUid(request.getFromUid())
+                .toUid(request.getGroupId())
                 .content(request.getNickname() + " 加入群,热烈欢迎").build();
         return groupMsgMapper.insert(groupMsg);
-    }
-
-    @Override
-    public List<ConversationVO> getRecentConversation(List<Integer> groupIds) {
-        //用户id
-        int userId = StpUtil.getLoginIdAsInt();
-        List<Integer> redisIds = redisService.getObject(LATELY_GROUP_IDS + userId);
-        // 当用户换浏览器登录时,取上次ids
-        if (StringUtils.isEmpty(groupIds) && StringUtils.isNotEmpty(redisIds)) {
-            groupIds.addAll(redisIds);
-        }
-        if (StringUtils.isEmpty(groupIds)) {
-            return new ArrayList<>();
-        }
-        // 将最新的群聊ids加入Redis缓存
-        redisService.setObject(LATELY_GROUP_IDS + userId, groupIds);
-        // 获取基本消息(id,名称,图像,时间,状态)
-        List<ConversationVO> conversations = groupMapper.selectRecentConversation(userId, groupIds);
-        conversations.forEach(item -> {
-            // 封装最近群聊会话
-            item.setName(item.getName() + "群");
-            // 我现在是接收方
-            GroupMsg lastMsg = groupMsgService.getLastGroupMsg(item.getId());
-            // 未读消息数
-            int unread = getUnread(item.getId(), userId);
-            item.setLastMsg(lastMsg.getContent());
-            if (StringUtils.isNotNull(lastMsg.getCreateTime())) {
-                item.setTime(lastMsg.getCreateTime());
-            }
-            item.setUnread(Math.min(unread, 99));
-        });
-        return conversations;
     }
 
     @Override
@@ -267,7 +279,7 @@ public class GroupServiceImpl implements IGroupService {
                 .eq(GroupUser::getUserId, userId));
         if (StringUtils.isNotNull(groupUser)) {
             return Math.toIntExact(groupMsgMapper.selectCount(new LambdaQueryWrapper<GroupMsg>()
-                    .eq(GroupMsg::getGroupId, groupId)
+                    .eq(GroupMsg::getToUid, groupId)
                     .gt(GroupMsg::getCreateTime, groupUser.getViewTime())));
         }
         return 0;

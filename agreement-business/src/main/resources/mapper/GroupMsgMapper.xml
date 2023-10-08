@@ -5,8 +5,8 @@
     <select id="selectGroupMsgList" resultType="com.vhans.bus.chat.domain.GroupMsg">
         select
         gm.id,
-        gm.group_id,
-        gm.user_id,
+        gm.from_uid,
+        gm.to_uid,
         gm.msg_type,
         gm.file_id,
         gm.content,
@@ -17,14 +17,14 @@
         fr.file_size,
         fr.file_url
         from c_group_msg gm
-        left join u_user u on u.id = gm.user_id
+        left join u_user u on u.id = gm.from_uid
         left join s_file_record fr on fr.id = gm.file_id
         <where>
             <if test="query.groupId != null">
-                gm.group_id = #{query.groupId}
+                gm.to_uid = #{query.toUid}
             </if>
             <if test="query.userId != null">
-                and gm.user_id = #{query.userId}
+                and gm.from_uid = #{query.fromUid}
             </if>
             <if test="query.msgType != null">
                 and gm.msg_type = #{query.msgType}
@@ -45,8 +45,8 @@
     <select id="selectRecentGroupMsg" resultType="com.vhans.bus.chat.domain.GroupMsg">
         select
         gm.id,
-        gm.group_id,
-        gm.user_id,
+        gm.from_uid,
+        gm.to_uid,
         gm.msg_type,
         gm.file_id,
         gm.content,
@@ -57,9 +57,9 @@
         fr.file_size,
         fr.file_url
         from c_group_msg gm
-        left join u_user u on u.id = gm.user_id
+        left join u_user u on u.id = gm.from_uid
         left join s_file_record fr on fr.id = gm.file_id
-        where group_id = #{groupId}
+        where gm.to_uid = #{groupId}
     </select>
 
 </mapper>

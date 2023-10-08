@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.Msg;
 import com.vhans.bus.chat.mapper.MsgMapper;
 import com.vhans.bus.chat.service.IMsgService;
+import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
 import static com.vhans.core.constant.CommonConstant.TRUE;
+import static com.vhans.core.constant.NumberConstant.*;
 
 /**
  * 用户聊天信息Service业务层处理
@@ -34,8 +36,8 @@ public class MsgServiceImpl implements IMsgService {
     @Override
     public Msg getLastMsg(Integer userId, Integer friendId) {
         // 查询最后一条消息
-        return msgMapper.selectOne(new LambdaQueryWrapper<Msg>()
-                .select(Msg::getId, Msg::getMsgType, Msg::getContent, Msg::getCreateTime)
+        Msg msg = msgMapper.selectOne(new LambdaQueryWrapper<Msg>()
+                .select(Msg::getContent, Msg::getMsgType, Msg::getCreateTime)
                 .eq(Msg::getFromUid, friendId)
                 .eq(Msg::getToUid, userId)
                 .or()
@@ -43,6 +45,16 @@ public class MsgServiceImpl implements IMsgService {
                 .eq(Msg::getToUid, friendId)
                 .orderByDesc(Msg::getCreateTime)
                 .last("LIMIT 1"));
+        if (StringUtils.isNull(msg)) {
+            return Msg.builder().content("初次相约,打个招呼吧").build();
+        } else {
+            switch (msg.getMsgType()) {
+                case THREE -> msg.setContent("[图片]");
+                case FOUR -> msg.setContent("[视频]");
+                case FIVE -> msg.setContent("[语音]");
+            }
+            return msg;
+        }
     }
 
     @Override
@@ -68,7 +80,14 @@ public class MsgServiceImpl implements IMsgService {
 
     @Override
     public int deleteMsg(Integer msgId) {
-        return msgMapper.deleteById(msgId);
+        int userId = StpUtil.getLoginIdAsInt();
+        Msg msg = msgMapper.selectById(msgId);
+        if (msg.getFromUid().equals(userId)) {
+            // 是自己的信息
+            return msgMapper.deleteById(msgId);
+        } else {
+            return 0;
+        }
     }
 
     @Override

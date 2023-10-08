@@ -129,7 +129,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private void connect(Integer userId, Channel channel) {
         // 把channel和userid关联起来
         manager.put(userId, channel);
-        sendTo(userId, JSONUtil.toJsonStr(getOnlineUserIds()), true);
+        sendTo(userId, JSONUtil.toJsonStr(DataContent.success(CONNECT, JSONUtil.toJsonStr(getOnlineUserIds()))), true);
         log.info("userId={} 绑定通道成功", userId);
     }
 
@@ -156,13 +156,13 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         int row = groupMsgService.insertGroupMsg(groupMsg);
         String jsonData = JSONUtil.toJsonStr(DataContent.success(GROUP_MSG, JSONUtil.toJsonStr(groupMsg)));
         // 给自己发送响应消息
-        sendTo(groupMsg.getUserId(), jsonData, row > 0);
+        sendTo(groupMsg.getFromUid(), jsonData, row > 0);
         if (row > 0) {
             // 获取群用户ids
-            List<Integer> userIds = groupService.getUserIds(groupMsg.getGroupId());
+            List<Integer> userIds = groupService.getUserIds(groupMsg.getToUid());
             // 在指定群给所有在线群用户发送信息
             userIds.forEach(item -> {
-                if (!Objects.equals(item, groupMsg.getUserId())) {
+                if (!Objects.equals(item, groupMsg.getFromUid())) {
                     sendTo(item, jsonData, true);
                 }
             });
@@ -219,13 +219,13 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      */
     private void deleteGroup(GroupMsg groupMsg) {
         // 获取群友ids
-        List<Integer> userIdList = groupService.getUserIds(groupMsg.getGroupId());
+        List<Integer> userIdList = groupService.getUserIds(groupMsg.getToUid());
         // 给所有在线群用户发送群删除的系统通知
         userIdList.forEach(item -> {
             // 增加一条系统通知,groupMsg.getContent()存放群信息
             Msg sysMsg = Msg.builder()
                     .msgType(0)
-                    .fromUid(groupMsg.getUserId())
+                    .fromUid(groupMsg.getFromUid())
                     .toUid(item)
                     .content(groupMsg.getContent() + "群已被删除").build();
             int row = msgService.insertMsg(sysMsg);
@@ -242,10 +242,10 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private void quitGroup(GroupMsg groupMsg) {
         // 增加一条系统通知来通知群主,groupMsg.getContent存放用户信息
         // 获取群主id
-        int masterId = groupService.getGroupMasterId(groupMsg.getGroupId());
+        int masterId = groupService.getGroupMasterId(groupMsg.getToUid());
         Msg sysMsg = Msg.builder()
                 .msgType(0)
-                .fromUid(groupMsg.getUserId())
+                .fromUid(groupMsg.getFromUid())
                 .toUid(masterId)
                 .content("群友" + groupMsg.getContent() + "退出群").build();
         int row = msgService.insertMsg(sysMsg);
@@ -269,8 +269,8 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                     .build());
         } else if (forward.getType() == 2) {
             groupChat(GroupMsg.builder()
-                    .userId(forward.getFromUid())
-                    .groupId(forward.getToUid())
+                    .fromUid(forward.getFromUid())
+                    .toUid(forward.getToUid())
                     .msgType(forward.getMsgType())
                     .content(forward.getContent())
                     .build());

@@ -3,14 +3,14 @@ package com.vhans.bus.system.service.impl;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.vhans.bus.system.domain.dto.FolderDTO;
 import com.vhans.bus.system.domain.FileRecord;
+import com.vhans.bus.system.domain.dto.FolderDTO;
 import com.vhans.bus.system.mapper.FileRecordMapper;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.exception.ServiceException;
 import com.vhans.core.strategy.context.UploadStrategyContext;
-import com.vhans.core.utils.file.FileUtils;
 import com.vhans.core.utils.data.StringUtils;
+import com.vhans.core.utils.file.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,12 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -33,7 +34,6 @@ import java.util.zip.ZipOutputStream;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
 import static com.vhans.core.constant.CommonConstant.TRUE;
-import static com.vhans.core.enums.FilePathEnum.getUploadPath;
 
 /**
  * 文件业务接口实现类
@@ -42,12 +42,17 @@ import static com.vhans.core.enums.FilePathEnum.getUploadPath;
  */
 @Service
 public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRecord> implements IFileRecordService {
-
     /**
      * 本地路径
      */
-    @Value("${upload.local.path}")
+    @Value("${upload.local.url}")
     private String localPath;
+
+    /**
+     * 上传模式
+     */
+    @Value("${upload.strategy}")
+    private String strategy;
 
     @Autowired
     private FileRecordMapper fileRecordMapper;
@@ -129,10 +134,16 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     public void downloadFile(Integer fileId) {
         // 查询文件信息
         FileRecord fileRecord = fileRecordMapper.selectOne(new LambdaQueryWrapper<FileRecord>()
-                .select(FileRecord::getFilePath, FileRecord::getFileName,
+                .select(FileRecord::getFilePath, FileRecord::getFileUrl, FileRecord::getFileName,
                         FileRecord::getExtendName, FileRecord::getIsDir)
                 .eq(FileRecord::getId, fileId));
         Assert.notNull(fileRecord, "文件不存在");
+        if (!"local".equals(strategy) && fileRecord.getIsDir().equals(FALSE)) {
+            // 上传策略不是local并且不是目录,通过网络链接响应文件
+            String fileName = fileRecord.getFileName() + "." + fileRecord.getExtendName();
+            downloadFileByUrl(fileRecord.getFileUrl(), fileName);
+            return;
+        }
         String filePath = localPath + fileRecord.getFilePath();
         if (fileRecord.getIsDir().equals(FALSE)) {
             // 要下载的不是目录
@@ -163,14 +174,13 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     }
 
     @Override
-    public String uploadCommonFile(MultipartFile file, Integer type) {
-        String uploadPath = getUploadPath(type);
+    public String uploadCommonFile(MultipartFile file, String path) {
         // 上传文件
-        String url = uploadStrategyContext.executeUploadStrategy(file, uploadPath);
+        String url = uploadStrategyContext.executeUploadStrategy(file, path);
         // 记录新文件消息到数据库中
         if (!fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>()
                 .eq(FileRecord::getFileUrl, url))) {
-            insertFileRecord(file, url, uploadPath);
+            insertFileRecord(file, url, path);
         }
         return url;
     }
@@ -194,6 +204,49 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
             throw new ServiceException("文件下载失败");
         } finally {
             IOUtils.closeQuietly(fileInputStream);
+            IOUtils.closeQuietly(outputStream);
+        }
+    }
+
+    /**
+     * 根据文件URL下载文件
+     *
+     * @param fileUrl  文件URL
+     * @param fileName 文件名
+     */
+    private void downloadFileByUrl(String fileUrl, String fileName) {
+        HttpURLConnection connection = null;
+        InputStream inputStream = null;
+        ServletOutputStream outputStream = null;
+        try {
+            List<String> suffixes = new ArrayList<>(Arrays.asList("js", "ts", "java", "py", "html", "css", "vue", "xml", "json", "php", "go", "c", "cpp", "h", "java", "shell", "sql", "swift", "kotlin", "text", "md"));
+            if (!suffixes.contains(fileName.substring(fileName.lastIndexOf(".") + 1))) {
+                PrintWriter writer = response.getWriter();
+                response.setContentType("text/plain");
+                writer.println(fileUrl);
+                writer.close();
+            } else {
+                // 提供文件阅览
+                URL url = new URL(fileUrl);
+                // 打开连接
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                // 获取输入流
+                inputStream = connection.getInputStream();
+                // 设置文件名
+                response.addHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
+                outputStream = response.getOutputStream();
+                IOUtils.copyLarge(inputStream, outputStream);
+            }
+        } catch (IOException e) {
+            throw new ServiceException("文件下载失败");
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            IOUtils.closeQuietly(inputStream);
             IOUtils.closeQuietly(outputStream);
         }
     }

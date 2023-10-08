@@ -96,16 +96,14 @@ public class FileController extends BaseController {
     }
 
     /**
-     * 下载文件
+     * 响应文件
      *
      * @param fileId 文件id
-     * @return 结果
      */
     @ApiOperation(value = "下载文件")
     @GetMapping("/file/download/{fileId}")
-    public Result<?> downloadFile(@PathVariable("fileId") Integer fileId) {
+    public void downloadFile(@PathVariable("fileId") Integer fileId) {
         fileService.downloadFile(fileId);
-        return Result.success();
     }
 
 }

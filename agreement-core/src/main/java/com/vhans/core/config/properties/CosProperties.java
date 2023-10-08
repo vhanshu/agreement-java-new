@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * @author vhans
  */
 @Data
-@Configuration
+@Configuration("CosProperties")
 @ConfigurationProperties(prefix = "upload.cos")
 public class CosProperties {
 
