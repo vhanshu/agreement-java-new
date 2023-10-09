@@ -25,8 +25,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -40,7 +38,7 @@ import static com.vhans.core.constant.CommonConstant.TRUE;
  *
  * @author vhans
  */
-@Service
+@Service("fileRecordServiceImpl")
 public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRecord> implements IFileRecordService {
     /**
      * 本地路径
@@ -185,6 +183,17 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
         return url;
     }
 
+    @Override
+    public Integer getFileIdByUrl(String fileUrl) {
+        FileRecord fileRecord = fileRecordMapper.selectOne(new LambdaQueryWrapper<FileRecord>()
+                .select(FileRecord::getId)
+                .eq(FileRecord::getFileUrl, fileUrl));
+        if (Objects.isNull(fileRecord)) {
+            return null;
+        }
+        return fileRecord.getId();
+    }
+
     /**
      * 下载文件
      *
@@ -219,27 +228,19 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
         InputStream inputStream = null;
         ServletOutputStream outputStream = null;
         try {
-            List<String> suffixes = new ArrayList<>(Arrays.asList("js", "ts", "java", "py", "html", "css", "vue", "xml", "json", "php", "go", "c", "cpp", "h", "java", "shell", "sql", "swift", "kotlin", "text", "md"));
-            if (!suffixes.contains(fileName.substring(fileName.lastIndexOf(".") + 1))) {
-                PrintWriter writer = response.getWriter();
-                response.setContentType("text/plain");
-                writer.println(fileUrl);
-                writer.close();
-            } else {
-                // 提供文件阅览
-                URL url = new URL(fileUrl);
-                // 打开连接
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-                // 获取输入流
-                inputStream = connection.getInputStream();
-                // 设置文件名
-                response.addHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
-                outputStream = response.getOutputStream();
-                IOUtils.copyLarge(inputStream, outputStream);
-            }
+            // 提供文件阅览
+            URL url = new URL(fileUrl);
+            // 打开连接
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            // 获取输入流
+            inputStream = connection.getInputStream();
+            // 设置文件名
+            response.addHeader("Content-Disposition", "attachment; fileName=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
+            outputStream = response.getOutputStream();
+            IOUtils.copyLarge(inputStream, outputStream);
         } catch (IOException e) {
             throw new ServiceException("文件下载失败");
         } finally {

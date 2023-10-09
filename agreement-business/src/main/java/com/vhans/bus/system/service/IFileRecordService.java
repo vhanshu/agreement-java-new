@@ -59,4 +59,10 @@ public interface IFileRecordService extends IService<FileRecord> {
      * @return 文件url
      */
     String uploadCommonFile(MultipartFile file, String path);
+
+    /**
+     * 根据文件url获取文件id
+     * @param fileUrl 文件url
+     */
+    Integer getFileIdByUrl(String fileUrl);
 }

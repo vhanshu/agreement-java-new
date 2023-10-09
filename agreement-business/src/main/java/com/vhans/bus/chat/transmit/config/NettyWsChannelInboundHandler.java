@@ -8,6 +8,7 @@ import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.service.*;
 import com.vhans.bus.chat.transmit.model.DataContent;
 import com.vhans.bus.chat.transmit.model.Forward;
+import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
 import io.netty.channel.Channel;
@@ -26,6 +27,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.vhans.core.constant.MsgActionConstant.*;
+import static com.vhans.core.constant.NumberConstant.THREE;
+import static com.vhans.core.constant.NumberConstant.TWO;
 
 /**
  * 处理消息
@@ -38,13 +41,15 @@ import static com.vhans.core.constant.MsgActionConstant.*;
 public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
     /**
-     * 获取业务处理bean: 好友、群组、用户消息、群消息、请求
+     * 获取业务处理bean: 好友、群组、用户消息、群消息、请求、文件
      */
     private final IFriendService friendService = SpringUtils.getBean("friendServiceImpl");
     private final IGroupService groupService = SpringUtils.getBean("groupServiceImpl");
     private final IMsgService msgService = SpringUtils.getBean("msgServiceImpl");
     private final IGroupMsgService groupMsgService = SpringUtils.getBean("groupMsgServiceImpl");
     private final IRequestService requestService = SpringUtils.getBean("requestServiceImpl");
+
+    private final IFileRecordService fileRecordService = SpringUtils.getBean("fileRecordServiceImpl");
 
     /**
      * 用于记录和管理所有客户端的channel
@@ -137,6 +142,15 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 单独聊天类型的消息，把聊天记录保存到数据库，同时标记消息的签收状态[数据库默认未签收]
      */
     private void chat(Msg msg) {
+        if(msg.getMsgType() == TWO || msg.getMsgType() == THREE){
+            // 文件消息获取文件id并设置
+            Integer fileId = fileRecordService.getFileIdByUrl(msg.getFileUrl());
+            if(fileId != null){
+                msg.setFileId(fileId);
+            } else {
+                sendTo(msg.getFromUid(), null, false);
+            }
+        }
         // 保存消息到数据库
         int row = msgService.insertMsg(msg);
         String jsonData = JSONUtil.toJsonStr(DataContent.success(CHAT, JSONUtil.toJsonStr(msg)));
@@ -152,6 +166,15 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 发送群消息
      */
     private void groupChat(GroupMsg groupMsg) {
+        if(groupMsg.getMsgType() == TWO || groupMsg.getMsgType() == THREE){
+            // 文件消息获取文件id并设置
+            Integer fileId = fileRecordService.getFileIdByUrl(groupMsg.getFileUrl());
+            if(fileId != null){
+                groupMsg.setFileId(fileId);
+            } else {
+                sendTo(groupMsg.getFromUid(), null, false);
+            }
+        }
         // 保存消息到数据库
         int row = groupMsgService.insertGroupMsg(groupMsg);
         String jsonData = JSONUtil.toJsonStr(DataContent.success(GROUP_MSG, JSONUtil.toJsonStr(groupMsg)));
