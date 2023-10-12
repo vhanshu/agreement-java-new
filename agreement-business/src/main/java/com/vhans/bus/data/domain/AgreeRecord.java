@@ -65,7 +65,7 @@ public class AgreeRecord {
      */
     @NotNull(message = "记录类型不能为空")
     @ApiModelProperty(value = "记录类型(1约会 2活动 3赛事 4帮忙)")
-    @Excel(name = "记录标题", readConverterExp = "1=约会,2=活动,3=赛事,4=帮忙")
+    @Excel(name = "记录类型", readConverterExp = "1=约会,2=活动,3=赛事,4=帮忙")
     private Integer type;
 
     /**

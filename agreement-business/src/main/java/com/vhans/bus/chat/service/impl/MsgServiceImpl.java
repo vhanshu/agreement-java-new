@@ -80,14 +80,7 @@ public class MsgServiceImpl implements IMsgService {
 
     @Override
     public int deleteMsg(Integer msgId) {
-        int userId = StpUtil.getLoginIdAsInt();
-        Msg msg = msgMapper.selectById(msgId);
-        if (msg.getFromUid().equals(userId)) {
-            // 是自己的信息
-            return msgMapper.deleteById(msgId);
-        } else {
-            return 0;
-        }
+        return msgMapper.deleteById(msgId);
     }
 
     @Override

@@ -51,4 +51,14 @@ public class MsgActionConstant {
      * 处理转发
      */
     public static final int FORWARD = 8;
+
+    /**
+     * 撤销消息
+     */
+    public static final int REVOKE = 9;
+
+    /**
+     * 推送消息
+     */
+    public static final int PUSH = 10;
 }

@@ -93,4 +93,16 @@ public class UserInfoVO {
      */
     @ApiModelProperty(value = "点赞评论集合")
     private List<Integer> commentLikeSet;
+
+    /**
+     * 收藏记录集合
+     */
+    @ApiModelProperty(value = "收藏记录集合")
+    private List<Integer> recordCollectSet;
+
+    /**
+     * 收藏题目集合
+     */
+    @ApiModelProperty(value = "收藏题目集合")
+    private List<Integer> quitCollectSet;
 }

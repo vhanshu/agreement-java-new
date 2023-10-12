@@ -1,6 +1,5 @@
 package com.vhans.bus.chat.service.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.GroupMsg;
 import com.vhans.bus.chat.domain.GroupUser;
@@ -47,14 +46,7 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
 
     @Override
     public int deleteGroupMsg(Integer msgId) {
-        int userId = StpUtil.getLoginIdAsInt();
-        GroupMsg groupMsg = groupMsgMapper.selectById(msgId);
-        if(groupMsg.getFromUid().equals(userId)) {
-            // 是自己的信息
-            return groupMsgMapper.deleteById(msgId);
-        } else {
-            return 0;
-        }
+        return groupMsgMapper.deleteById(msgId);
     }
 
     @Override

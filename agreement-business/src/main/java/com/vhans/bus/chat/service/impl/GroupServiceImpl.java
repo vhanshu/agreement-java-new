@@ -280,6 +280,7 @@ public class GroupServiceImpl implements IGroupService {
         if (StringUtils.isNotNull(groupUser)) {
             return Math.toIntExact(groupMsgMapper.selectCount(new LambdaQueryWrapper<GroupMsg>()
                     .eq(GroupMsg::getToUid, groupId)
+                    .ne(GroupMsg::getFromUid, userId)
                     .gt(GroupMsg::getCreateTime, groupUser.getViewTime())));
         }
         return 0;

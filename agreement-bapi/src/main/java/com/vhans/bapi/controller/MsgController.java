@@ -71,17 +71,4 @@ public class MsgController extends BaseController {
         clearPage();
         return getDataTable(list);
     }
-
-    /**
-     * 撤回聊天信息
-     *
-     * @param msgId 消息id
-     * @return 结果
-     */
-    @SaCheckLogin
-    @ApiOperation(value = "撤回聊天信息")
-    @DeleteMapping("/delete/{msgId}")
-    public Result<?> deleteMsg(@PathVariable("msgId") Integer msgId) {
-        return toAjax(msgService.deleteMsg(msgId));
-    }
 }

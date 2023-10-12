@@ -8,6 +8,7 @@ import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.service.*;
 import com.vhans.bus.chat.transmit.model.DataContent;
 import com.vhans.bus.chat.transmit.model.Forward;
+import com.vhans.bus.chat.transmit.model.Revoke;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
@@ -81,6 +82,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 case DELETE_GROUP -> deleteGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
                 case QUIT_GROUP -> quitGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
                 case FORWARD -> forward(JSONUtil.toBean(dataContent.getData(), Forward.class));
+                case REVOKE -> revoke(JSONUtil.toBean(dataContent.getData(), Revoke.class));
                 default -> currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
             }
         } catch (Exception e) {
@@ -298,6 +300,36 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                     .content(forward.getContent())
                     .build());
         }
+    }
+
+    /**
+     * 撤销消息
+     */
+    private void revoke(Revoke revoke) {
+        int row = 0;
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(REVOKE, JSONUtil.toJsonStr(revoke)));
+        if(revoke.getType() == 1) {
+            row = msgService.deleteMsg(revoke.getMsgId());
+            // 发送消息
+            if (row > 0) {
+                sendTo(revoke.getToUid(), jsonData, true);
+            }
+        } else if (revoke.getType() == 2) {
+            row = groupMsgService.deleteGroupMsg(revoke.getMsgId());
+            // 在指定群给所有在线群用户发送信息
+            if (row > 0) {
+                sendTo(revoke.getToUid(), jsonData, true);
+                // 获取群用户ids
+                List<Integer> userIds = groupService.getUserIds(revoke.getToUid());
+                userIds.forEach(item -> {
+                    if (!Objects.equals(item, revoke.getFromUid())) {
+                        sendTo(item, jsonData, true);
+                    }
+                });
+            }
+        }
+        // 给自己发送响应消息
+        sendTo(revoke.getFromUid(), jsonData, row > 0);
     }
 
     /**

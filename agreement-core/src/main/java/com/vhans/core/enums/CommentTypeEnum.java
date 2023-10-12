@@ -26,7 +26,7 @@ public enum CommentTypeEnum {
     COMMENT(3, "评论", "");
 
     /**
-     * 状态
+     * 类型号
      */
     private final Integer type;
 

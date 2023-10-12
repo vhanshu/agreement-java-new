@@ -243,6 +243,8 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     @Override
     public List<AgreeRecord> listAgreeRecord() {
         return recordMapper.selectList(new LambdaQueryWrapper<AgreeRecord>()
+                .select(AgreeRecord::getId, AgreeRecord::getCover, AgreeRecord::getUserId, AgreeRecord::getTitle,
+                        AgreeRecord::getCreateTime, AgreeRecord::getContent, AgreeRecord::getCollectNumber)
                 .eq(AgreeRecord::getIsDelete, FALSE)
                 .eq(AgreeRecord::getStatus, ONE)
                 .eq(AgreeRecord::getIsRecommend, TRUE)

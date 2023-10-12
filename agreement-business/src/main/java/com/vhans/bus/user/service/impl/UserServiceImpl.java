@@ -104,10 +104,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .eq(User::getId, userId));
         // 点赞记录
         List<Integer> recordIds = getLikeRecordIds(userId);
-        // 点赞评论
-        List<Integer> quizIds = getLikeQuizIds(userId);
         // 点赞题目
+        List<Integer> quizIds = getLikeQuizIds(userId);
+        // 点赞评论
         List<Integer> commentIds = getLikeCommentIds(userId);
+        // 收藏记录
+        List<Integer> recordCIds = getCollectIds(userId, RECORD.getType());
+        // 收藏题目
+        List<Integer> quizCIds = getCollectIds(userId, QUIZ.getType());
         // 用户参与的约起记录
         List<MyIssueAgree> myIssueAgrees = getIssueAgreeIds(userId);
         return UserInfoVO
@@ -123,6 +127,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .recordLikeSet(recordIds)
                 .quitLikeSet(quizIds)
                 .commentLikeSet(commentIds)
+                .recordCollectSet(recordCIds)
+                .quitCollectSet(quizCIds)
                 .agreeIssueSet(myIssueAgrees)
                 .loginType(user.getLoginType())
                 .build();
@@ -361,6 +367,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             commentIds.addAll(userLikeList.stream().map(UserLike::getTypeId).toList());
         }
         return commentIds;
+    }
+
+    /**
+     * 获取用户收藏的文本ids
+     */
+    private List<Integer> getCollectIds(Integer userId, Integer type) {
+        List<UserCollect> list = userCollectMapper.selectList(new LambdaQueryWrapper<UserCollect>()
+                .select(UserCollect::getTypeId)
+                .eq(UserCollect::getType, type)
+                .eq(UserCollect::getUserId, userId));
+        if(StringUtils.isNotEmpty(list)) {
+            return list.stream().map(UserCollect::getTypeId).toList();
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     /**
