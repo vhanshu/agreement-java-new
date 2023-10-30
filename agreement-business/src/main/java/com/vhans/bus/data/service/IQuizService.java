@@ -82,11 +82,11 @@ public interface IQuizService extends IService<Quiz> {
     List<OverviewVO> listQuizOverviewVO();
 
     /**
-     * 查看推荐题目
+     * 查看最新题目
      *
-     * @return 推荐题目
+     * @return 最新题目
      */
-    List<Quiz> listQuizRecommendVO();
+    List<Quiz> listQuizLatest();
 
     /**
      * 收藏题目

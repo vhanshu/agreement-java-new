@@ -2,13 +2,21 @@ package com.vhans.bus.data.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.vhans.bus.data.domain.vo.ReplyVO;
+import com.vhans.bus.subsidiary.annotation.CommentType;
+import com.vhans.bus.subsidiary.validator.comment.CommentProvider;
+import com.vhans.bus.subsidiary.validator.comment.groups.ParentIdNotNull;
+import com.vhans.bus.subsidiary.validator.comment.groups.ParentIdNull;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +30,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@GroupSequenceProvider(value = CommentProvider.class)
 @ApiModel(description = "评论对象")
 @TableName("d_comment")
 public class Comment {
@@ -35,12 +44,16 @@ public class Comment {
     /**
      * 类型(1记录 2提问)
      */
+    @CommentType(values = {1, 2}, message = "评论类型只能为1记录、2题目")
+    @NotNull(message = "评论类型不能为空")
     @ApiModelProperty("类型")
     private Integer type;
 
     /**
      * 类型id
      */
+    @NotNull(message = "记录id不能为空", groups = {Record.class})
+    @NotNull(message = "题目id不能为空", groups = {com.vhans.bus.subsidiary.validator.comment.groups.Quiz.class})
     @ApiModelProperty("类型id")
     private Integer typeId;
 
@@ -53,12 +66,15 @@ public class Comment {
     /**
      * 回复评论id
      */
+    @Null(message = "reply_id、to_uid必须都为空", groups = {ParentIdNull.class})
+    @NotNull(message = "回复评论id和回复用户id不能为空", groups = {ParentIdNotNull.class})
     @ApiModelProperty("回复评论id")
     private Integer replyId;
 
     /**
      * 评论内容
      */
+    @NotBlank(message = "评论内容不能为空")
     @ApiModelProperty("评论内容")
     private String content;
 
@@ -71,6 +87,8 @@ public class Comment {
     /**
      * 回复用户id
      */
+    @Null(message = "reply_id、to_uid必须都为空", groups = {ParentIdNull.class})
+    @NotNull(message = "回复评论id和回复用户id不能为空", groups = {ParentIdNotNull.class})
     @ApiModelProperty("回复用户id")
     private Integer toUid;
 
@@ -141,7 +159,7 @@ public class Comment {
      */
     @TableField(exist = false)
     @ApiModelProperty(value = "回复列表")
-    private List<ReplyVO> replyVOList;
+    private List<ReplyVO> replyList;
 
     /* 定义需要查询的字段对象 */
     @Data

@@ -40,7 +40,6 @@ public class AgreeRecord {
     /**
      * 记录者id
      */
-    @NotNull(message = "记录者不能为空")
     @ApiModelProperty(value = "记录者id")
     @Excel(name = "记录者id", cellType = Excel.ColumnType.NUMERIC)
     private Integer userId;
@@ -181,7 +180,7 @@ public class AgreeRecord {
     @TableField(exist = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @ApiModelProperty(value = "标签集")
-    private List<TagOptionVO> tagVOList;
+    private List<TagOptionVO> tagList;
 
     /**
      * 标签名称集

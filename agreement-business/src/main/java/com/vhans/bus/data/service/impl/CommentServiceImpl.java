@@ -1,13 +1,10 @@
 package com.vhans.bus.data.service.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.domain.dto.CommentDTO;
 import com.vhans.bus.data.domain.vo.ReplyVO;
 import com.vhans.bus.data.mapper.AgreeRecordMapper;
 import com.vhans.bus.data.mapper.CommentMapper;
@@ -19,34 +16,31 @@ import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.bus.website.domain.SiteConfig;
 import com.vhans.bus.website.service.ISiteConfigService;
 import com.vhans.core.redis.RedisService;
-import com.vhans.core.utils.data.StringUtils;
 import com.vhans.core.utils.web.HTMLUtils;
-import com.vhans.core.web.model.dto.MailDTO;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-import static com.vhans.core.constant.CommonConstant.*;
-import static com.vhans.core.constant.MqConstant.*;
+import static com.vhans.core.constant.CommonConstant.FALSE;
+import static com.vhans.core.constant.CommonConstant.TRUE;
 import static com.vhans.core.constant.RedisConstant.COMMENT_LIKE_COUNT;
-import static com.vhans.core.constant.ThymeleafConstant.*;
-import static com.vhans.core.enums.CommentTypeEnum.*;
+import static com.vhans.core.enums.CommentTypeEnum.QUIZ;
+import static com.vhans.core.enums.CommentTypeEnum.RECORD;
 
 /**
  * 评论业务接口实现类
  *
  * @author vhanss
  */
-@Service
+@Service("commentServiceImpl")
 public class CommentServiceImpl implements ICommentService {
 
-    @Value("${agreement.url}")
-    private String websiteUrl;
+//    @Value("${agreement.url}")
+//    private String websiteUrl;
 
     @Autowired
     private CommentMapper commentMapper;
@@ -66,8 +60,8 @@ public class CommentServiceImpl implements ICommentService {
     @Autowired
     private RedisService redisService;
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
+//    @Autowired
+//    private RabbitTemplate rabbitTemplate;
 
     @Override
     public List<Comment> listCommentVO(Comment.Query query) {
@@ -84,34 +78,25 @@ public class CommentServiceImpl implements ICommentService {
     }
 
     @Override
-    public void addComment(CommentDTO comment) {
+    public int addComment(Comment comment) {
         // 校验评论参数
         verifyComment(comment);
         SiteConfig siteConfig = siteConfigService.getSiteConfig();
         Integer commentCheck = siteConfig.getCommentCheck();
+        // 需要:fromUid,toUid,typeId,type,parentId,replyId,content,isCheck
         // 过滤标签
         comment.setContent(HTMLUtils.filter(comment.getContent()));
-        Comment newComment = Comment.builder()
-                .fromUid(StpUtil.getLoginIdAsInt())
-                .toUid(comment.getToUid())
-                .typeId(comment.getTypeId())
-                .type(comment.getType())
-                .parentId(comment.getParentId())
-                .replyId(comment.getReplyId())
-                .content(comment.getContent())
-                .isCheck(commentCheck.equals(FALSE) ? TRUE : FALSE)
-                .build();
+        comment.setIsCheck(commentCheck.equals(FALSE) ? TRUE : FALSE);
         // 保存评论
-        commentMapper.insert(newComment);
-        // 查询评论用户昵称
-        String fromNickname = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                        .select(User::getNickname)
-                        .eq(User::getId, StpUtil.getLoginIdAsInt()))
-                .getNickname();
-        if (siteConfig.getEmailNotice().equals(TRUE)) {
-            // 异步通知用户
-            CompletableFuture.runAsync(() -> notice(newComment, fromNickname));
-        }
+        return commentMapper.insert(comment);
+//        String fromNickname = userMapper.selectOne(new LambdaQueryWrapper<User>()
+//                        .select(User::getNickname)
+//                        .eq(User::getId, StpUtil.getLoginIdAsInt()))
+//                .getNickname();
+//        if (siteConfig.getEmailNotice().equals(TRUE)) {
+//            // 异步通知用户
+//            CompletableFuture.runAsync(() -> notice(newComment, fromNickname));
+//        }
     }
 
     @Transactional
@@ -150,7 +135,7 @@ public class CommentServiceImpl implements ICommentService {
                     .eq(Comment::getParentId, item.getId()));
             // 设置当前点赞量为 持久点赞量 + 缓存点赞量
             item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-            item.setReplyVOList(replyVOS);
+            item.setReplyList(replyVOS);
             item.setReplyNumber(Math.toIntExact(replyNum));
         });
         return commentHomeVOList;
@@ -159,14 +144,14 @@ public class CommentServiceImpl implements ICommentService {
     @Override
     public List<ReplyVO> listReply(Integer commentId) {
         // 查询子评论
-        List<ReplyVO> replyVOList = commentMapper.selectReplyByParentId(commentId);
-        replyVOList.forEach(item -> {
+        List<ReplyVO> replyList = commentMapper.selectReplyByParentId(commentId);
+        replyList.forEach(item -> {
             // 查询子评论点赞量
             Integer likeNumber = redisService.getHash(COMMENT_LIKE_COUNT, item.getId().toString());
             // 设置当前点赞量为 持久点赞量 + 缓存点赞量
             item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
         });
-        return replyVOList;
+        return replyList;
     }
 
     @Override
@@ -179,7 +164,7 @@ public class CommentServiceImpl implements ICommentService {
      *
      * @param comment 评论信息
      */
-    private void verifyComment(CommentDTO comment) {
+    private void verifyComment(Comment comment) {
         if (comment.getType().equals(RECORD.getType())) {
             Assert.isTrue(recordMapper.exists(new LambdaQueryWrapper<AgreeRecord>()
                     .eq(AgreeRecord::getId, comment.getTypeId())), "记录不存在");
@@ -220,131 +205,131 @@ public class CommentServiceImpl implements ICommentService {
         });
     }
 
-    /**
-     * 评论通知
-     *
-     * @param comment      评论
-     * @param fromNickname 评论用户昵称
-     */
-    private void notice(Comment comment, String fromNickname) {
-        // 自己回复自己不用提醒
-        if (comment.getFromUid().equals(comment.getToUid())) {
-            return;
-        }
-        // 邮件标题
-        String title = "约起评论通知!";
-        // 回复用户id
-        Integer toUid = BLOGGER_ID;
-        if (Objects.isNull(comment.getParentId())) {    // 是父评论
-            if (comment.getType().equals(RECORD.getType())) {
-                // 查询记录信息
-                AgreeRecord agreeRecord = recordMapper.selectOne(new LambdaQueryWrapper<AgreeRecord>()
-                        .select(AgreeRecord::getTitle, AgreeRecord::getUserId)
-                        .eq(AgreeRecord::getId, comment.getTypeId()));
-                title = agreeRecord.getTitle();
-                toUid = agreeRecord.getUserId();
-            }
-            if (comment.getType().equals(QUIZ.getType())) {
-                // 查询题目信息
-                Quiz quiz = quizMapper.selectOne(new LambdaQueryWrapper<Quiz>()
-                        .select(Quiz::getTitle, Quiz::getUserId)
-                        .eq(Quiz::getId, comment.getTypeId()));
-                title = quiz.getTitle();
-                toUid = quiz.getUserId();
-            }
-            // 自己评论自己的记录或者题目，不用提醒
-            if (comment.getFromUid().equals(toUid)) {
-                return;
-            }
-        } else {    // 是子评论
-            toUid = comment.getToUid();
-            if (comment.getType().equals(RECORD.getType())) {
-                // 查询记录标题
-                title = recordMapper.selectOne(new LambdaQueryWrapper<AgreeRecord>()
-                                .select(AgreeRecord::getTitle)
-                                .eq(AgreeRecord::getId, comment.getTypeId()))
-                        .getTitle();
-            }
-            if (comment.getType().equals(QUIZ.getType())) {
-                // 查询题目标题
-                title = quizMapper.selectOne(new LambdaQueryWrapper<Quiz>()
-                                .select(Quiz::getTitle)
-                                .eq(Quiz::getId, comment.getTypeId()))
-                        .getTitle();
-            }
-        }
-        // 查询回复用户邮箱、昵称、id
-        User toUser = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                .select(User::getEmail, User::getNickname)
-                .eq(User::getId, toUid));
-        if (StringUtils.hasText(toUser.getEmail())) {   // 邮箱不为空
-            sendEmail(comment, toUser, title, fromNickname);
-        }
-    }
+//    /**
+//     * 评论通知
+//     *
+//     * @param comment      评论
+//     * @param fromNickname 评论用户昵称
+//     */
+//    private void notice(Comment comment, String fromNickname) {
+//        // 自己回复自己不用提醒
+//        if (comment.getFromUid().equals(comment.getToUid())) {
+//            return;
+//        }
+//        // 邮件标题
+//        String title = "约起评论通知!";
+//        // 回复用户id
+//        Integer toUid = BLOGGER_ID;
+//        if (Objects.isNull(comment.getParentId())) {    // 是父评论
+//            if (comment.getType().equals(RECORD.getType())) {
+//                // 查询记录信息
+//                AgreeRecord agreeRecord = recordMapper.selectOne(new LambdaQueryWrapper<AgreeRecord>()
+//                        .select(AgreeRecord::getTitle, AgreeRecord::getUserId)
+//                        .eq(AgreeRecord::getId, comment.getTypeId()));
+//                title = agreeRecord.getTitle();
+//                toUid = agreeRecord.getUserId();
+//            }
+//            if (comment.getType().equals(QUIZ.getType())) {
+//                // 查询题目信息
+//                Quiz quiz = quizMapper.selectOne(new LambdaQueryWrapper<Quiz>()
+//                        .select(Quiz::getTitle, Quiz::getUserId)
+//                        .eq(Quiz::getId, comment.getTypeId()));
+//                title = quiz.getTitle();
+//                toUid = quiz.getUserId();
+//            }
+//            // 自己评论自己的记录或者题目，不用提醒
+//            if (comment.getFromUid().equals(toUid)) {
+//                return;
+//            }
+//        } else {    // 是子评论
+//            toUid = comment.getToUid();
+//            if (comment.getType().equals(RECORD.getType())) {
+//                // 查询记录标题
+//                title = recordMapper.selectOne(new LambdaQueryWrapper<AgreeRecord>()
+//                                .select(AgreeRecord::getTitle)
+//                                .eq(AgreeRecord::getId, comment.getTypeId()))
+//                        .getTitle();
+//            }
+//            if (comment.getType().equals(QUIZ.getType())) {
+//                // 查询题目标题
+//                title = quizMapper.selectOne(new LambdaQueryWrapper<Quiz>()
+//                                .select(Quiz::getTitle)
+//                                .eq(Quiz::getId, comment.getTypeId()))
+//                        .getTitle();
+//            }
+//        }
+//        // 查询回复用户邮箱、昵称、id
+//        User toUser = userMapper.selectOne(new LambdaQueryWrapper<User>()
+//                .select(User::getEmail, User::getNickname)
+//                .eq(User::getId, toUid));
+//        if (StringUtils.hasText(toUser.getEmail())) {   // 邮箱不为空
+//            sendEmail(comment, toUser, title, fromNickname);
+//        }
+//    }
 
-    /**
-     * 发送邮件
-     *
-     * @param comment      评论
-     * @param toUser       回复用户信息
-     * @param title        标题
-     * @param fromNickname 评论用户昵称
-     */
-    private void sendEmail(Comment comment, User toUser, String title, String fromNickname) {
-        MailDTO mailDTO = new MailDTO();
-        if (comment.getIsCheck().equals(TRUE)) {
-            Map<String, Object> contentMap = new HashMap<>(7);
-            // 构造评论链接
-            String typeId = Optional.ofNullable(comment.getTypeId())
-                    .map(Object::toString)
-                    .orElse("");
-            String url = websiteUrl + getCommentPath(comment.getType()) + typeId;
-            if (Objects.isNull(comment.getParentId())) {     // 父评论则提醒发表者
-                mailDTO.setToEmail(toUser.getEmail());
-                mailDTO.setSubject(COMMENT_REMIND);
-                mailDTO.setTemplate(AUTHOR_TEMPLATE);
-                String createTime = DateUtil.formatLocalDateTime(comment.getCreateTime());
-                contentMap.put("time", createTime);
-                contentMap.put("url", url);
-                contentMap.put("title", title);
-                contentMap.put("nickname", fromNickname);
-                contentMap.put("content", comment.getContent());
-                mailDTO.setContentMap(contentMap);
-            } else {    // 子评论则提醒回复的用户
-                Comment parentComment = commentMapper.selectOne(new LambdaQueryWrapper<Comment>()
-                        .select(Comment::getContent, Comment::getCreateTime)
-                        .eq(Comment::getId, comment.getReplyId()));
-                mailDTO.setToEmail(toUser.getEmail());
-                mailDTO.setSubject(COMMENT_REMIND);
-                mailDTO.setTemplate(USER_TEMPLATE);
-                contentMap.put("url", url);
-                contentMap.put("title", title);
-                String createTime = DateUtil.formatLocalDateTime(comment.getCreateTime());
-                contentMap.put("time", createTime);
-                // 被回复用户昵称
-                contentMap.put("toUser", toUser.getNickname());
-                // 评论用户昵称
-                contentMap.put("fromUser", fromNickname);
-                // 被回复的评论内容
-                contentMap.put("parentComment", parentComment.getContent());
-                // 回复评论内容
-                contentMap.put("replyComment", comment.getContent());
-                mailDTO.setContentMap(contentMap);
-            }
-            // 发送HTML邮件
-            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_HTML_KEY, mailDTO);
-        } else {
-            // 审核提醒
-            String adminEmail = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                    .select(User::getEmail)
-                    .eq(User::getId, BLOGGER_ID)).getEmail();
-            mailDTO.setToEmail(adminEmail);
-            mailDTO.setSubject(CHECK_REMIND);
-            mailDTO.setContent("您收到一条新的回复，请前往后台管理页面审核");
-            // 发送普通邮件
-            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_SIMPLE_KEY, mailDTO);
-        }
-    }
+//    /**
+//     * 发送邮件
+//     *
+//     * @param comment      评论
+//     * @param toUser       回复用户信息
+//     * @param title        标题
+//     * @param fromNickname 评论用户昵称
+//     */
+//    private void sendEmail(Comment comment, User toUser, String title, String fromNickname) {
+//        MailDTO mailDTO = new MailDTO();
+//        if (comment.getIsCheck().equals(TRUE)) {
+//            Map<String, Object> contentMap = new HashMap<>(7);
+//            // 构造评论链接
+//            String typeId = Optional.ofNullable(comment.getTypeId())
+//                    .map(Object::toString)
+//                    .orElse("");
+//            String url = websiteUrl + getCommentPath(comment.getType()) + typeId;
+//            if (Objects.isNull(comment.getParentId())) {     // 父评论则提醒发表者
+//                mailDTO.setToEmail(toUser.getEmail());
+//                mailDTO.setSubject(COMMENT_REMIND);
+//                mailDTO.setTemplate(AUTHOR_TEMPLATE);
+//                String createTime = DateUtil.formatLocalDateTime(comment.getCreateTime());
+//                contentMap.put("time", createTime);
+//                contentMap.put("url", url);
+//                contentMap.put("title", title);
+//                contentMap.put("nickname", fromNickname);
+//                contentMap.put("content", comment.getContent());
+//                mailDTO.setContentMap(contentMap);
+//            } else {    // 子评论则提醒回复的用户
+//                Comment parentComment = commentMapper.selectOne(new LambdaQueryWrapper<Comment>()
+//                        .select(Comment::getContent, Comment::getCreateTime)
+//                        .eq(Comment::getId, comment.getReplyId()));
+//                mailDTO.setToEmail(toUser.getEmail());
+//                mailDTO.setSubject(COMMENT_REMIND);
+//                mailDTO.setTemplate(USER_TEMPLATE);
+//                contentMap.put("url", url);
+//                contentMap.put("title", title);
+//                String createTime = DateUtil.formatLocalDateTime(comment.getCreateTime());
+//                contentMap.put("time", createTime);
+//                // 被回复用户昵称
+//                contentMap.put("toUser", toUser.getNickname());
+//                // 评论用户昵称
+//                contentMap.put("fromUser", fromNickname);
+//                // 被回复的评论内容
+//                contentMap.put("parentComment", parentComment.getContent());
+//                // 回复评论内容
+//                contentMap.put("replyComment", comment.getContent());
+//                mailDTO.setContentMap(contentMap);
+//            }
+//            // 发送HTML邮件
+//            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_HTML_KEY, mailDTO);
+//        } else {
+//            // 审核提醒
+//            String adminEmail = userMapper.selectOne(new LambdaQueryWrapper<User>()
+//                    .select(User::getEmail)
+//                    .eq(User::getId, BLOGGER_ID)).getEmail();
+//            mailDTO.setToEmail(adminEmail);
+//            mailDTO.setSubject(CHECK_REMIND);
+//            mailDTO.setContent("您收到一条新的回复，请前往后台管理页面审核");
+//            // 发送普通邮件
+//            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_SIMPLE_KEY, mailDTO);
+//        }
+//    }
 }
 
 

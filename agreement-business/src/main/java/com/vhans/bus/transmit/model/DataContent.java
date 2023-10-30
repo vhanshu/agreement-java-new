@@ -1,4 +1,4 @@
-package com.vhans.bus.chat.transmit.model;
+package com.vhans.bus.transmit.model;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import lombok.Data;
 public class DataContent {
 
     /**
-     * 动作类型(0客户端保持心跳 1绑定用户通道 2聊天消息 3群消息 4发送请求 5处理请求 6解散群 7退出群 8处理转发)
+     * 动作类型(0客户端保持心跳 1绑定用户通道 2聊天消息 3群消息 4发送请求 5处理请求 6解散群 7退出群 8处理转发 9撤销消息 10推送 11评论)
      */
     private Integer action;
 
@@ -26,6 +26,7 @@ public class DataContent {
      * {@link com.vhans.bus.chat.domain.Msg} 单聊内容
      * {@link com.vhans.bus.chat.domain.GroupMsg} 群聊内容
      * {@link com.vhans.bus.chat.domain.Request} 请求内容
+     * {@link com.vhans.bus.data.domain.Comment} 评论内容
      * {@link Forward} 转发内容
      */
     private String data;

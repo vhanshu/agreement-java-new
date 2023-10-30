@@ -1,4 +1,4 @@
-package com.vhans.bus.chat.transmit.config;
+package com.vhans.bus.transmit.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

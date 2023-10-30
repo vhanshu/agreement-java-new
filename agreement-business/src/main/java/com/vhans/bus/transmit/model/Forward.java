@@ -1,4 +1,4 @@
-package com.vhans.bus.chat.transmit.model;
+package com.vhans.bus.transmit.model;
 
 import lombok.Data;
 

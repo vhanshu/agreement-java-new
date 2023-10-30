@@ -106,7 +106,7 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
         Long quizCount = quizMapper.selectCount(new LambdaQueryWrapper<Quiz>()
                 .eq(Quiz::getIsCheck, PASS.getStatus()));
         // 正在进行的约起量(类型->数量)
-        Map<String, Long> agreeCount = getAgreeCount();
+        List<WebsiteInfoVO.AgreeCount> agreeCount = getAgreeCount();
         // 标签数据
         List<TagOptionVO> tagVOList = tagMapper.selectTagOptionAllList();
         // 查询前七天用户浏览
@@ -153,25 +153,25 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
      *
      * @return Map:类型->数量
      */
-    private Map<String, Long> getAgreeCount() {
+    private List<WebsiteInfoVO.AgreeCount> getAgreeCount() {
         IAppointmentService appointmentService = SpringUtils.getBean("appointmentServiceImpl");
         IActivityService activityService = SpringUtils.getBean("activityServiceImpl");
         ICompetitionService competitionService = SpringUtils.getBean("competitionServiceImpl");
         IHelpService helpService = SpringUtils.getBean("helpServiceImpl");
-        HashMap<String, Long> AgreeCount = new HashMap<>(4);
-        AgreeCount.put("约会", appointmentService.count(new LambdaQueryWrapper<Appointment>()
+        List<WebsiteInfoVO.AgreeCount> agreeCount = new ArrayList<>(4);
+        agreeCount.add(new WebsiteInfoVO.AgreeCount("约会", appointmentService.count(new LambdaQueryWrapper<Appointment>()
                 .in(Appointment::getStatus, Arrays.asList(ONE, THREE))
-                .gt(Appointment::getTimeEnd, LocalDateTime.now())));
-        AgreeCount.put("活动", activityService.count(new LambdaQueryWrapper<Activity>()
+                .gt(Appointment::getTimeEnd, LocalDateTime.now()))));
+        agreeCount.add(new WebsiteInfoVO.AgreeCount("活动", activityService.count(new LambdaQueryWrapper<Activity>()
                 .in(Activity::getStatus, Arrays.asList(ONE, THREE))
-                .gt(Activity::getTimeEnd, LocalDateTime.now())));
-        AgreeCount.put("赛事", competitionService.count(new LambdaQueryWrapper<Competition>()
+                .gt(Activity::getTimeEnd, LocalDateTime.now()))));
+        agreeCount.add(new WebsiteInfoVO.AgreeCount("赛事", competitionService.count(new LambdaQueryWrapper<Competition>()
                 .in(Competition::getStatus, Arrays.asList(ONE, THREE))
-                .gt(Competition::getTimeEnd, LocalDateTime.now())));
-        AgreeCount.put("帮助", helpService.count(new LambdaQueryWrapper<Help>()
+                .gt(Competition::getTimeEnd, LocalDateTime.now()))));
+        agreeCount.add(new WebsiteInfoVO.AgreeCount("帮助", helpService.count(new LambdaQueryWrapper<Help>()
                 .in(Help::getStatus, Arrays.asList(ONE, THREE))
-                .gt(Help::getTimeEnd, LocalDateTime.now())));
-        return AgreeCount;
+                .gt(Help::getTimeEnd, LocalDateTime.now()))));
+        return agreeCount;
     }
 
     /**

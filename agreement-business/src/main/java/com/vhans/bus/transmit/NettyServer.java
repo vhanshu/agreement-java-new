@@ -1,6 +1,6 @@
-package com.vhans.bus.chat.transmit;
+package com.vhans.bus.transmit;
 
-import com.vhans.bus.chat.transmit.config.NettyChannelInitializer;
+import com.vhans.bus.transmit.config.NettyChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -55,7 +55,7 @@ public class NettyServer {
      * 启动netty
      */
     public void start(int port) {
-        ChannelFuture future = server.bind(port);
+        server.bind(port);
         log.info("netty服务启动完毕 port=" + port);
     }
 

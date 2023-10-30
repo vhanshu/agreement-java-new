@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
-import static com.vhans.core.constant.CommonConstant.TRUE;
 import static com.vhans.core.constant.NumberConstant.ONE;
 import static com.vhans.core.constant.RedisConstant.*;
 
@@ -81,20 +80,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         // 查询记录信息
         List<AgreeRecord> records = recordMapper.selectAgreeRecord(query);
         // 封装记录信息
-        records.forEach(item -> {
-            // 查询浏览量
-            Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, item.getId()))
-                    .orElse((double) 0);
-            // 查询点赞量
-            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
-            // 查询记录标签
-            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), ONE)).orElse(new ArrayList<>());
-            item.setViewCount(viewCount.intValue());
-            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
-            item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-            item.setTagVOList(tags);
-        });
-        return records;
+        return postRecord(records);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -162,7 +148,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         Assert.notNull(agreeRecord, "没有该记录");
         // 查询记录标签
         List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, ONE)).orElse(new ArrayList<>());
-        agreeRecord.setTagVOList(tags);
+        agreeRecord.setTagList(tags);
         return agreeRecord;
     }
 
@@ -190,24 +176,11 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     }
 
     @Override
-    public List<AgreeRecord> listHomeAgreeRecord(String keyword) {
+    public List<AgreeRecord> listHomeAgreeRecord(AgreeRecord.Query query) {
         // 查询首页记录
-        List<AgreeRecord> records = recordMapper.listAgreeRecord(keyword);
+        List<AgreeRecord> records = recordMapper.listAgreeRecord(query);
         // 封装记录信息
-        records.forEach(item -> {
-            // 查询浏览量
-            Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, item.getId()))
-                    .orElse((double) 0);
-            // 查询点赞量
-            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
-            // 查询记录标签
-            List<String> tagNames = Optional.ofNullable(tagMapper.selectTagNameByTypeId(item.getId(), ONE)).orElse(new ArrayList<>());
-            item.setViewCount(viewCount.intValue());
-            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
-            item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-            item.setTagNameList(tagNames);
-        });
-        return records;
+        return postRecord(records);
     }
 
     @Override
@@ -231,7 +204,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         record.setNextRecord(nextRecord);
         // 设置当前点赞量为 持久点赞量 + 缓存点赞量
         record.setLikeNumber(record.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-        record.setTagVOList(tags);
+        record.setTagList(tags);
         return record;
     }
 
@@ -242,14 +215,8 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
 
     @Override
     public List<AgreeRecord> listAgreeRecord() {
-        return recordMapper.selectList(new LambdaQueryWrapper<AgreeRecord>()
-                .select(AgreeRecord::getId, AgreeRecord::getCover, AgreeRecord::getUserId, AgreeRecord::getTitle,
-                        AgreeRecord::getCreateTime, AgreeRecord::getContent, AgreeRecord::getCollectNumber)
-                .eq(AgreeRecord::getIsDelete, FALSE)
-                .eq(AgreeRecord::getStatus, ONE)
-                .eq(AgreeRecord::getIsRecommend, TRUE)
-                .orderByDesc(AgreeRecord::getCreateTime)
-                .last("limit 10"));
+        List<AgreeRecord> records = recordMapper.listAgreeRecordR();
+        return postRecord(records);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -321,6 +288,29 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString();
+    }
+
+    /**
+     * 封装记录信息
+     *
+     * @param list 原始记录列表
+     * @return 封装后的记录列表
+     */
+    private List<AgreeRecord> postRecord(List<AgreeRecord> list) {
+        list.forEach(item -> {
+            // 查询浏览量
+            Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, item.getId()))
+                    .orElse((double) 0);
+            // 查询点赞量
+            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
+            // 查询记录标签
+            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), ONE)).orElse(new ArrayList<>());
+            item.setViewCount(viewCount.intValue());
+            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+            item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
+            item.setTagList(tags);
+        });
+        return list;
     }
 
     /**

@@ -136,15 +136,15 @@ public class AgreeRecordController extends BaseController {
     /**
      * 查看前台记录列表
      *
-     * @param keyword 标题或者发起人昵称
+     * @param query 标题或者发起人昵称及文本类型
      * @return {@link AgreeRecord} 记录列表
      */
     @VisitLogger(value = "记录中心")
     @ApiOperation(value = "查看前台记录列表")
-    @GetMapping("/list/{keyword}")
-    public TableDataInfo<AgreeRecord> listAgreeRecord(@PathVariable String keyword) {
+    @GetMapping("/list")
+    public TableDataInfo<AgreeRecord> listAgreeRecord(AgreeRecord.Query query) {
         startPage();
-        List<AgreeRecord> list = recordService.listHomeAgreeRecord(keyword);
+        List<AgreeRecord> list = recordService.listHomeAgreeRecord(query);
         clearPage();
         return getDataTable(list);
     }
@@ -168,8 +168,11 @@ public class AgreeRecordController extends BaseController {
      */
     @ApiOperation(value = "查看推荐记录")
     @GetMapping("/recommend")
-    public Result<List<AgreeRecord>> listAgreeRecord() {
-        return Result.success(recordService.listAgreeRecord());
+    public TableDataInfo<AgreeRecord> listAgreeRecord() {
+        startPage();
+        List<AgreeRecord> list = recordService.listAgreeRecord();
+        clearPage();
+        return getDataTable(list);
     }
 
     /**

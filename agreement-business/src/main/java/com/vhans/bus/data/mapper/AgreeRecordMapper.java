@@ -45,11 +45,19 @@ public interface AgreeRecordMapper extends BaseMapper<AgreeRecord> {
     AgreeRecord selectRecordHomeById(@Param("recordId") Integer recordId);
 
     /**
-     * 根据关键字查看记录列表(包含内容200字)
+     * 根据关键字查看记录列表
+     *
+     * @param query 关键字和类型
+     * @return 记录列表
+     */
+    List<AgreeRecord> listAgreeRecord(@Param("query") AgreeRecord.Query query);
+
+    /**
+     * 查询推荐记录
      *
      * @return 记录列表
      */
-    List<AgreeRecord> listAgreeRecord(@Param("keyword") String keyword);
+    List<AgreeRecord> listAgreeRecordR();
 
     /**
      * 查询上一篇记录

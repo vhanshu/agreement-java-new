@@ -74,11 +74,11 @@ public interface QuizMapper extends BaseMapper<Quiz> {
     List<OverviewVO> selectQuizList();
 
     /**
-     * 查看推荐的题目
+     * 查看最新的题目
      *
-     * @return 推荐的题目
+     * @return 最新的题目
      */
-    List<Quiz> selectQuizRecommend();
+    List<Quiz> selectQuizLatest();
 
     /**
      * 查询题目统计

@@ -1,6 +1,6 @@
 package com.vhans.bapi;
 
-import com.vhans.bus.chat.transmit.NettyServer;
+import com.vhans.bus.transmit.NettyServer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;

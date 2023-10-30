@@ -2,7 +2,6 @@ package com.vhans.bus.data.service;
 
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.subsidiary.model.dto.CheckDTO;
-import com.vhans.bus.data.domain.dto.CommentDTO;
 import com.vhans.bus.data.domain.vo.ReplyVO;
 
 import java.util.List;
@@ -26,8 +25,9 @@ public interface ICommentService {
      * 添加评论
      *
      * @param comment 评论信息
+     * @return 影响行
      */
-    void addComment(CommentDTO comment);
+    int addComment(Comment comment);
 
     /**
      * 审核评论

@@ -146,14 +146,17 @@ public class QuizController extends BaseController {
     }
 
     /**
-     * 获取推荐题目
+     * 获取最新题目
      *
-     * @return {@link Result<Quiz>} 推荐题目
+     * @return {@link Result<Quiz>} 最新题目
      */
-    @ApiOperation(value = "查看推荐题目")
-    @GetMapping("/recommend")
-    public Result<List<Quiz>> listQuizRecommendVO() {
-        return Result.success(quizService.listQuizRecommendVO());
+    @ApiOperation(value = "查看最新题目")
+    @GetMapping("/latest")
+    public TableDataInfo<Quiz> listQuizLatest() {
+        startPage();
+        List<Quiz> list = quizService.listQuizLatest();
+        clearPage();
+        return getDataTable(list);
     }
 
     /**

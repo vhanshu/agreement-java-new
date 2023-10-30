@@ -180,8 +180,8 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     }
 
     @Override
-    public List<Quiz> listQuizRecommendVO() {
-        return quizMapper.selectQuizRecommend();
+    public List<Quiz> listQuizLatest() {
+        return quizMapper.selectQuizLatest();
     }
 
     @Transactional(rollbackFor = Exception.class)

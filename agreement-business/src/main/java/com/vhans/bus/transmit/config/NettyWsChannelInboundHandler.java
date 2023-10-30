@@ -1,4 +1,4 @@
-package com.vhans.bus.chat.transmit.config;
+package com.vhans.bus.transmit.config;
 
 import cn.hutool.json.JSONUtil;
 import com.vhans.bus.chat.domain.Friend;
@@ -6,9 +6,11 @@ import com.vhans.bus.chat.domain.GroupMsg;
 import com.vhans.bus.chat.domain.Msg;
 import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.service.*;
-import com.vhans.bus.chat.transmit.model.DataContent;
-import com.vhans.bus.chat.transmit.model.Forward;
-import com.vhans.bus.chat.transmit.model.Revoke;
+import com.vhans.bus.data.domain.Comment;
+import com.vhans.bus.data.service.ICommentService;
+import com.vhans.bus.transmit.model.DataContent;
+import com.vhans.bus.transmit.model.Forward;
+import com.vhans.bus.transmit.model.Revoke;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
@@ -42,15 +44,15 @@ import static com.vhans.core.constant.NumberConstant.TWO;
 public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
     /**
-     * 获取业务处理bean: 好友、群组、用户消息、群消息、请求、文件
+     * 获取业务处理bean: 好友、群组、用户消息、群消息、请求、文件、评论
      */
     private final IFriendService friendService = SpringUtils.getBean("friendServiceImpl");
     private final IGroupService groupService = SpringUtils.getBean("groupServiceImpl");
     private final IMsgService msgService = SpringUtils.getBean("msgServiceImpl");
     private final IGroupMsgService groupMsgService = SpringUtils.getBean("groupMsgServiceImpl");
     private final IRequestService requestService = SpringUtils.getBean("requestServiceImpl");
-
     private final IFileRecordService fileRecordService = SpringUtils.getBean("fileRecordServiceImpl");
+    private final ICommentService commentService = SpringUtils.getBean("commentServiceImpl");
 
     /**
      * 用于记录和管理所有客户端的channel
@@ -83,6 +85,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 case QUIT_GROUP -> quitGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
                 case FORWARD -> forward(JSONUtil.toBean(dataContent.getData(), Forward.class));
                 case REVOKE -> revoke(JSONUtil.toBean(dataContent.getData(), Revoke.class));
+                case COMMENT -> comment(JSONUtil.toBean(dataContent.getData(), Comment.class));
                 default -> currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
             }
         } catch (Exception e) {
@@ -330,6 +333,27 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         }
         // 给自己发送响应消息
         sendTo(revoke.getFromUid(), jsonData, row > 0);
+    }
+
+    /**
+     * 评论
+     */
+    private void comment(Comment comment) {
+        // 保存消息到数据库
+        int row = commentService.addComment(comment);
+        // 这里额外需要:avatar,fromNickname,toNickname
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(COMMENT, JSONUtil.toJsonStr(comment)));
+        // 给自己发送响应消息
+        sendTo(comment.getFromUid(), jsonData, row > 0);
+        if (row > 0) {
+            List<Integer> onlineUserIds = getOnlineUserIds();
+            // 在所有在线群用户发送信息
+            onlineUserIds.forEach(item -> {
+                if (!Objects.equals(item, comment.getFromUid())) {
+                    sendTo(item, jsonData, true);
+                }
+            });
+        }
     }
 
     /**

@@ -61,4 +61,9 @@ public class MsgActionConstant {
      * 推送消息
      */
     public static final int PUSH = 10;
+
+    /**
+     * 评论
+     */
+    public static final int COMMENT = 11;
 }

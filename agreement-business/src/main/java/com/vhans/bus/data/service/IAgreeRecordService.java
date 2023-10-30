@@ -86,9 +86,10 @@ public interface IAgreeRecordService extends IService<AgreeRecord> {
     /**
      * 查看前台记录列表
      *
+     * @param query 关键字和类型
      * @return 首页记录列表
      */
-    List<AgreeRecord> listHomeAgreeRecord(String keyword);
+    List<AgreeRecord> listHomeAgreeRecord(AgreeRecord.Query query);
 
     /**
      * 查看记录(包括上下篇)
@@ -106,7 +107,7 @@ public interface IAgreeRecordService extends IService<AgreeRecord> {
     List<OverviewVO> listRecordOverviewVO();
 
     /**
-     * 查看推荐记录(前10条)
+     * 查看推荐记录
      *
      * @return 推荐记录
      */

@@ -3,9 +3,7 @@ package com.vhans.bapi.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.service.ICommentService;
-import com.vhans.bus.data.domain.dto.CommentDTO;
 import com.vhans.bus.data.domain.vo.ReplyVO;
-import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.enums.LikeTypeEnum;
 import com.vhans.core.strategy.context.LikeStrategyContext;
 import com.vhans.core.web.controller.BaseController;
@@ -44,7 +42,7 @@ public class CommentController extends BaseController {
     @SaCheckLogin
     @ApiOperation(value = "添加评论")
     @PostMapping("/add")
-    public Result<?> addComment(@Validated @RequestBody CommentDTO comment) {
+    public Result<?> addComment(@Validated @RequestBody Comment comment) {
         commentService.addComment(comment);
         return Result.success();
     }
@@ -57,7 +55,6 @@ public class CommentController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞评论")
-    @AccessLimit(seconds = 60, maxCount = 3)
     @PostMapping("/like/{commentId}")
     public Result<?> likeComment(@PathVariable("commentId") Integer commentId) {
         likeStrategyContext.executeLikeStrategy(LikeTypeEnum.COMMENT, commentId);

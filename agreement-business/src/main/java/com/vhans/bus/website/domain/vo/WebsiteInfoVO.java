@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 网站信息VO
@@ -50,7 +49,7 @@ public class WebsiteInfoVO {
      * 正在进行的约起量(类型->数量)
      */
     @ApiModelProperty(value = "正在进行的约起量(类型->数量)")
-    private Map<String, Long> agreeCount;
+    private List<AgreeCount> agreeCount;
 
     /**
      * 标签列表
@@ -87,4 +86,15 @@ public class WebsiteInfoVO {
      */
     @ApiModelProperty(value = "一周访问量")
     private List<UserViewVO> userViewList;
+
+    @Data
+    public static class AgreeCount {
+        private String type;
+        private Long count;
+
+        public AgreeCount(String type, Long count) {
+            this.type = type;
+            this.count = count;
+        }
+    }
 }

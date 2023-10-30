@@ -101,7 +101,7 @@
         SELECT c.id,
                c.from_uid,
                fu.avatar,
-               fu.nickname,
+               fu.nickname as from_nickname,
                c.to_uid,
                tu.nickname as to_nickname,
                c.parent_id,

@@ -89,7 +89,6 @@
         r.cover,
         r.type,
         r.title,
-        SUBSTR(r.content, 1, 200) AS content,
         r.images,
         r.video,
         r.like_number,
@@ -102,11 +101,33 @@
         LEFT JOIN u_user u ON u.id = r.user_id
         <where>
             is_delete = 0 and `status` = 1
-            <if test="keyword!=null">
-                and (r.title like concat('%',#{keyword},'%')
-                or u.nickname like concat('%',#{keyword},'%'))
+            <if test="query.title != null and query.title != ''">
+                and (r.title like concat('%',#{query.title},'%')
+                or u.nickname like concat('%',#{query.title},'%'))
+            </if>
+            <if test="query.type != null and query.type != 0">
+                and r.type = #{query.type}
             </if>
         </where>
+        ORDER BY is_top DESC, create_time DESC
+    </select>
+
+    <select id="listAgreeRecordR" resultType="com.vhans.bus.data.domain.AgreeRecord">
+        SELECT r.id,
+        r.user_id,
+        r.cover,
+        r.type,
+        r.title,
+        r.images,
+        r.video,
+        r.like_number,
+        r.collect_number,
+        r.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_agree_record r
+        LEFT JOIN u_user u ON u.id = r.user_id
+        where is_delete = 0 and `status` = 1 and is_recommend = 1
         ORDER BY is_top DESC, create_time DESC
     </select>
 
@@ -135,7 +156,7 @@
         from d_agree_record
         where is_delete = 0
           and `status` = 1
-        order by create_time
+        order by create_time desc
     </select>
 
     <select id="selectRecordStatistics" resultType="com.vhans.bus.data.domain.vo.StatisticsVO">
