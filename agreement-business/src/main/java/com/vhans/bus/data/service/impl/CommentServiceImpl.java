@@ -87,6 +87,7 @@ public class CommentServiceImpl implements ICommentService {
         // 过滤标签
         comment.setContent(HTMLUtils.filter(comment.getContent()));
         comment.setIsCheck(commentCheck.equals(FALSE) ? TRUE : FALSE);
+        comment.setLikeNumber(0);
         // 保存评论
         return commentMapper.insert(comment);
 //        String fromNickname = userMapper.selectOne(new LambdaQueryWrapper<User>()

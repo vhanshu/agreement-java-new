@@ -196,7 +196,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         // 查询浏览量
         Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, recordId)).orElse((double) 0);
         // 查询点赞量
-        Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, recordId.toString());
+        Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, recordId.toString());
         // 查询标签
         List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, ONE)).orElse(new ArrayList<>());
         record.setViewCount(viewCount.intValue());
@@ -302,7 +302,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, item.getId()))
                     .orElse((double) 0);
             // 查询点赞量
-            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
+            Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, item.getId().toString());
             // 查询记录标签
             List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), ONE)).orElse(new ArrayList<>());
             item.setViewCount(viewCount.intValue());
