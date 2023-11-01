@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.data.mapper.QuizAnswerMapper">
+
+    <select id="selectAnswerList" resultType="com.vhans.bus.data.domain.QuizAnswer">
+        select
+        qa.id,
+        qa.quiz_id,
+        qa.user_id,
+        qa.like_number,
+        qa.is_check,
+        qa.create_time,
+        qa.update_time,
+        u.avatar,
+        u.nickname,
+        q.title
+        from d_quiz_answer qa
+        left join u_user u on u.id = qa.user_id
+        left join d_quiz q on q.id = qa.quiz_id
+        <where>
+            <if test="query.quizId != null">
+                and qa.quiz_id = #{query.quizId}
+            </if>
+            <if test="query.userId != null">
+                and qa.user_id = #{query.userId}
+            </if>
+            <if test="query.isCheck != null">
+                and qa.is_check = #{query.isCheck}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                and (u.nickname like concat('%',#{query.keyword},'%')
+                or q.title like concat('%',#{query.keyword},'%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAnswerById" resultType="com.vhans.bus.data.domain.QuizAnswer">
+        select qa.id,
+               qa.quiz_id,
+               qa.user_id,
+               qa.content,
+               qa.like_number,
+               qa.is_check,
+               qa.create_time,
+               qa.update_time,
+               u.avatar,
+               u.nickname,
+               q.title
+        from d_quiz_answer qa
+                 left join u_user u on u.id = qa.user_id
+                 left join d_quiz q on q.id = qa.quiz_id
+        where qa.id = #{id}
+    </select>
+
+    <select id="selectAnswerHomeList" resultType="com.vhans.bus.data.domain.QuizAnswer">
+        select
+        qa.id,
+        qa.quiz_id,
+        qa.user_id,
+        qa.like_number,
+        qa.content,
+        qa.create_time,
+        qa.update_time,
+        u.avatar,
+        u.nickname
+        from d_quiz_answer qa
+        left join u_user u on u.id = qa.user_id
+        where qa.is_check = 1 and qa.quiz_id = #{quizId}
+    </select>
+
+</mapper>

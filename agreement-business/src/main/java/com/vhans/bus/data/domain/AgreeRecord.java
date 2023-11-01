@@ -209,6 +209,7 @@ public class AgreeRecord {
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {
+
         /**
          * 记录标题
          */

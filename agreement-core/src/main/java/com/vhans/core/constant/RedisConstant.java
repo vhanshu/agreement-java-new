@@ -68,6 +68,11 @@ public class RedisConstant {
     public static final String COMMENT_LIKE_COUNT = "comment_like_count";
 
     /**
+     * 题目作答点赞量
+     */
+    public static final String ANSWER_LIKE_COUNT = "answer_like_count";
+
+    /**
      * 用户点赞记录
      */
     public static final String USER_RECORD_LIKE = "user_record_like:";
@@ -81,6 +86,11 @@ public class RedisConstant {
      * 用户点赞评论
      */
     public static final String USER_COMMENT_LIKE = "user_comment_like:";
+
+    /**
+     * 用户点赞题目作答
+     */
+    public static final String USER_ANSWER_LIKE = "user_answer_like:";
 
     /**
      * 网站配置
