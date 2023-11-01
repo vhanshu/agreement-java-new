@@ -7,6 +7,7 @@ import com.vhans.bus.data.service.ICommentService;
 import com.vhans.bus.data.domain.vo.ReplyVO;
 import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
 import com.vhans.bus.transmit.model.PushData;
+import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.enums.LikeTypeEnum;
 import com.vhans.core.strategy.context.LikeStrategyContext;
 import com.vhans.core.web.controller.BaseController;
@@ -64,6 +65,7 @@ public class CommentController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞评论")
+    @AccessLimit(seconds = 5, maxCount = 1)
     @PostMapping("/like/{commentId}")
     public Result<?> likeComment(@PathVariable("commentId") Integer commentId) {
         likeStrategyContext.executeLikeStrategy(LikeTypeEnum.COMMENT, commentId);

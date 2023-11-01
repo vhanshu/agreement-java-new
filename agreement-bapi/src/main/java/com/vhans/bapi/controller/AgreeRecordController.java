@@ -2,9 +2,9 @@ package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.vhans.bus.data.domain.AgreeRecord;
+import com.vhans.bus.data.domain.vo.OverviewVO;
 import com.vhans.bus.data.service.IAgreeRecordService;
 import com.vhans.bus.subsidiary.model.dto.DeleteDTO;
-import com.vhans.bus.data.domain.vo.OverviewVO;
 import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.annotation.VisitLogger;
 import com.vhans.core.enums.LikeTypeEnum;
@@ -100,7 +100,7 @@ public class AgreeRecordController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞记录")
-    @AccessLimit(seconds = 60, maxCount = 3)
+    @AccessLimit(seconds = 5, maxCount = 1)
     @PostMapping("/like/{recordId}")
     public Result<?> likeRecord(@PathVariable("recordId") Integer recordId) {
         likeStrategyContext.executeLikeStrategy(LikeTypeEnum.RECORD, recordId);

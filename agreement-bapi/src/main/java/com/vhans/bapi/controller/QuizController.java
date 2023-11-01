@@ -85,7 +85,7 @@ public class QuizController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞题目")
-    @AccessLimit(seconds = 60, maxCount = 3)
+    @AccessLimit(seconds = 5, maxCount = 1)
     @PostMapping("/like/{quizId}")
     public Result<?> likeQuiz(@PathVariable("quizId") Integer quizId) {
         likeStrategyContext.executeLikeStrategy(LikeTypeEnum.QUIZ, quizId);

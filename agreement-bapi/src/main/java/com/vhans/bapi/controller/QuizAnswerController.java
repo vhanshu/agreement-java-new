@@ -3,6 +3,9 @@ package com.vhans.bapi.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.service.IQuizAnswerService;
+import com.vhans.core.annotation.AccessLimit;
+import com.vhans.core.enums.LikeTypeEnum;
+import com.vhans.core.strategy.context.LikeStrategyContext;
 import com.vhans.core.web.controller.BaseController;
 import com.vhans.core.web.model.Result;
 import com.vhans.core.web.model.page.TableDataInfo;
@@ -27,6 +30,9 @@ public class QuizAnswerController extends BaseController {
 
     @Autowired
     private IQuizAnswerService quizAnswerService;
+
+    @Autowired
+    private LikeStrategyContext likeStrategyContext;
 
     /**
      * 查询前台某个题目的作答列表
@@ -53,6 +59,21 @@ public class QuizAnswerController extends BaseController {
     @PostMapping("/add")
     public Result<?> add(@Validated @RequestBody QuizAnswer quizAnswer) {
         return toAjax(quizAnswerService.insertAnswer(quizAnswer));
+    }
+
+    /**
+     * 点赞题目作答
+     *
+     * @param answerId 题目作答id
+     * @return 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "点赞题目作答")
+    @AccessLimit(seconds = 5, maxCount = 1)
+    @PostMapping("/like/{answerId}")
+    public Result<?> likeQuiz(@PathVariable("answerId") Integer answerId) {
+        likeStrategyContext.executeLikeStrategy(LikeTypeEnum.ANSWER, answerId);
+        return Result.success();
     }
 
     /**
