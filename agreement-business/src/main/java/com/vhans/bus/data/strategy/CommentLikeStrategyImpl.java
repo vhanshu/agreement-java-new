@@ -34,28 +34,29 @@ public class CommentLikeStrategyImpl implements LikeStrategy {
     private UserMapper userMapper;
 
     @Override
-    public void like(Integer commentId) {
-        int userId = StpUtil.getLoginIdAsInt();
+    public void like(Integer id) {
         // 判断评论是否存在
-        Assert.isTrue(commentMapper.exists(new LambdaQueryWrapper<Comment>()
+        Comment obj = commentMapper.selectOne(new LambdaQueryWrapper<Comment>()
+                .select(Comment::getId, Comment::getFromUid)
                 .eq(Comment::getIsCheck, TRUE)
-                .eq(Comment::getId, commentId)),"评论不存在");
+                .eq(Comment::getId, id));
+        Assert.notNull(obj, "评论不存在");
         // 用户id作为键，评论id作为值，记录用户点赞记录
-        String userLikeCommentKey = USER_COMMENT_LIKE + userId;
-        if (redisService.hasSetValue(userLikeCommentKey, commentId)) {
+        String key = USER_COMMENT_LIKE + StpUtil.getLoginIdAsInt();
+        if (redisService.hasSetValue(key, id)) {
             // 取消点赞则删除用户id中的评论id
-            redisService.deleteSet(userLikeCommentKey, commentId);
-            // 减少用户热度
-            userMapper.updateDegree(userId, LIKE_SCORE * -1);
+            redisService.deleteSet(key, id);
+            // 减少评论发布者热度
+            userMapper.updateDegree(obj.getFromUid(), LIKE_SCORE * -1);
             // 评论点赞量-1
-            redisService.decrHash(COMMENT_LIKE_COUNT, commentId.toString(), 1L);
+            redisService.decrHash(COMMENT_LIKE_COUNT, id.toString(), 1L);
         } else {
-            // 点赞则在用户id记录评论id
-            redisService.setSet(userLikeCommentKey, commentId);
-            // 增加用户热度
-            userMapper.updateDegree(userId, LIKE_SCORE);
+            // 点赞则在用户id中记录评论id
+            redisService.setSet(key, id);
+            // 增加评论发布者热度
+            userMapper.updateDegree(obj.getFromUid(), LIKE_SCORE);
             // 评论点赞量+1
-            redisService.incrHash(COMMENT_LIKE_COUNT, commentId.toString(), 1L);
+            redisService.incrHash(COMMENT_LIKE_COUNT, id.toString(), 1L);
         }
     }
 }

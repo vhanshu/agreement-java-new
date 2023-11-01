@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @author vhans
  */
 @SuppressWarnings("all")
-@Service
+@Service("redisService")
 public class RedisService {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;

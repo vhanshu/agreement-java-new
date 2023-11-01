@@ -83,7 +83,7 @@ public class TimedTask {
     }
 
     /**
-     * 设置点赞记录
+     * 每周设置持久点赞量
      */
     public void setLike() {
         // 用户id

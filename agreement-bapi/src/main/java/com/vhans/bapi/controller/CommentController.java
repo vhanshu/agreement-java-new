@@ -1,9 +1,12 @@
 package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.hutool.json.JSONUtil;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.service.ICommentService;
 import com.vhans.bus.data.domain.vo.ReplyVO;
+import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
+import com.vhans.bus.transmit.model.PushData;
 import com.vhans.core.enums.LikeTypeEnum;
 import com.vhans.core.strategy.context.LikeStrategyContext;
 import com.vhans.core.web.controller.BaseController;
@@ -16,6 +19,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.vhans.core.constant.PushTypeConstant.PUSH_COMMENT;
 
 /**
  * 评论控制器
@@ -43,8 +48,12 @@ public class CommentController extends BaseController {
     @ApiOperation(value = "添加评论")
     @PostMapping("/add")
     public Result<?> addComment(@Validated @RequestBody Comment comment) {
-        commentService.addComment(comment);
-        return Result.success();
+        int rows = commentService.addComment(comment);
+        if (rows > 0) {
+            String json = JSONUtil.toJsonStr(comment);
+            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_COMMENT).data(json).build());
+        }
+        return toAjax(rows);
     }
 
     /**

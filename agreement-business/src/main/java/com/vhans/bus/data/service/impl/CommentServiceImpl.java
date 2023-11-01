@@ -1,5 +1,6 @@
 package com.vhans.bus.data.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.data.domain.AgreeRecord;
@@ -16,11 +17,11 @@ import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.bus.website.domain.SiteConfig;
 import com.vhans.bus.website.service.ISiteConfigService;
 import com.vhans.core.redis.RedisService;
-import com.vhans.core.utils.web.HTMLUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -83,11 +84,11 @@ public class CommentServiceImpl implements ICommentService {
         verifyComment(comment);
         SiteConfig siteConfig = siteConfigService.getSiteConfig();
         Integer commentCheck = siteConfig.getCommentCheck();
-        // 需要:fromUid,toUid,typeId,type,parentId,replyId,content,isCheck
-        // 过滤标签
-        comment.setContent(HTMLUtils.filter(comment.getContent()));
+        // 需要:toUid,typeId,type,parentId,replyId,content,isCheck
         comment.setIsCheck(commentCheck.equals(FALSE) ? TRUE : FALSE);
+        comment.setFromUid(StpUtil.getLoginIdAsInt());
         comment.setLikeNumber(0);
+        comment.setReplyList(new ArrayList<>());
         // 保存评论
         return commentMapper.insert(comment);
 //        String fromNickname = userMapper.selectOne(new LambdaQueryWrapper<User>()

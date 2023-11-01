@@ -10,6 +10,7 @@ import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.service.ICommentService;
 import com.vhans.bus.transmit.model.DataContent;
 import com.vhans.bus.transmit.model.Forward;
+import com.vhans.bus.transmit.model.PushData;
 import com.vhans.bus.transmit.model.Revoke;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.utils.SpringUtils;
@@ -63,6 +64,17 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 用户id -> Channel
      */
     private static final Map<Integer, Channel> manager = new ConcurrentHashMap<>();
+
+    /**
+     * 系统主动推送
+     */
+    public static void pushInfo(PushData push) {
+        // 给所有在线用户发送消息
+        manager.forEach((item, value) -> {
+            String jsonData = JSONUtil.toJsonStr(DataContent.success(PUSH, JSONUtil.toJsonStr(push)));
+            value.writeAndFlush(new TextWebSocketFrame(jsonData));
+        });
+    }
 
     /**
      * 从channel缓冲区读数据,开始处理
@@ -147,10 +159,10 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 单独聊天类型的消息，把聊天记录保存到数据库，同时标记消息的签收状态[数据库默认未签收]
      */
     private void chat(Msg msg) {
-        if(msg.getMsgType() == TWO || msg.getMsgType() == THREE){
+        if (msg.getMsgType() == TWO || msg.getMsgType() == THREE) {
             // 文件消息获取文件id并设置
             Integer fileId = fileRecordService.getFileIdByUrl(msg.getFileUrl());
-            if(fileId != null){
+            if (fileId != null) {
                 msg.setFileId(fileId);
             } else {
                 sendTo(msg.getFromUid(), null, false);
@@ -171,10 +183,10 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 发送群消息
      */
     private void groupChat(GroupMsg groupMsg) {
-        if(groupMsg.getMsgType() == TWO || groupMsg.getMsgType() == THREE){
+        if (groupMsg.getMsgType() == TWO || groupMsg.getMsgType() == THREE) {
             // 文件消息获取文件id并设置
             Integer fileId = fileRecordService.getFileIdByUrl(groupMsg.getFileUrl());
-            if(fileId != null){
+            if (fileId != null) {
                 groupMsg.setFileId(fileId);
             } else {
                 sendTo(groupMsg.getFromUid(), null, false);
@@ -311,7 +323,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private void revoke(Revoke revoke) {
         int row = 0;
         String jsonData = JSONUtil.toJsonStr(DataContent.success(REVOKE, JSONUtil.toJsonStr(revoke)));
-        if(revoke.getType() == 1) {
+        if (revoke.getType() == 1) {
             row = msgService.deleteMsg(revoke.getMsgId());
             // 发送消息
             if (row > 0) {
@@ -347,7 +359,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         sendTo(comment.getFromUid(), jsonData, row > 0);
         if (row > 0) {
             List<Integer> onlineUserIds = getOnlineUserIds();
-            // 在所有在线群用户发送信息
+            // 给所有在线用户发送信息
             onlineUserIds.forEach(item -> {
                 if (!Objects.equals(item, comment.getFromUid())) {
                     sendTo(item, jsonData, true);

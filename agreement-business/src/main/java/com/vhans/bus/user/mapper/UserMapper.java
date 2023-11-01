@@ -13,7 +13,7 @@ import java.util.List;
  * @author vhans
  * @date 2023-04-10
  */
-@Repository
+@Repository("userMapper")
 public interface UserMapper extends BaseMapper<User> {
     /**
      * 查询用户列表

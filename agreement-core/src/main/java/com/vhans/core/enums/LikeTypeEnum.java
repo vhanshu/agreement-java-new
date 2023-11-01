@@ -25,7 +25,12 @@ public enum LikeTypeEnum {
     /**
      * 评论
      */
-    COMMENT("评论", "commentLikeStrategyImpl");
+    COMMENT("评论", "commentLikeStrategyImpl"),
+
+    /**
+     * 题目作答
+     */
+    ANSWER("作答", "answerLikeStrategyImpl");
 
     /**
      * 点赞类型
