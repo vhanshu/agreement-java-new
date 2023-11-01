@@ -3,6 +3,8 @@ package com.vhans.bus.data.strategy;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
+import com.vhans.bus.transmit.model.PushData;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.LikeStrategy;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.vhans.core.constant.CommonConstant.TRUE;
+import static com.vhans.core.constant.PushTypeConstant.PUSH_LIKE;
 import static com.vhans.core.constant.RedisConstant.QUIZ_LIKE_COUNT;
 import static com.vhans.core.constant.RedisConstant.USER_QUIZ_LIKE;
 import static com.vhans.core.constant.ScoreConstant.LIKE_SCORE;
@@ -50,6 +53,8 @@ public class QuizLikeStrategyImpl implements LikeStrategy {
             userMapper.updateDegree(obj.getUserId(), LIKE_SCORE * -1);
             // 题目点赞量-1
             redisService.decrHash(QUIZ_LIKE_COUNT, id.toString(), 1L);
+            // 推送点赞量变化-1
+            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("quiz#" + id + "#-1").build());
         } else {
             // 点赞则在用户id中记录题目id
             redisService.setSet(key, id);
@@ -57,6 +62,8 @@ public class QuizLikeStrategyImpl implements LikeStrategy {
             userMapper.updateDegree(obj.getUserId(), LIKE_SCORE);
             // 题目点赞量+1
             redisService.incrHash(QUIZ_LIKE_COUNT, id.toString(), 1L);
+            // 推送点赞量变化+1
+            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("quiz#" + id + "#1").build());
         }
     }
 
