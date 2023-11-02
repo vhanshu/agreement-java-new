@@ -100,7 +100,7 @@
         FROM d_agree_record r
         LEFT JOIN u_user u ON u.id = r.user_id
         <where>
-            is_delete = 0 and `status` = 1
+            is_delete = 0 and `status` = 1 and is_check = 1
             <if test="query.title != null and query.title != ''">
                 and (r.title like concat('%',#{query.title},'%')
                 or u.nickname like concat('%',#{query.title},'%'))
@@ -136,6 +136,7 @@
         FROM d_agree_record
         WHERE is_delete = 0
           AND `status` = 1
+          AND is_check = 1
           AND id &lt; #{recordId}
         ORDER BY id DESC
         LIMIT 1
@@ -146,6 +147,7 @@
         FROM d_agree_record
         WHERE is_delete = 0
           AND `status` = 1
+          AND is_check = 1
           AND id &gt; #{recordId}
         ORDER BY id
         LIMIT 1

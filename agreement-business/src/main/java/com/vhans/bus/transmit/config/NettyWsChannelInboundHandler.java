@@ -68,12 +68,20 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     /**
      * 系统主动推送
      */
-    public static void pushInfo(PushData push) {
-        // 给所有在线用户发送消息
-        manager.forEach((item, value) -> {
-            String jsonData = JSONUtil.toJsonStr(DataContent.success(PUSH, JSONUtil.toJsonStr(push)));
-            value.writeAndFlush(new TextWebSocketFrame(jsonData));
-        });
+    public static void pushInfo(Integer type, String data, Integer userId) {
+        PushData pushData = PushData.builder().type(type).data(data).build();
+        String jsonData = JSONUtil.toJsonStr(DataContent.success(PUSH, JSONUtil.toJsonStr(pushData)));
+        if(userId == 0) {
+            // 给所有在线用户发送消息
+            manager.forEach((item, value) -> value.writeAndFlush(new TextWebSocketFrame(jsonData)));
+        } else {
+            // 给指定用户发送消息
+            Channel channel = manager.get(userId);
+            if (StringUtils.isNotNull(channel)) {
+                channel.writeAndFlush(new TextWebSocketFrame(jsonData));
+            }
+        }
+
     }
 
     /**

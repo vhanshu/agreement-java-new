@@ -4,7 +4,6 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
-import com.vhans.bus.transmit.model.PushData;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.LikeStrategy;
@@ -54,7 +53,7 @@ public class QuizLikeStrategyImpl implements LikeStrategy {
             // 题目点赞量-1
             redisService.decrHash(QUIZ_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
-            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("quiz#" + id + "#-1").build());
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "quiz#" + id + "#-1", 0);
         } else {
             // 点赞则在用户id中记录题目id
             redisService.setSet(key, id);
@@ -63,7 +62,7 @@ public class QuizLikeStrategyImpl implements LikeStrategy {
             // 题目点赞量+1
             redisService.incrHash(QUIZ_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化+1
-            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("quiz#" + id + "#1").build());
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "quiz#" + id + "#1", 0);
         }
     }
 

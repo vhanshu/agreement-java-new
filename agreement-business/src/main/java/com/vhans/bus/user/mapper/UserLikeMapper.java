@@ -16,26 +16,11 @@ import java.util.List;
 @Repository
 public interface UserLikeMapper extends BaseMapper<UserLike> {
     /**
-     * 批量保存记录点赞的用户
+     * 批量保存用户的点赞信息
      *
-     * @param userId 用户id
+     * @param userId     用户id
+     * @param type       类型(1记录 2题目 3评论 4题目作答)
      * @param likeIdList 点赞id列表
      */
-    void saveBatchUserLikeRecord(@Param("userId") Integer userId, List<Integer> likeIdList);
-
-    /**
-     * 批量保存题目点赞的用户
-     *
-     * @param userId 用户id
-     * @param likeIdList 点赞id列表
-     */
-    void saveBatchUserLikeQuiz(@Param("userId") Integer userId, List<Integer> likeIdList);
-
-    /**
-     * 批量保存评论点赞的用户
-     *
-     * @param userId 用户id
-     * @param likeIdList 点赞id列表
-     */
-    void saveBatchUserLikeComment(@Param("userId") Integer userId, List<Integer> likeIdList);
+    void saveBatchUserLike(@Param("userId") Integer userId, @Param("type") Integer type, List<Integer> likeIdList);
 }

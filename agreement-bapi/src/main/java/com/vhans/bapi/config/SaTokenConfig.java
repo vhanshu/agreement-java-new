@@ -78,7 +78,6 @@ public class SaTokenConfig implements WebMvcConfigurer {
                     // 检查是否登录
                     SaRouter.match("/user/**").check(r -> StpUtil.checkLogin());
                     // 刷新token有效期
-                    System.out.println(StpUtil.getTokenTimeout());
                     if (StpUtil.getTokenTimeout() < timeout) {
                         StpUtil.renewTimeout(1800);
                     }

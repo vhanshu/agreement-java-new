@@ -4,7 +4,6 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
-import com.vhans.bus.transmit.model.PushData;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.LikeStrategy;
@@ -56,7 +55,7 @@ public class RecordLikeStrategyImpl implements LikeStrategy {
             // 记录点赞量-1
             redisService.decrHash(RECORD_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
-            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("record#" + id + "#-1").build());
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "record#" + id + "#-1", 0);
         } else {
             // 点赞则在用户id中记录记录id
             redisService.setSet(key, id);
@@ -65,7 +64,7 @@ public class RecordLikeStrategyImpl implements LikeStrategy {
             // 记录点赞量+1
             redisService.incrHash(RECORD_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化+1
-            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("record#" + id + "#1").build());
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "record#" + id + "#1", 0);
         }
     }
 }

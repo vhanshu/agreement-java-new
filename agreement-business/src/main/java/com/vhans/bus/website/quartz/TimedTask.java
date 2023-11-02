@@ -3,29 +3,32 @@ package com.vhans.bus.website.quartz;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import com.vhans.core.redis.RedisService;
-import com.vhans.bus.agree.mapper.ActivityMapper;
-import com.vhans.bus.agree.mapper.AppointmentMapper;
-import com.vhans.bus.agree.mapper.CompetitionMapper;
-import com.vhans.bus.agree.mapper.HelpMapper;
-import com.vhans.bus.data.domain.Comment;
-import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.domain.AgreeRecord;
-import com.vhans.bus.data.mapper.CommentMapper;
-import com.vhans.bus.data.mapper.QuizMapper;
-import com.vhans.bus.data.mapper.AgreeRecordMapper;
-import com.vhans.bus.log.mapper.VisitLogMapper;
 import com.vhans.bus.agree.domain.Activity;
 import com.vhans.bus.agree.domain.Appointment;
 import com.vhans.bus.agree.domain.Competition;
 import com.vhans.bus.agree.domain.Help;
+import com.vhans.bus.agree.mapper.ActivityMapper;
+import com.vhans.bus.agree.mapper.AppointmentMapper;
+import com.vhans.bus.agree.mapper.CompetitionMapper;
+import com.vhans.bus.agree.mapper.HelpMapper;
+import com.vhans.bus.data.domain.AgreeRecord;
+import com.vhans.bus.data.domain.Comment;
+import com.vhans.bus.data.domain.Quiz;
+import com.vhans.bus.data.domain.QuizAnswer;
+import com.vhans.bus.data.mapper.AgreeRecordMapper;
+import com.vhans.bus.data.mapper.CommentMapper;
+import com.vhans.bus.data.mapper.QuizAnswerMapper;
+import com.vhans.bus.data.mapper.QuizMapper;
+import com.vhans.bus.log.mapper.VisitLogMapper;
 import com.vhans.bus.user.mapper.UserLikeMapper;
+import com.vhans.core.redis.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
 
+import static com.vhans.core.constant.NumberConstant.*;
 import static com.vhans.core.constant.RedisConstant.*;
 
 /**
@@ -57,6 +60,9 @@ public class TimedTask {
 
     @Autowired
     private QuizMapper quizMapper;
+
+    @Autowired
+    private QuizAnswerMapper quizAnswerMapper;
 
     @Autowired
     private CommentMapper commentMapper;
@@ -102,11 +108,16 @@ public class TimedTask {
         String userLikeCommentKey = USER_RECORD_LIKE + userId;
         List<Integer> commentIds = redisService.getSet(userLikeCommentKey)
                 .stream().map(item -> Integer.valueOf(item.toString())).toList();
-        redisService.deleteSet(userLikeCommentKey);
-        // 将记录、题目、评论的点赞信息添加入用户点赞数据库
-        userLikeMapper.saveBatchUserLikeRecord(userId, recordIds);
-        userLikeMapper.saveBatchUserLikeQuiz(userId, quizIds);
-        userLikeMapper.saveBatchUserLikeComment(userId, commentIds);
+        // 获取用户点赞的题目作答ids及清除缓存
+        String userLikeAnswerKey = USER_ANSWER_LIKE + userId;
+        List<Integer> answerIds = redisService.getSet(userLikeAnswerKey)
+                .stream().map(item -> Integer.valueOf(item.toString())).toList();
+        redisService.deleteSet(userLikeAnswerKey);
+        // 将记录、题目、评论、题目作答的点赞信息添加入用户点赞数据库
+        userLikeMapper.saveBatchUserLike(userId, ONE, recordIds);
+        userLikeMapper.saveBatchUserLike(userId, TWO, quizIds);
+        userLikeMapper.saveBatchUserLike(userId, THREE, commentIds);
+        userLikeMapper.saveBatchUserLike(userId, FOUR, commentIds);
         // 设置记录、题目、评论的点赞量
         recordIds.forEach(item -> {
             Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, item.toString());
@@ -120,10 +131,14 @@ public class TimedTask {
             Integer likeNumber = redisService.getHash(COMMENT_LIKE_COUNT, item.toString());
             commentMapper.updateById(Comment.builder().id(item).likeNumber(likeNumber).build());
         });
+        answerIds.forEach(item -> {
+            Integer likeNumber = redisService.getHash(ANSWER_LIKE_COUNT, item.toString());
+            quizAnswerMapper.updateById(QuizAnswer.builder().id(item).likeNumber(likeNumber).build());
+        });
     }
 
     /**
-     * 设置约起过期
+     * 每小时设置约起过期
      */
     public void setExpire() {
         List<Integer> appointmentIds = appointmentMapper.selectAppointmentExpire();

@@ -3,24 +3,10 @@
 
 <mapper namespace="com.vhans.bus.user.mapper.UserLikeMapper">
 
-    <insert id="saveBatchUserLikeRecord">
+    <insert id="saveBatchUserLike">
         insert into u_user_like(user_id,type,type_id) values
         <foreach collection="likeIdList" item="likeId" separator=",">
-            (#{userId},1,#{likeId})
-        </foreach>
-    </insert>
-
-    <insert id="saveBatchUserLikeQuiz">
-        insert into u_user_like(user_id,type,type_id) values
-        <foreach collection="likeIdList" item="likeId" separator=",">
-            (#{userId},2,#{likeId})
-        </foreach>
-    </insert>
-
-    <insert id="saveBatchUserLikeComment">
-        insert into u_user_like(user_id,type,type_id) values
-        <foreach collection="likeIdList" item="likeId" separator=",">
-            (#{userId},3,#{likeId})
+            (#{userId},#{type},#{likeId})
         </foreach>
     </insert>
 </mapper>

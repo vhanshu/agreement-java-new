@@ -5,13 +5,14 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
-import com.vhans.bus.transmit.model.PushData;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.LikeStrategy;
 import com.vhans.bus.data.mapper.CommentMapper;
 import com.vhans.bus.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 import static com.vhans.core.constant.CommonConstant.TRUE;
 import static com.vhans.core.constant.PushTypeConstant.PUSH_LIKE;
@@ -40,7 +41,7 @@ public class CommentLikeStrategyImpl implements LikeStrategy {
     public void like(Integer id) {
         // 判断评论是否存在
         Comment obj = commentMapper.selectOne(new LambdaQueryWrapper<Comment>()
-                .select(Comment::getId, Comment::getFromUid)
+                .select(Comment::getId, Comment::getFromUid, Comment::getParentId)
                 .eq(Comment::getIsCheck, TRUE)
                 .eq(Comment::getId, id));
         Assert.notNull(obj, "评论不存在");
@@ -54,7 +55,8 @@ public class CommentLikeStrategyImpl implements LikeStrategy {
             // 评论点赞量-1
             redisService.decrHash(COMMENT_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
-            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("comment#" + id + "#-1").build());
+            String push = Objects.isNull(obj.getParentId()) ? "comment#" + id + "#-1" : "reply#" + id + "#-1#" + obj.getParentId();
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, push, 0);
         } else {
             // 点赞则在用户id中记录评论id
             redisService.setSet(key, id);
@@ -63,7 +65,8 @@ public class CommentLikeStrategyImpl implements LikeStrategy {
             // 评论点赞量+1
             redisService.incrHash(COMMENT_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
-            NettyWsChannelInboundHandler.pushInfo(PushData.builder().type(PUSH_LIKE).data("comment#" + id + "#1").build());
+            String push = Objects.isNull(obj.getParentId()) ? "comment#" + id + "#1" : "reply#" + id + "#1#" + obj.getParentId();
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, push, 0);
         }
     }
 }

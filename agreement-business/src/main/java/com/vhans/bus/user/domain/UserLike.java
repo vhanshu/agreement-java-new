@@ -32,7 +32,7 @@ public class UserLike {
     private Integer userId;
 
     /**
-     * 点赞类型(1记录 2题目 3评论)
+     * 点赞类型(1记录 2题目 3评论 4题目作答)
      */
     private Integer type;
 

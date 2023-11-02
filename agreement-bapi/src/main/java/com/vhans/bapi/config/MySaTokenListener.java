@@ -6,6 +6,7 @@ import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.subsidiary.model.vo.OnlineVO;
+import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
 import com.vhans.bus.user.domain.User;
 import com.vhans.core.utils.web.IpUtils;
 import com.vhans.core.utils.web.UserAgentUtils;
@@ -19,6 +20,7 @@ import java.time.ZoneId;
 import java.util.Map;
 
 import static com.vhans.core.constant.CommonConstant.ONLINE_USER;
+import static com.vhans.core.constant.PushTypeConstant.PUSH_NOTIFY;
 import static com.vhans.core.enums.ZoneEnum.SHANGHAI;
 
 /**
@@ -81,6 +83,7 @@ public class MySaTokenListener implements SaTokenListener {
     public void doLogout(String loginType, Object loginId, String tokenValue) {
         // 删除缓存中的用户信息
         StpUtil.logoutByTokenValue(tokenValue);
+        NettyWsChannelInboundHandler.pushInfo(PUSH_NOTIFY, "您已注销登录", (Integer) loginId);
     }
 
     /**
@@ -88,6 +91,7 @@ public class MySaTokenListener implements SaTokenListener {
      */
     @Override
     public void doKickout(String loginType, Object loginId, String tokenValue) {
+        NettyWsChannelInboundHandler.pushInfo(PUSH_NOTIFY, "您已被踢下线", (Integer) loginId);
     }
 
     /**
@@ -95,6 +99,7 @@ public class MySaTokenListener implements SaTokenListener {
      */
     @Override
     public void doReplaced(String loginType, Object loginId, String tokenValue) {
+        NettyWsChannelInboundHandler.pushInfo(PUSH_NOTIFY, "您已被顶下线", (Integer) loginId);
 
     }
 
@@ -103,7 +108,7 @@ public class MySaTokenListener implements SaTokenListener {
      */
     @Override
     public void doDisable(String loginType, Object loginId, String service, int level, long disableTime) {
-
+        NettyWsChannelInboundHandler.pushInfo(PUSH_NOTIFY, "您已被封禁", (Integer) loginId);
     }
 
     /**
@@ -111,7 +116,7 @@ public class MySaTokenListener implements SaTokenListener {
      */
     @Override
     public void doUntieDisable(String loginType, Object loginId, String service) {
-
+        NettyWsChannelInboundHandler.pushInfo(PUSH_NOTIFY, "您已被解封", (Integer) loginId);
     }
 
     /**
@@ -135,7 +140,6 @@ public class MySaTokenListener implements SaTokenListener {
      */
     @Override
     public void doCreateSession(String id) {
-
     }
 
     /**
