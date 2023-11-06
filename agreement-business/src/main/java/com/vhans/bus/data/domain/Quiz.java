@@ -56,10 +56,10 @@ public class Quiz {
     private String content;
 
     /**
-     * 提问图片集
+     * 缩略图
      */
-    @ApiModelProperty(value = "提问图片集")
-    private String images;
+    @ApiModelProperty(value = "缩略图")
+    private String cover;
 
     /**
      * 点赞数
@@ -80,10 +80,10 @@ public class Quiz {
     private Integer isCheck;
 
     /**
-     * 是否解答(0否 1是)
+     * 解答数
      */
-    @ApiModelProperty(value = "是否解答(0否 1是)")
-    private Integer isSolve;
+    @ApiModelProperty(value = "解答数")
+    private Integer solveNumber;
 
     /**
      * 添加时间
@@ -173,11 +173,5 @@ public class Quiz {
          */
         @ApiModelProperty(value = "是否通过 (0否 1是)")
         private Integer isCheck;
-
-        /**
-         * 是否解答(0否 1是)(eq)
-         */
-        @ApiModelProperty(value = "是否解答 (0否 1是)")
-        private Integer isSolve;
     }
 }

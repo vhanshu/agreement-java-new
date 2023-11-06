@@ -89,6 +89,12 @@ public class UserInfoVO {
     private List<Integer> quitLikeSet;
 
     /**
+     * 点赞作答集合
+     */
+    @ApiModelProperty(value = "点赞作答集合")
+    private List<Integer> answerLikeSet;
+
+    /**
      * 点赞评论集合
      */
     @ApiModelProperty(value = "点赞评论集合")

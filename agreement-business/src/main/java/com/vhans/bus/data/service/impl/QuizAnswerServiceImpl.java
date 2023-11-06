@@ -3,6 +3,7 @@ package com.vhans.bus.data.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.mapper.QuizAnswerMapper;
+import com.vhans.bus.data.mapper.QuizMapper;
 import com.vhans.bus.data.service.IQuizAnswerService;
 import com.vhans.core.redis.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class QuizAnswerServiceImpl extends ServiceImpl<QuizAnswerMapper, QuizAns
     private QuizAnswerMapper quizAnswerMapper;
 
     @Autowired
+    private QuizMapper quizMapper;
+
+    @Autowired
     private RedisService redisService;
 
     @Override
@@ -35,6 +39,8 @@ public class QuizAnswerServiceImpl extends ServiceImpl<QuizAnswerMapper, QuizAns
 
     @Override
     public int insertAnswer(QuizAnswer answer) {
+        // 题目作答数+1
+        quizMapper.updateAnswerNumber(answer.getQuizId(), 1);
         return quizAnswerMapper.insert(answer);
     }
 
@@ -50,6 +56,8 @@ public class QuizAnswerServiceImpl extends ServiceImpl<QuizAnswerMapper, QuizAns
 
     @Override
     public int deleteAnswer(Integer id) {
+        // 题目作答数-1
+        quizMapper.updateAnswerNumber(id, -1);
         return quizAnswerMapper.deleteById(id);
     }
 

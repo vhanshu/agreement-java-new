@@ -7,7 +7,7 @@
         user_id,
         title,
         is_check,
-        is_solve,
+        solve_number,
         like_number,
         collect_number,
         create_time
@@ -21,9 +21,6 @@
             </if>
             <if test="query.isCheck != null">
                 and is_check = #{query.isCheck}
-            </if>
-            <if test="query.isSolve != null">
-                and is_solve = #{query.isSolve}
             </if>
         </where>
         ORDER BY id DESC
@@ -47,8 +44,8 @@
         SELECT q.id,
                q.user_id,
                q.title,
-               q.is_check,
-               q.is_solve,
+               q.solve_number,
+               q.cover,
                q.like_number,
                q.collect_number,
                q.create_time,
@@ -56,30 +53,36 @@
                u.nickname
         FROM d_quiz q
                  LEFT JOIN u_user u on u.id = q.user_id
-        WHERE q.is_check = 1
+        <where>
+            q.is_check = 1
+            <if test="query.title != null and query.title != ''">
+                and (q.title like concat('%',#{query.title},'%')
+                or u.nickname like concat('%',#{query.title},'%'))
+            </if>
+        </where>
     </select>
 
     <select id="selectQuizHomeById" resultType="com.vhans.bus.data.domain.Quiz">
         SELECT q.id,
                q.title,
                q.content,
-               q.images,
+               q.cover,
                q.like_number,
                q.collect_number,
                q.create_time,
                q.update_time,
                q.user_id,
-               q.is_solve,
+               q.solve_number,
                u.avatar,
                u.nickname
         FROM (SELECT id,
                      user_id,
                      title,
                      content,
-                     images,
+                     cover,
                      like_number,
                      collect_number,
-                     is_solve,
+                     solve_number,
                      create_time,
                      update_time
               FROM d_quiz
@@ -89,9 +92,8 @@
     </select>
 
     <select id="selectLastQuiz" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
-        SELECT q.id, q.title, u.avatar as img
+        SELECT q.id, q.title, q.cover as img
         FROM d_quiz q
-                 LEFT JOIN u_user u ON u.id = q.user_id
         WHERE q.is_check = 1
           AND q.id &lt; #{quizId}
         ORDER BY q.id DESC
@@ -99,9 +101,8 @@
     </select>
 
     <select id="selectNextQuiz" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
-        SELECT q.id, q.title, u.avatar as img
+        SELECT q.id, q.title, q.cover as img
         FROM d_quiz q
-                 LEFT JOIN u_user u ON u.id = q.user_id
         WHERE q.is_check = 1
           AND q.id &gt; #{quizId}
         ORDER BY q.id
@@ -117,12 +118,11 @@
     </select>
 
     <select id="selectQuizLatest" resultType="com.vhans.bus.data.domain.Quiz">
-        select q.id, q.title, q.create_time, q.content, u.avatar, u.nickname
-        from (select id, title, create_time, user_id, SUBSTR(content, 1, 80) AS content
+        select q.id, q.title, q.create_time, u.avatar, u.nickname
+        from (select id, title, create_time, user_id
               from d_quiz
               where is_check = 1
-              order by create_time DESC
-              LIMIT 20) q
+              order by create_time DESC) q
                  LEFT JOIN u_user u ON q.user_id = u.id
 
     </select>
@@ -134,5 +134,11 @@
         GROUP BY date
         ORDER BY date DESC
     </select>
+
+    <update id="updateAnswerNumber">
+        UPDATE d_quiz
+        SET solve_number = solve_number + #{num}
+        WHERE id = #{quizId}
+    </update>
 
 </mapper>

@@ -100,7 +100,7 @@
         FROM d_agree_record r
         LEFT JOIN u_user u ON u.id = r.user_id
         <where>
-            is_delete = 0 and `status` = 1 and is_check = 1
+            r.is_delete = 0 and r.`status` = 1 and r.is_check = 1
             <if test="query.title != null and query.title != ''">
                 and (r.title like concat('%',#{query.title},'%')
                 or u.nickname like concat('%',#{query.title},'%'))

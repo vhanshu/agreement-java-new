@@ -53,9 +53,9 @@ thread:
     queue-capacity: 50
     keep-alive-seconds: 60
 
-# 文件上传策略 local、oss、cos
+# 文件上传策略 local、oss、cos、minio
 upload:
-  strategy: cos
+  strategy: minio
   local:
     # nginx映射本地文件路径
     url: https://uplaod.vhans.cloud
@@ -77,10 +77,10 @@ upload:
     bucketName: vhans-bucket-1314157378
   # minio存储
   minio:
-    endpointUrl: http://43.142.156.249:9000
+    endpointUrl: http://43.142.156.249:8050
     accessKey: root
     secretKey: luowei4628@()
-    bucketName: vhans
+    bucketName: agree
 
 # 搜索模式 可选 elasticsearch、mysql
 search:

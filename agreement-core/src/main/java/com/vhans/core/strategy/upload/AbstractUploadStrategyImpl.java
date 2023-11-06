@@ -18,6 +18,7 @@ public abstract class AbstractUploadStrategyImpl implements UploadStrategy {
     @Override
     public String uploadFile(MultipartFile file, String path) {
         path = path.endsWith("/") ? path : path + "/";
+        path = path.startsWith("/") ? path : "/" + path;
         try {
             // 获取文件md5值
             String md5 = FileUtils.getMd5(file.getInputStream());

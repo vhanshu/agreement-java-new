@@ -120,15 +120,16 @@ public class QuizController extends BaseController {
 
     /**
      * 查看前台题目列表
+     * @param query 题目查询
      *
      * @return {@link Quiz}
      */
     @VisitLogger(value = "学习中心")
     @ApiOperation(value = "查看前台题目列表")
     @GetMapping("/list")
-    public TableDataInfo<Quiz> listQuizStudyVO() {
+    public TableDataInfo<Quiz> listQuizStudyVO(Quiz.Query query) {
         startPage();
-        List<Quiz> list = quizService.listQuizHome();
+        List<Quiz> list = quizService.listQuizHome(query);
         clearPage();
         return getDataTable(list);
     }

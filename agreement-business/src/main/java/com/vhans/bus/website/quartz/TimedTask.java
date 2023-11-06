@@ -117,7 +117,7 @@ public class TimedTask {
         userLikeMapper.saveBatchUserLike(userId, ONE, recordIds);
         userLikeMapper.saveBatchUserLike(userId, TWO, quizIds);
         userLikeMapper.saveBatchUserLike(userId, THREE, commentIds);
-        userLikeMapper.saveBatchUserLike(userId, FOUR, commentIds);
+        userLikeMapper.saveBatchUserLike(userId, FOUR, answerIds);
         // 设置记录、题目、评论的点赞量
         recordIds.forEach(item -> {
             Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, item.toString());
@@ -146,16 +146,16 @@ public class TimedTask {
         List<Integer> competitionIds = competitionMapper.selectCompetitionExpire();
         List<Integer> helpIds = helpMapper.selectHelpExpire();
         appointmentIds.forEach(item -> {
-            appointmentMapper.updateById(Appointment.builder().id(item).status(5).build());
+            appointmentMapper.updateById(Appointment.builder().id(item).status(FIVE).build());
         });
         activityIds.forEach(item -> {
-            activityMapper.updateById(Activity.builder().id(item).status(5).build());
+            activityMapper.updateById(Activity.builder().id(item).status(FIVE).build());
         });
         competitionIds.forEach(item -> {
-            competitionMapper.updateById(Competition.builder().id(item).status(5).build());
+            competitionMapper.updateById(Competition.builder().id(item).status(FIVE).build());
         });
         helpIds.forEach(item -> {
-            helpMapper.updateById(Help.builder().id(item).status(5).build());
+            helpMapper.updateById(Help.builder().id(item).status(FIVE).build());
         });
     }
 }

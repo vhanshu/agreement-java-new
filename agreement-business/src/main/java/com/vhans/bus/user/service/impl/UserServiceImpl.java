@@ -106,6 +106,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         List<Integer> recordIds = getLikeRecordIds(userId);
         // 点赞题目
         List<Integer> quizIds = getLikeQuizIds(userId);
+        // 点赞题目作答
+        List<Integer> answerIds = getLikeAnswerIds(userId);
         // 点赞评论
         List<Integer> commentIds = getLikeCommentIds(userId);
         // 收藏记录
@@ -126,6 +128,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .grade(user.getGrade())
                 .recordLikeSet(recordIds)
                 .quitLikeSet(quizIds)
+                .answerLikeSet(answerIds)
                 .commentLikeSet(commentIds)
                 .recordCollectSet(recordCIds)
                 .quitCollectSet(quizCIds)
@@ -351,6 +354,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             quizIds.addAll(userLikeList.stream().map(UserLike::getTypeId).toList());
         }
         return quizIds;
+    }
+
+    /**
+     * 获取用户点赞的题目作答ids
+     */
+    private List<Integer> getLikeAnswerIds(Integer userId) {
+        List<Integer> answerIds = new ArrayList<>(redisService.getSet(USER_ANSWER_LIKE + userId)
+                .stream().map(item -> Integer.valueOf(item.toString())).toList());
+        List<UserLike> userLikeList = userLikeMapper.selectList(new LambdaQueryWrapper<UserLike>()
+                .select(UserLike::getTypeId)
+                .eq(UserLike::getType, ANSWER.getType())
+                .eq(UserLike::getUserId, userId));
+        if (StringUtils.isNotEmpty(userLikeList)) {
+            answerIds.addAll(userLikeList.stream().map(UserLike::getTypeId).toList());
+        }
+        return answerIds;
     }
 
     /**

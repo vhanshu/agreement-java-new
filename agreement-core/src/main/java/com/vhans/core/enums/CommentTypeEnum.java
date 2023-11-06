@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 评论类型枚举
+ * 评论或点赞类型枚举
  *
  * @author vhans
  */
@@ -13,13 +13,17 @@ import lombok.Getter;
 public enum CommentTypeEnum {
 
     /**
-     * 记录评论
+     * 记录
      */
     RECORD(1, "记录", "record/"),
     /**
-     * 题目评论
+     * 题目
      */
     QUIZ(2, "题目", "quiz/"),
+    /**
+     * 题目作答
+     */
+    ANSWER(4, "题目作答", "answer/"),
     /**
      * 评论
      */

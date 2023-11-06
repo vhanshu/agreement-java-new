@@ -64,7 +64,7 @@ public interface IQuizService extends IService<Quiz> {
      *
      * @return 题目列表
      */
-    List<Quiz> listQuizHome();
+    List<Quiz> listQuizHome(Quiz.Query query);
 
     /**
      * 查看题目

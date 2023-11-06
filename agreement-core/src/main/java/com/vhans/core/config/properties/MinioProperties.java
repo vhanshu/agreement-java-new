@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "update.minio")
+@ConfigurationProperties(prefix = "upload.minio")
 public class MinioProperties {
 
     /**

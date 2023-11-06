@@ -38,9 +38,10 @@ public interface QuizMapper extends BaseMapper<Quiz> {
     /**
      * 查询前台题目列表
      *
+     * @param query 关键字
      * @return 题目列表
      */
-    List<Quiz> selectQuizHomeList();
+    List<Quiz> selectQuizHomeList(@Param("query") Quiz.Query query);
 
     /**
      * 根据id查询前台题目
@@ -86,4 +87,11 @@ public interface QuizMapper extends BaseMapper<Quiz> {
      * @return 题目统计
      */
     List<StatisticsVO> selectQuizStatistics();
+
+    /**
+     * 增减题目作答数
+     * @param quizId 题目id
+     * @param num 作答数变化量
+     */
+    void updateAnswerNumber(@Param("quizId") Integer quizId, @Param("num") Integer num);
 }

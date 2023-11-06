@@ -16,6 +16,7 @@ import com.vhans.bus.data.service.ITagService;
 import com.vhans.bus.subsidiary.model.vo.PaginationVO;
 import com.vhans.bus.user.domain.UserCollect;
 import com.vhans.bus.user.mapper.UserCollectMapper;
+import com.vhans.bus.website.domain.SiteConfig;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.context.SearchStrategyContext;
 import com.vhans.core.utils.data.StringUtils;
@@ -29,8 +30,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.vhans.core.constant.NumberConstant.TWO;
-import static com.vhans.core.constant.RedisConstant.QUIZ_LIKE_COUNT;
-import static com.vhans.core.constant.RedisConstant.QUIZ_VIEW_COUNT;
+import static com.vhans.core.constant.RedisConstant.*;
 
 /**
  * 题目业务处理
@@ -86,6 +86,10 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     @Override
     public void addQuiz(Quiz quiz) {
         // 添加题目
+        if (StringUtils.isBlank(quiz.getCover())) {
+            SiteConfig siteConfig = redisService.getObject(SITE_SETTING);
+            quiz.setCover(siteConfig.getCover());
+        }
         quiz.setUserId(StpUtil.getLoginIdAsInt());
         baseMapper.insert(quiz);
         // 保存题目标签
@@ -129,9 +133,9 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     }
 
     @Override
-    public List<Quiz> listQuizHome() {
+    public List<Quiz> listQuizHome(Quiz.Query query) {
         // 查询前台题目
-        List<Quiz> quizList = quizMapper.selectQuizHomeList();
+        List<Quiz> quizList = quizMapper.selectQuizHomeList(query);
         quizList.forEach(item -> {
             // 查询浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, item.getId()))

@@ -132,6 +132,12 @@ public class CommentServiceImpl implements ICommentService {
             Integer likeNumber = redisService.getHash(COMMENT_LIKE_COUNT, item.getId().toString());
             // 查询该父评论下的前三条子评论
             List<ReplyVO> replyVOS = commentMapper.selectReplyLimitByParentId(item.getId());
+            replyVOS.forEach(reply -> {
+                // 查询回复点赞量
+                Integer rLikeNumber = redisService.getHash(COMMENT_LIKE_COUNT, reply.getId().toString());
+                // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+                reply.setLikeNumber(reply.getLikeNumber() + Optional.ofNullable(rLikeNumber).orElse(0));
+            });
             // 查询回复数量
             Long replyNum = commentMapper.selectCount(new LambdaQueryWrapper<Comment>()
                     .eq(Comment::getParentId, item.getId()));
