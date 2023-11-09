@@ -1,8 +1,10 @@
 package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.hutool.json.JSONUtil;
 import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.service.IQuizAnswerService;
+import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
 import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.enums.LikeTypeEnum;
 import com.vhans.core.strategy.context.LikeStrategyContext;
@@ -16,6 +18,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.vhans.core.constant.PushTypeConstant.PUSH_ANSWER;
 
 /**
  * 题目作答Controller控制器
@@ -58,7 +62,11 @@ public class QuizAnswerController extends BaseController {
     @ApiOperation(value = "新增题目作答")
     @PostMapping("/add")
     public Result<?> add(@Validated @RequestBody QuizAnswer quizAnswer) {
-        return toAjax(quizAnswerService.insertAnswer(quizAnswer));
+        int rows = quizAnswerService.insertAnswer(quizAnswer);
+        if (rows > 0) {
+            NettyWsChannelInboundHandler.pushInfo(PUSH_ANSWER, JSONUtil.toJsonStr(quizAnswer), 0);
+        }
+        return toAjax(rows);
     }
 
     /**

@@ -39,7 +39,7 @@ public interface HelpMapper extends BaseMapper<Help> {
      *
      * @return 帮助列表
      */
-    List<AgreeVO> listHelpHomeVO();
+    List<AgreeVO> listHelpHomeVO(@Param("keyword") String keyword);
 
     /**
      * 根据id查询约起中心帮助

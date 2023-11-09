@@ -57,7 +57,7 @@ public interface IHelpService extends IService<Help> {
      *
      * @return 首页帮助列表
      */
-    List<AgreeVO> listHelpHomeVO();
+    List<AgreeVO> listHelpHomeVO(String keyword);
 
     /**
      * 查看帮助

@@ -49,16 +49,22 @@
 
     <select id="listHelpHomeVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
         SELECT h.id,
-               h.cover,
-               h.user_id,
-               h.title,
-               h.time_start,
-               h.time_end,
-               u.avatar,
-               u.nickname
+        h.cover,
+        h.user_id,
+        h.title,
+        h.time_start,
+        h.time_end,
+        u.avatar,
+        u.nickname
         FROM a_help h
-                 LEFT JOIN u_user u ON u.id = h.user_id
-        WHERE h.`status` = 1
+        LEFT JOIN u_user u ON u.id = h.user_id
+        <where>
+            h.`status` = 1
+            <if test="keyword != null and keyword != ''">
+                and (h.title like concat('%',#{keyword},'%')
+                or u.nickname like concat('%',#{keyword},'%'))
+            </if>
+        </where>
         ORDER BY h.create_time DESC, h.time_start, h.time_end
     </select>
 
@@ -72,6 +78,8 @@
                h.time_start,
                h.time_end,
                h.user_id,
+               h.create_time,
+               h.update_time,
                u.avatar,
                u.nickname
         from (SELECT id,
@@ -82,7 +90,9 @@
                      people_number,
                      reward,
                      time_start,
-                     time_end
+                     time_end,
+                     create_time,
+                     update_time
               From a_help
               WHERE `status` = 1
                 AND id = #{helpId}) h

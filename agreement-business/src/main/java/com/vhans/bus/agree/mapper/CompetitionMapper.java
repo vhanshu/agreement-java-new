@@ -39,7 +39,7 @@ public interface CompetitionMapper extends BaseMapper<Competition> {
      *
      * @return 赛事列表
      */
-    List<AgreeVO> listCompetitionHomeVO();
+    List<AgreeVO> listCompetitionHomeVO(@Param("keyword") String keyword);
 
     /**
      * 根据id查询约起中心赛事

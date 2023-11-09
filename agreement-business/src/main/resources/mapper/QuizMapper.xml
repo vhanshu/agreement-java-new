@@ -33,7 +33,7 @@
         FROM d_quiz
         <where>
             is_check = 1
-            <if test="keyword!=null">
+            <if test="keyword != null">
                 and (title like concat('%',#{keyword},'%')
                 or content like concat('%',#{keyword},'%'))
             </if>

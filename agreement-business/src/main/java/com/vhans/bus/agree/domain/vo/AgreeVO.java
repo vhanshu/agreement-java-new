@@ -44,6 +44,12 @@ public class AgreeVO {
     private String title;
 
     /**
+     * 约起内容
+     */
+    @ApiModelProperty(value = "约起内容")
+    private String content;
+
+    /**
      * 开始时间
      */
     @ApiModelProperty(value = "开始时间")
@@ -87,6 +93,18 @@ public class AgreeVO {
      */
     @ApiModelProperty(value = "赌注内容")
     private String wagerContent;
+
+    /**
+     * 添加时间
+     */
+    @ApiModelProperty(value = "添加时间")
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    @ApiModelProperty(value = "更新时间")
+    private LocalDateTime updateTime;
 
     /*扩展字段*/
     /**

@@ -192,9 +192,9 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
     }
 
     @Override
-    public List<AgreeVO> listAppointmentHomeVO() {
+    public List<AgreeVO> listAppointmentHomeVO(String keyword) {
         // 查询约会
-        List<AgreeVO> appointmentList = appointmentMapper.listAppointmentHomeVO();
+        List<AgreeVO> appointmentList = appointmentMapper.listAppointmentHomeVO(keyword);
         appointmentList.forEach(appointment -> {
             // 查询浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(APPOINTMENT_VIEW_COUNT, appointment.getId()))

@@ -39,7 +39,7 @@ public interface ActivityMapper extends BaseMapper<Activity> {
      *
      * @return 活动列表
      */
-    List<AgreeVO> listActivityHomeVO();
+    List<AgreeVO> listActivityHomeVO(@Param("keyword") String keyword);
 
     /**
      * 根据id查询约起中心活动

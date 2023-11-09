@@ -36,10 +36,11 @@ public interface AppointmentMapper extends BaseMapper<Appointment> {
 
     /**
      * 查看前台约会列表
+     * @param keyword 搜索关键字
      *
      * @return 约会列表
      */
-    List<AgreeVO> listAppointmentHomeVO();
+    List<AgreeVO> listAppointmentHomeVO(@Param("keyword") String keyword);
 
     /**
      * 根据id查询约起中心约会

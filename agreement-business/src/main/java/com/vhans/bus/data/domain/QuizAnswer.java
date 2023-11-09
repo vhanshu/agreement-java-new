@@ -36,14 +36,13 @@ public class QuizAnswer {
     /**
      * 题目id
      */
-    @NotBlank(message = "题目id不能为空")
+    @NotNull(message = "题目id不能为空")
     @ApiModelProperty(value = "题目id")
     private Integer quizId;
 
     /**
      * 作答者id
      */
-    @NotNull(message = "作答者id不能为空")
     @ApiModelProperty(value = "作答者id")
     private Integer userId;
 

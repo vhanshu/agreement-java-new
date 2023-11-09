@@ -105,14 +105,14 @@ public class AgreeServiceImpl implements IAgreeService {
     }
 
     @Override
-    public List<AgreeVO> listAgreementHomeVO(Integer type) {
-        Assert.isTrue(typeList.contains(type),
+    public List<AgreeVO> listAgreementHomeVO(AgreeQueryDTO agreeQuery) {
+        Assert.isTrue(typeList.contains(agreeQuery.getType()),
                 "未传入类型或者类型不正确");
-        return switch (type) {
-            case ONE -> appointmentService.listAppointmentHomeVO();
-            case TWO -> activityService.listActivityHomeVO();
-            case THREE -> competitionService.listCompetitionHomeVO();
-            case FOUR -> helpService.listHelpHomeVO();
+        return switch (agreeQuery.getType()) {
+            case ONE -> appointmentService.listAppointmentHomeVO(agreeQuery.getTitle());
+            case TWO -> activityService.listActivityHomeVO(agreeQuery.getTitle());
+            case THREE -> competitionService.listCompetitionHomeVO(agreeQuery.getTitle());
+            case FOUR -> helpService.listHelpHomeVO(agreeQuery.getTitle());
             default -> Collections.emptyList();
         };
     }

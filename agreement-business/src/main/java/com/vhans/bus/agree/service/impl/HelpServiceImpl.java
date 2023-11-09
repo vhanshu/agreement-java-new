@@ -169,9 +169,9 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
     }
 
     @Override
-    public List<AgreeVO> listHelpHomeVO() {
+    public List<AgreeVO> listHelpHomeVO(String keyword) {
         // 查询首页帮助
-        List<AgreeVO> helpList = helpMapper.listHelpHomeVO();
+        List<AgreeVO> helpList = helpMapper.listHelpHomeVO(keyword);
         helpList.forEach(help -> {
             // 查询浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(HELP_VIEW_COUNT, help.getId()))

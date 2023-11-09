@@ -57,7 +57,7 @@ public interface ICompetitionService extends IService<Competition> {
      *
      * @return 首页赛事列表
      */
-    List<AgreeVO> listCompetitionHomeVO();
+    List<AgreeVO> listCompetitionHomeVO(String keyword);
 
     /**
      * 查看赛事

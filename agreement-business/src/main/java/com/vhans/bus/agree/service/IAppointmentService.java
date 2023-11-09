@@ -57,7 +57,7 @@ public interface IAppointmentService extends IService<Appointment> {
      *
      * @return 约会列表
      */
-    List<AgreeVO> listAppointmentHomeVO();
+    List<AgreeVO> listAppointmentHomeVO(String keyword);
 
     /**
      * 查看约会

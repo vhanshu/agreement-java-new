@@ -51,16 +51,22 @@
 
     <select id="listCompetitionHomeVO" resultType="com.vhans.bus.agree.domain.vo.AgreeVO">
         SELECT c.id,
-               c.cover,
-               c.user_id,
-               c.title,
-               c.time_start,
-               c.time_end,
-               u.avatar,
-               u.nickname
+        c.cover,
+        c.user_id,
+        c.title,
+        c.time_start,
+        c.time_end,
+        u.avatar,
+        u.nickname
         FROM a_competition c
-                 LEFT JOIN u_user u ON u.id = c.user_id
-        WHERE c.`status` = 1 OR c.`status` = 3
+        LEFT JOIN u_user u ON u.id = c.user_id
+        <where>
+            (c.`status` = 1 or c.`status` = 3)
+            <if test="keyword != null and keyword != ''">
+                and (c.title like concat('%',#{keyword},'%')
+                or u.nickname like concat('%',#{keyword},'%'))
+            </if>
+        </where>
         ORDER BY c.create_time DESC, c.time_start, c.time_end
     </select>
 
@@ -75,6 +81,8 @@
                c.time_start,
                c.time_end,
                c.user_id,
+               c.create_time,
+               c.update_time,
                u.avatar,
                u.nickname
         from (SELECT id,
@@ -86,7 +94,9 @@
                      is_wager,
                      wager_content,
                      time_start,
-                     time_end
+                     time_end,
+                     create_time,
+                     update_time
               From a_competition
               WHERE `status` = 1
                 AND id = #{competitionId}) c

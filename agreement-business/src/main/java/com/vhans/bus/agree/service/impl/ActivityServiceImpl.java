@@ -167,9 +167,9 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
     }
 
     @Override
-    public List<AgreeVO> listActivityHomeVO() {
+    public List<AgreeVO> listActivityHomeVO(String keyword) {
         // 查询首页活动
-        List<AgreeVO> activityList = activityMapper.listActivityHomeVO();
+        List<AgreeVO> activityList = activityMapper.listActivityHomeVO(keyword);
         activityList.forEach(activity -> {
             // 查询浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(ACTIVITY_VIEW_COUNT, activity.getId()))

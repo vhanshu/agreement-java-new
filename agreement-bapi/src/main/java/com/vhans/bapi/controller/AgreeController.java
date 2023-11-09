@@ -1,6 +1,7 @@
 package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
 import com.vhans.core.annotation.VisitLogger;
 import com.vhans.core.web.controller.BaseController;
@@ -36,10 +37,10 @@ public class AgreeController extends BaseController {
      */
     @VisitLogger(value = "约起中心")
     @ApiOperation(value = "查看约起列表")
-    @GetMapping("/list/{type}")
-    public TableDataInfo<AgreeVO> listAgreementVO(@PathVariable Integer type) {
+    @GetMapping("/list")
+    public TableDataInfo<AgreeVO> listAgreementVO(AgreeQueryDTO agreeQuery) {
         startPage();
-        List<AgreeVO> list = agreeService.listAgreementHomeVO(type);
+        List<AgreeVO> list = agreeService.listAgreementHomeVO(agreeQuery);
         clearPage();
         return getDataTable(list);
     }

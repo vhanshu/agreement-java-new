@@ -57,7 +57,7 @@ public interface IActivityService extends IService<Activity> {
      *
      * @return 首页活动列表
      */
-    List<AgreeVO> listActivityHomeVO();
+    List<AgreeVO> listActivityHomeVO(String keyword);
 
     /**
      * 查看活动

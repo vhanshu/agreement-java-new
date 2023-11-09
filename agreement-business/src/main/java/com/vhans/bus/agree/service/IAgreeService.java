@@ -54,11 +54,10 @@ public interface IAgreeService {
 
     /**
      * 查看首页约起列表
-     *
-     * @param type 类型
+     * @param agreeQuery 条件(类型 查询关键字)
      * @return 首页约起列表
      */
-    List<AgreeVO> listAgreementHomeVO(Integer type);
+    List<AgreeVO> listAgreementHomeVO(AgreeQueryDTO agreeQuery);
 
     /**
      * 查看约起

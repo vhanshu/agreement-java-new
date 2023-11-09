@@ -19,4 +19,9 @@ public class PushTypeConstant {
      * 点赞
      */
     public static final int PUSH_LIKE = 2;
+
+    /**
+     * 作答
+     */
+    public static final int PUSH_ANSWER = 3;
 }

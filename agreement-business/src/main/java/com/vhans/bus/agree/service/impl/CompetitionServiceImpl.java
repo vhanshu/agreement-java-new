@@ -191,9 +191,9 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
     }
 
     @Override
-    public List<AgreeVO> listCompetitionHomeVO() {
+    public List<AgreeVO> listCompetitionHomeVO(String keyword) {
         // 查询首页赛事
-        List<AgreeVO> competitionList = competitionMapper.listCompetitionHomeVO();
+        List<AgreeVO> competitionList = competitionMapper.listCompetitionHomeVO(keyword);
         competitionList.forEach(competition -> {
             // 查询浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(COMPETITION_VIEW_COUNT, competition.getId()))

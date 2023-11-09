@@ -38,14 +38,10 @@ public class AnswerLikeStrategyImpl implements LikeStrategy {
     @Override
     public void like(Integer id) {
         QuizAnswer obj = answerMapper.selectOne(new LambdaQueryWrapper<QuizAnswer>()
-                .select(QuizAnswer::getId, QuizAnswer::getUserId)
+                .select(QuizAnswer::getId, QuizAnswer::getUserId, QuizAnswer::getQuizId)
                 .eq(QuizAnswer::getIsCheck, TRUE)
                 .eq(QuizAnswer::getId, id));
         Assert.notNull(obj, "作答不存在");
-        // 判断作答是否存在
-        Assert.isTrue(answerMapper.exists(new LambdaQueryWrapper<QuizAnswer>()
-                .eq(QuizAnswer::getIsCheck, TRUE)
-                .eq(QuizAnswer::getId, id)),"作答不存在");
         // 用户id作为键，作答id作为值，记录用户点赞记录
         String key = USER_ANSWER_LIKE + StpUtil.getLoginIdAsInt();
         if (redisService.hasSetValue(key, id)) {
@@ -56,7 +52,7 @@ public class AnswerLikeStrategyImpl implements LikeStrategy {
             // 作答点赞量-1
             redisService.decrHash(ANSWER_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
-            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#-1", 0);
+            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#-1#" + obj.getQuizId(), 0);
         } else {
             // 点赞则在用户id中记录作答id
             redisService.setSet(key, id);
@@ -65,7 +61,7 @@ public class AnswerLikeStrategyImpl implements LikeStrategy {
             // 作答点赞量+1
             redisService.incrHash(ANSWER_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化+1
-            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#1", 0);
+        NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#1#" + obj.getQuizId(), 0);
         }
     }
 }

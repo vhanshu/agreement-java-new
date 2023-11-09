@@ -57,7 +57,13 @@
                u.nickname
         FROM a_activity a
                  LEFT JOIN u_user u ON u.id = a.user_id
-        WHERE a.`status` = 1
+        <where>
+            a.`status` = 1
+            <if test="keyword != null and keyword != ''">
+                and (a.title like concat('%',#{keyword},'%')
+                or u.nickname like concat('%',#{keyword},'%'))
+            </if>
+        </where>
         ORDER BY a.create_time DESC, a.time_start, a.time_end
     </select>
 
@@ -70,6 +76,8 @@
                a.time_start,
                a.time_end,
                a.user_id,
+               a.create_time,
+               a.update_time,
                u.avatar,
                u.nickname
         from (SELECT id,
@@ -79,7 +87,9 @@
                      content,
                      people_number,
                      time_start,
-                     time_end
+                     time_end,
+                     create_time,
+                     update_time
               FROM a_activity
               WHERE `status` = 1
                 AND id = #{activityId}) a

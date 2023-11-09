@@ -1,5 +1,6 @@
 package com.vhans.bus.data.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.mapper.QuizAnswerMapper;
@@ -41,6 +42,8 @@ public class QuizAnswerServiceImpl extends ServiceImpl<QuizAnswerMapper, QuizAns
     public int insertAnswer(QuizAnswer answer) {
         // 题目作答数+1
         quizMapper.updateAnswerNumber(answer.getQuizId(), 1);
+        answer.setLikeNumber(0);
+        answer.setUserId(StpUtil.getLoginIdAsInt());
         return quizAnswerMapper.insert(answer);
     }
 
