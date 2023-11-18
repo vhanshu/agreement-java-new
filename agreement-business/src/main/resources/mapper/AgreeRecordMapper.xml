@@ -3,41 +3,53 @@
 <mapper namespace="com.vhans.bus.data.mapper.AgreeRecordMapper">
 
     <select id="selectAgreeRecord" resultType="com.vhans.bus.data.domain.AgreeRecord">
-        SELECT id,
-        user_id,
-        cover,
-        title,
-        type,
-        like_number,
-        collect_number,
-        is_top,
-        is_check,
-        is_recommend,
-        is_delete,
-        `status`,
-        create_time
-        FROM d_agree_record
+        SELECT ar.id,
+        ar.user_id,
+        ar.cover,
+        ar.title,
+        ar.type,
+        ar.like_number,
+        ar.collect_number,
+        ar.is_top,
+        ar.is_check,
+        ar.is_recommend,
+        ar.is_delete,
+        ar.`status`,
+        ar.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_agree_record ar
+        LEFT JOIN u_user u ON u.id = ar.user_id
+        LEFT JOIN u_user_collect uc on uc.type_id = ar.id and uc.type = 1
+        LEFT JOIN u_user_like ul on ul.type_id = ar.id and ul.type = 1
         <where>
             <if test="query.isDelete != null">
-                is_delete = #{query.isDelete}
+                ar.is_delete = #{query.isDelete}
             </if>
             <if test="query.isCheck != null">
-                and is_check = #{query.isCheck}
+                and ar.is_check = #{query.isCheck}
             </if>
             <if test="query.userId != null">
-                and user_id = #{query.userId}
+                and ar.user_id = #{query.userId}
             </if>
-            <if test="query.title != null">
-                and title like concat('%',#{query.title},'%')
+            <if test="query.title != null and query.title != ''">
+                and (ar.title like concat('%',#{query.title},'%')
+                or u.nickname like concat('%',#{query.title},'%'))
             </if>
             <if test="query.status != null">
-                and status = #{query.status}
+                and ar.status = #{query.status}
             </if>
-            <if test="query.type != null">
-                and type = #{query.type}
+            <if test="query.type != null and query.type != 0">
+                and ar.type = #{query.type}
+            </if>
+            <if test="query.collectUid != null">
+                and uc.user_id = #{query.collectUid}
+            </if>
+            <if test="query.likeUid != null">
+                and ul.user_id = #{query.likeUid}
             </if>
         </where>
-        ORDER BY is_top DESC, is_recommend DESC, id DESC
+        ORDER BY is_top DESC, is_recommend DESC, create_time DESC
     </select>
 
     <select id="searchRecord" resultType="com.vhans.core.web.model.vo.SearchVO">
@@ -109,25 +121,27 @@
                 and r.type = #{query.type}
             </if>
         </where>
-        ORDER BY is_top DESC, create_time DESC
+        ORDER BY is_top DESC, id DESC
     </select>
 
     <select id="listAgreeRecordR" resultType="com.vhans.bus.data.domain.AgreeRecord">
         SELECT r.id,
-        r.user_id,
-        r.cover,
-        r.type,
-        r.title,
-        r.images,
-        r.video,
-        r.like_number,
-        r.collect_number,
-        r.create_time,
-        u.avatar,
-        u.nickname
+               r.user_id,
+               r.cover,
+               r.type,
+               r.title,
+               r.images,
+               r.video,
+               r.like_number,
+               r.collect_number,
+               r.create_time,
+               u.avatar,
+               u.nickname
         FROM d_agree_record r
-        LEFT JOIN u_user u ON u.id = r.user_id
-        where is_delete = 0 and `status` = 1 and is_recommend = 1
+                 LEFT JOIN u_user u ON u.id = r.user_id
+        where is_delete = 0
+          and `status` = 1
+          and is_recommend = 1
         ORDER BY is_top DESC, create_time DESC
     </select>
 

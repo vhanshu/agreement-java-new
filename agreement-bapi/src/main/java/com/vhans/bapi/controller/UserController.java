@@ -1,14 +1,16 @@
 package com.vhans.bapi.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.hutool.core.lang.Assert;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
-import com.vhans.bus.agree.domain.vo.MyAgree;
 import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.domain.Quiz;
+import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.subsidiary.model.dto.EmailDTO;
 import com.vhans.bus.subsidiary.model.dto.PasswdDTO;
 import com.vhans.bus.user.domain.User;
+import com.vhans.bus.user.domain.dto.UserAgreeDTO;
 import com.vhans.bus.user.domain.vo.UserInfoVO;
 import com.vhans.bus.user.service.IUserService;
 import com.vhans.core.web.controller.BaseController;
@@ -104,120 +106,194 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户发布的约起
+     * 获取用户发布的约起(type1~4)
      *
-     * @param type 约起类型
      * @return {@link AgreeVO} 发布的约起
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户发布的约起")
-    @GetMapping("/getAgree/issue/{type}")
-    public TableDataInfo<AgreeVO> getIssueAgreement(@PathVariable Integer type) {
+    @ApiOperation(value = "发布的约起(type1~4)")
+    @GetMapping("/getAgree/issue")
+    public TableDataInfo<AgreeVO> getIssueAgreement(UserAgreeDTO userAgree) {
         startPage();
-        List<AgreeVO> list = userService.getIssueAgree(type);
+        List<AgreeVO> list = userService.getIssueAgree(userAgree);
         clearPage();
         return getDataTable(list);
     }
 
     /**
-     * 获取用户参与的约起
+     * 获取用户参与的约起(type1~6)
      *
      * @return 参与的约起
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户参与的约起")
+    @ApiOperation(value = "参与的约起(type1~4)")
     @GetMapping("/getAgree/take")
-    public Result<List<MyAgree>> getTakeAgreement() {
-        return Result.success(userService.getTakeAgree());
+    public TableDataInfo<AgreeVO> getTakeAgreement(UserAgreeDTO userAgree) {
+        startPage();
+        List<AgreeVO> list = userService.getTakeAgree(userAgree);
+        clearPage();
+        return getDataTable(list);
     }
 
     /**
-     * 获取用户发表的记录
+     * 获取用户发表的记录(type0~4)
      *
      * @return {@link AgreeRecord} 发表的记录
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户发表的记录")
+    @ApiOperation(value = "发表的记录(type0~4)")
     @GetMapping("/getRecord/issue")
-    public TableDataInfo<AgreeRecord> getIssueRecord() {
+    public TableDataInfo<AgreeRecord> getIssueRecord(UserAgreeDTO userAgree) {
         startPage();
-        List<AgreeRecord> list = userService.getIssueRecord();
+        List<AgreeRecord> list = userService.getIssueRecord(userAgree);
         clearPage();
         return getDataTable(list);
     }
 
     /**
-     * 获取用户发表的题目
+     * 获取用户发表的题目(type无)
      *
      * @return {@link Quiz} 发表的题目
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户发表的题目")
+    @ApiOperation(value = "发表的题目(type无)")
     @GetMapping("/getQuiz/issue")
-    public TableDataInfo<Quiz> getIssueQuiz() {
+    public TableDataInfo<Quiz> getIssueQuiz(UserAgreeDTO userAgree) {
         startPage();
-        List<Quiz> list = userService.getIssueQuiz();
+        List<Quiz> list = userService.getIssueQuiz(userAgree);
         clearPage();
         return getDataTable(list);
     }
 
     /**
-     * 获取用户收藏的记录
+     * 获取用户发表的题目作答(type无)
+     *
+     * @return {@link QuizAnswer} 发表的题目作答
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "发表的题目作答(type无)")
+    @GetMapping("/getAnswer/issue")
+    public TableDataInfo<QuizAnswer> getIssueAnswer(UserAgreeDTO userAgree) {
+        startPage();
+        List<QuizAnswer> list = userService.getIssueAnswer(userAgree);
+        clearPage();
+        return getDataTable(list);
+    }
+
+    /**
+     * 获取用户发表的评论(type0~2)
+     *
+     * @return {@link Comment} 用户发表的评论
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "发表的评论(type0~2)")
+    @GetMapping("/getComment/issue")
+    public TableDataInfo<Comment> getIssueComment(UserAgreeDTO userAgree) {
+        startPage();
+        List<Comment> list = userService.getIssueComment(userAgree);
+        clearPage();
+        return getDataTable(list);
+    }
+
+    /**
+     * 获取用户收藏的记录(type0~4)
      *
      * @return 收藏的记录
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户收藏的记录")
+    @ApiOperation(value = "收藏的记录(type0~4)")
     @GetMapping("/getRecord/collect")
-    public Result<List<AgreeRecord>> getCollectRecord() {
-        return Result.success(userService.getCollectRecord());
+    public TableDataInfo<AgreeRecord> getCollectRecord(UserAgreeDTO userAgree) {
+        startPage();
+        List<AgreeRecord> list = userService.getCollectRecord(userAgree);
+        clearPage();
+        return getDataTable(list);
     }
 
     /**
-     * 获取登录用户收藏的题目
+     * 获取登录用户收藏的题目(type无)
      *
      * @return 收藏的题目
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户收藏的题目")
+    @ApiOperation(value = "收藏的题目(type无)")
     @GetMapping("/getQuiz/collect")
-    public Result<List<Quiz>> getCollectQuiz() {
-        return Result.success(userService.getCollectQuiz());
+    public TableDataInfo<Quiz> getCollectQuiz(UserAgreeDTO userAgree) {
+        startPage();
+        List<Quiz> list = userService.getCollectQuiz(userAgree);
+        clearPage();
+        return getDataTable(list);
     }
 
     /**
-     * 获取用户点赞的记录
+     * 获取用户点赞的记录(type0~4)
      *
      * @return 点赞的记录
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户点赞的记录")
+    @ApiOperation(value = "点赞的记录(type0~4)")
     @GetMapping("/getRecord/like")
-    public Result<List<AgreeRecord>> getLikeRecord() {
-        return Result.success(userService.getLikeRecord());
+    public TableDataInfo<AgreeRecord> getLikeRecord(UserAgreeDTO userAgree) {
+        Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
+        if (!userAgree.getFlag()) {
+            startPage();
+        }
+        List<AgreeRecord> list = userService.getLikeRecord(userAgree);
+        clearPage();
+        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
     }
 
     /**
-     * 获取用户点赞的题目
+     * 获取用户点赞的题目(type无)
      *
      * @return 点赞的题目
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户点赞的题目")
+    @ApiOperation(value = "点赞的题目(type无)")
     @GetMapping("/getQuiz/like")
-    public Result<List<Quiz>> getLikeQuiz() {
-        return Result.success(userService.getLikeQuiz());
+    public TableDataInfo<Quiz> getLikeQuiz(UserAgreeDTO userAgree) {
+        Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
+        if (!userAgree.getFlag()) {
+            startPage();
+        }
+        List<Quiz> list = userService.getLikeQuiz(userAgree);
+        clearPage();
+        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
     }
 
     /**
-     * 获取用户点赞的评论
+     * 获取用户点赞的题目作答(type无)
+     *
+     * @return 点赞的题目
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "点赞的题目作答(type无)")
+    @GetMapping("/getAnswer/like")
+    public TableDataInfo<QuizAnswer> getLikeAnsWer(UserAgreeDTO userAgree) {
+        Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
+        if (!userAgree.getFlag()) {
+            startPage();
+        }
+        List<QuizAnswer> list = userService.getLikeAnswer(userAgree);
+        clearPage();
+        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
+    }
+
+    /**
+     * 获取用户点赞的评论(type0~2)
      *
      * @return 点赞的评论
      */
     @SaCheckLogin
-    @ApiOperation(value = "获取用户点赞的评论")
+    @ApiOperation(value = "点赞的评论(type0~2)")
     @GetMapping("/getComment/like")
-    public Result<List<Comment>> getLikeComment() {
-        return Result.success(userService.getLikeComment());
+    public TableDataInfo<Comment> getLikeComment(UserAgreeDTO userAgree) {
+        Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
+        if (!userAgree.getFlag()) {
+            startPage();
+        }
+        List<Comment> list = userService.getLikeComment(userAgree);
+        clearPage();
+        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
     }
 }

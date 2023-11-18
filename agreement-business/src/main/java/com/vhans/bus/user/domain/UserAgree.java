@@ -3,6 +3,7 @@ package com.vhans.bus.user.domain;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,12 +24,14 @@ public class UserAgree {
     /**
      * 主键
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @TableId(type = IdType.AUTO)
     private Integer id;
 
     /**
      * 用户id
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Integer userId;
 
     /**
@@ -37,17 +40,12 @@ public class UserAgree {
     private Integer agreeId;
 
     /**
-     * 约起类型(1约会 2活动 3赛事 4帮忙)
+     * 约起类型(1约会 2活动 3赛事 4帮忙 5观众 6约会指定)
      */
     private Integer type;
 
     /**
-     * 限定类型(0普通 1唯一 2观众)
-     */
-    private Integer limitType;
-
-    /**
-     * 状态(0无 1应约 2拒绝)
+     * 约会指定状态(0等待确认 1成功 2拒绝)
      */
     private Integer status;
 }

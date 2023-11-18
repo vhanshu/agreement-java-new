@@ -128,5 +128,11 @@ public class QuizAnswer {
          */
         @ApiModelProperty(value = "是否通过")
         private Integer isCheck;
+
+        /**
+         * 点赞者id
+         */
+        @ApiModelProperty(value = "点赞者id")
+        private Integer likeUid;
     }
 }

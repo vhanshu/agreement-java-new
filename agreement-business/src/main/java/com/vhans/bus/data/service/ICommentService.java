@@ -52,6 +52,14 @@ public interface ICommentService {
     List<Comment> listCommentHomeVO(Comment.Query query);
 
     /**
+     * 获取评论信息
+     *
+     * @param commentId 评论id
+     * @return 评论信息
+     */
+    Comment getCommentInfo(Integer commentId);
+
+    /**
      * 查看回复评论
      *
      * @param commentId 评论id

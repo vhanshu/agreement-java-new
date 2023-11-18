@@ -5,15 +5,15 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.agree.domain.Help;
-import com.vhans.bus.agree.mapper.HelpMapper;
-import com.vhans.bus.agree.service.IHelpService;
 import com.vhans.bus.agree.domain.dto.AgreeDTO;
 import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
+import com.vhans.bus.agree.mapper.HelpMapper;
+import com.vhans.bus.agree.service.IHelpService;
 import com.vhans.bus.subsidiary.model.vo.PaginationVO;
-import com.vhans.bus.user.domain.vo.UserIntroVO;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.domain.UserAgree;
+import com.vhans.bus.user.domain.vo.UserIntroVO;
 import com.vhans.bus.user.mapper.UserAgreeMapper;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.bus.website.domain.SiteConfig;
@@ -33,8 +33,7 @@ import java.util.*;
 
 import static com.vhans.core.constant.MqConstant.EMAIL_EXCHANGE;
 import static com.vhans.core.constant.MqConstant.EMAIL_HTML_KEY;
-import static com.vhans.core.constant.NumberConstant.FOUR;
-import static com.vhans.core.constant.NumberConstant.ZERO;
+import static com.vhans.core.constant.NumberConstant.*;
 import static com.vhans.core.constant.RedisConstant.HELP_VIEW_COUNT;
 import static com.vhans.core.constant.RedisConstant.SITE_SETTING;
 import static com.vhans.core.constant.ScoreConstant.HELP_SCORE;
@@ -129,10 +128,10 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
             Optional.ofNullable(help.getUserList()).orElse(new ArrayList<>()).forEach(item -> {
                 Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                         "用户 [" + item.getNickname() + "] 未注册");
-                userAgreeMapper.saveCompetitionAudience(newHelp.getId(), item.getId());
+                userAgreeMapper.saveAgreeUser(newHelp.getId(), item.getId(), FOUR);
             });
             // 帮助完成,发送邮件通知帮助发起者
-            constructionEmailWord(newHelp.getId());
+            constructionEmailWord(newHelp.getId(), THREE);
             return "帮助完成,正在发送邮件通知帮助发起者";
         }
         if (newHelp.getStatus() == 5) {
@@ -153,7 +152,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
                 item -> {
                     Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                             "用户 [" + item.getNickname() + "] 未注册");
-                    userAgreeMapper.saveCompetitionAudience(newHelp.getId(), item.getId());
+                    userAgreeMapper.saveAgreeUser(newHelp.getId(), item.getId(), FIVE);
                 });
         return "修改帮助成功";
     }
@@ -164,7 +163,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
         AgreeVO helpInfo = helpMapper.selectHelpInfoById(helpId);
         Assert.notNull(helpInfo, "没有该帮助");
         // 设定帮助参与者
-        helpInfo.setUserList(userAgreeMapper.selectUserListByAgreeId(helpId, FOUR, ZERO));
+        helpInfo.setUserList(userAgreeMapper.selectUserListByAgreeId(helpId, FOUR));
         return helpInfo;
     }
 
@@ -198,7 +197,7 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
         Double viewCount = Optional.ofNullable(redisService.getZsetScore(HELP_VIEW_COUNT, helpId))
                 .orElse((double) 0);
         // 查询帮助参与者
-        List<UserIntroVO> userList = userAgreeMapper.selectUserListByAgreeId(helpId, FOUR, ZERO);
+        List<UserIntroVO> userList = userAgreeMapper.selectUserListByAgreeId(helpId, FOUR);
         help.setLastAgreement(lastHelp);
         help.setNextAgreement(nextHelp);
         help.setViewCount(viewCount.intValue());
@@ -231,8 +230,8 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
             if (help.getPeopleNumber() == peopleNumber) {
                 // 帮助重新发表
                 helpMapper.updateById(Help.builder().id(helpId).status(1).build());
-                // 活动重置,发送邮件通知活动发起者
-                constructionEmailWord(helpId);
+                // 帮助重置,发送邮件通知帮助发起者
+                constructionEmailWord(helpId, ONE);
             }
             // 取消参与,减少约起分数
             userAgreeMapper.deleteById(agreementUserId);
@@ -242,13 +241,13 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
             // 参与帮助
             Assert.isTrue(help.getPeopleNumber() > peopleNumber,
                     "帮助参与人数超出限制");
-            userAgreeMapper.saveHelpUser(helpId, userId);
+            userAgreeMapper.saveAgreeUser(helpId, userId, FIVE);
             userMapper.updateDegree(userId, HELP_SCORE);
             if (help.getPeopleNumber() == peopleNumber + 1) {
                 // 人数已满,帮助完成
                 helpMapper.updateById(Help.builder().status(3).build());
                 // 帮助完成,发送邮件通知帮助发起者
-                constructionEmailWord(helpId);
+                constructionEmailWord(helpId, THREE);
             }
             return "成功参与,约起分数增加: " + HELP_SCORE;
         }
@@ -259,10 +258,11 @@ public class HelpServiceImpl extends ServiceImpl<HelpMapper, Help> implements IH
      *
      * @param helpId 帮助id
      */
-    private void constructionEmailWord(Integer helpId) {
+    private void constructionEmailWord(Integer helpId, Integer status) {
         Help help = helpMapper.selectOne(new LambdaQueryWrapper<Help>()
-                .select(Help::getTitle, Help::getUserId, Help::getStatus)
+                .select(Help::getTitle, Help::getUserId)
                 .eq(Help::getId, helpId));
+        help.setStatus(status);
         User toUser = userMapper.selectById(help.getUserId());
         sendEmail(help, toUser);
     }

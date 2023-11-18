@@ -31,11 +31,11 @@ public enum AgreementTypeEnum {
     /**
      * 赛事观众
      */
-    COMPETITION_AUDIENCE(5, "赛事观众", "agreement/center?agreementType=5&id="),
+    COMPETITION_AUDIENCE(5, "赛事观众", "agree/5/"),
     /**
      * 指定约会
      */
-    APPOINTMENT_SPECIFY(6, "指定约会", "agreement/center?agreementType=6&id=");
+    APPOINTMENT_SPECIFY(6, "指定约会", "agree/6/");
 
     /**
      * 状态

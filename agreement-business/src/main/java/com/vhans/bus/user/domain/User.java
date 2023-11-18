@@ -67,6 +67,12 @@ public class User {
     private String email;
 
     /**
+     * 用户性别(0保密 1男 2女)
+     */
+    @ApiModelProperty(value = "用户性别(0保密 1男 2女)")
+    private Integer sex;
+
+    /**
      * 活动参与度
      */
     @ApiModelProperty(value = "活动参与度")

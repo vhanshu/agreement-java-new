@@ -16,22 +16,28 @@
         c.is_check,
         c.create_time
         FROM d_comment c
-        LEFT JOIN d_agree_record r ON c.type_id = r.id
-        LEFT JOIN d_quiz q ON c.type_id = q.id
+        LEFT JOIN d_agree_record r ON c.type = 1 and c.type_id = r.id
+        LEFT JOIN d_quiz q ON c.type = 2 and c.type_id = q.id
         LEFT JOIN u_user fu ON c.from_uid = fu.id
         LEFT JOIN u_user tu ON c.to_uid = tu.id
+        LEFT JOIN u_user_like ul on ul.type_id = c.id and ul.type = 3
         <where>
-            <if test="query.type != null">
+            <if test="query.type != null and query.type != 0">
                 c.type = #{query.type}
             </if>
-            <if test="query.fromNickname != null">
-                and fu.nickname LIKE concat('%', #{query.fromNickname} ,'%')
+            <if test="query.fromUid != null">
+                and fu.from_uid = #{query.fromUid}
             </if>
             <if test="query.isCheck != null">
                 and c.is_check = #{query.isCheck}
             </if>
-            <if test="query.title != null">
-                and r.title like concat('%',#{query.title},'%') or q.title like concat('%',#{query.title},'%')
+            <if test="query.title != null and query.title != ''">
+                and (fu.nickname like concat('%', #{query.title} ,'%') or
+                r.title like concat('%',#{query.title},'%') or
+                q.title like concat('%',#{query.title},'%'))
+            </if>
+            <if test="query.likeUid != null">
+                and ul.user_id = #{query.likeUid}
             </if>
         </where>
         ORDER BY c.id DESC
@@ -55,6 +61,26 @@
         WHERE c.is_check = 1
         ORDER BY c.create_time DESC
         LIMIT 5
+    </select>
+
+    <select id="selectCommentById" resultType="com.vhans.bus.data.domain.Comment">
+        select c.id,
+               fu.avatar,
+               fu.nickname as from_nickname,
+               tu.nickname as to_nickname,
+               c.content,
+               c.like_number,
+               COALESCE(r.title, q.title) as title,
+               c.type,
+               c.is_check,
+               c.create_time,
+               c.update_time
+        from d_comment c
+                 left join d_agree_record r on c.type = 1 and c.type_id = r.id
+                 left join d_quiz q on c.type = 2 and c.type_id = q.id
+                 left join u_user fu on c.from_uid = fu.id
+                 left join u_user tu on c.to_uid = tu.id
+        where c.id = #{commentId}
     </select>
 
     <select id="selectParentComment" resultType="com.vhans.bus.data.domain.Comment">

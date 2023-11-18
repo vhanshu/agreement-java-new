@@ -144,12 +144,19 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     @Override
     public AgreeRecord getRecordInfo(Integer recordId) {
         // 查询记录信息
-        AgreeRecord agreeRecord = recordMapper.selectById(recordId);
-        Assert.notNull(agreeRecord, "没有该记录");
-        // 查询记录标签
+        AgreeRecord record = recordMapper.selectRecordHomeById(recordId);
+        Assert.notNull(record, "没有该记录,编号" + recordId);
+        // 查询浏览量
+        Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, recordId)).orElse((double) 0);
+        // 查询点赞量
+        Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, recordId.toString());
+        // 查询标签
         List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, ONE)).orElse(new ArrayList<>());
-        agreeRecord.setTagList(tags);
-        return agreeRecord;
+        record.setViewCount(viewCount.intValue());
+        // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+        record.setLikeNumber(record.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
+        record.setTagList(tags);
+        return record;
     }
 
     @Override
@@ -298,15 +305,15 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
      */
     private List<AgreeRecord> postRecord(List<AgreeRecord> list) {
         list.forEach(item -> {
-            // 查询浏览量
+            // 查询记录浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(RECORD_VIEW_COUNT, item.getId()))
                     .orElse((double) 0);
-            // 查询点赞量
+            // 查询记录点赞量
             Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, item.getId().toString());
             // 查询记录标签
             List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), ONE)).orElse(new ArrayList<>());
             item.setViewCount(viewCount.intValue());
-            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+            // 设置当前记录点赞量为 持久点赞量 + 缓存点赞量
             item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
             item.setTagList(tags);
         });

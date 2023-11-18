@@ -1,11 +1,11 @@
 package com.vhans.bus.data.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.vhans.bus.subsidiary.model.vo.PaginationVO;
+import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.vo.OverviewVO;
 import com.vhans.bus.data.domain.vo.StatisticsVO;
+import com.vhans.bus.subsidiary.model.vo.PaginationVO;
 import com.vhans.core.web.model.vo.SearchVO;
-import com.vhans.bus.data.domain.AgreeRecord;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 

@@ -16,15 +16,20 @@
         c.is_wager
         FROM a_competition c
         LEFT JOIN u_user u ON c.user_id = u.id
+        LEFT JOIN u_user_agree ua ON c.id = ua.agree_id AND (ua.type = 3 or ua.type = 5)
         <where>
-            <if test="query.title != null">
-                and c.title like concat('%',#{query.title},'%')
-            </if>
             <if test="query.userId != null">
-                and c.user_id = #{query.userId}
+                c.user_id = #{query.userId}
             </if>
             <if test="query.status != null">
                 and c.status = #{query.status}
+            </if>
+            <if test="query.title != null and query.title != ''">
+                and (c.title like concat('%',#{query.title},'%') or
+                u.nickname like concat('%',#{query.title},'%'))
+            </if>
+            <if test="query.relateUid != null">
+                and ua.user_id = #{query.relateUid}
             </if>
         </where>
         ORDER BY c.create_time DESC
@@ -83,6 +88,7 @@
                c.user_id,
                c.create_time,
                c.update_time,
+               c.status,
                u.avatar,
                u.nickname
         from (SELECT id,
@@ -96,9 +102,10 @@
                      time_start,
                      time_end,
                      create_time,
-                     update_time
+                     update_time,
+                     status
               From a_competition
-              WHERE `status` = 1
+              WHERE (`status` = 1 or `status` = 3)
                 AND id = #{competitionId}) c
                  LEFT JOIN u_user u ON c.user_id = u.id
     </select>

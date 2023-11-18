@@ -65,21 +65,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     public List<Quiz> listQuiz(Quiz.Query query) {
         // 查询题目信息
         List<Quiz> quizVOList = quizMapper.selectQuizVO(query);
-        // 封装题目信息
-        quizVOList.forEach(item -> {
-            // 查询浏览量
-            Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, item.getId()))
-                    .orElse((double) 0);
-            // 查询点赞量
-            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
-            // 查询标签
-            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), TWO)).orElse(new ArrayList<>());
-            item.setViewCount(viewCount.intValue());
-            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
-            item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-            item.setTagVOList(tags);
-        });
-        return quizVOList;
+        return postQuiz(quizVOList);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -119,12 +105,19 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     @Override
     public Quiz getQuizInfo(Integer quizId) {
         // 查询题目信息
-        Quiz quizInfo = quizMapper.selectById(quizId);
-        Assert.notNull(quizInfo, "没有该题目");
-        // 查询记录标签
+        Quiz quiz = quizMapper.selectById(quizId);
+        Assert.notNull(quiz, "没有该题目,编号" + quizId);
+        // 查询浏览量
+        Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, quizId)).orElse((double) 0);
+        // 查询点赞量
+        Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, quizId.toString());
+        // 查询标签
         List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, TWO)).orElse(new ArrayList<>());
-        quizInfo.setTagVOList(tags);
-        return quizInfo;
+        quiz.setViewCount(viewCount.intValue());
+        // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+        quiz.setLikeNumber(quiz.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
+        quiz.setTagList(tags);
+        return quiz;
     }
 
     @Override
@@ -136,20 +129,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     public List<Quiz> listQuizHome(Quiz.Query query) {
         // 查询前台题目
         List<Quiz> quizList = quizMapper.selectQuizHomeList(query);
-        quizList.forEach(item -> {
-            // 查询浏览量
-            Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, item.getId()))
-                    .orElse((double) 0);
-            // 查询点赞量
-            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
-            // 查询标签名
-            List<String> tagNames = Optional.ofNullable(tagMapper.selectTagNameByTypeId(item.getId(), TWO)).orElse(new ArrayList<>());
-            item.setViewCount(viewCount.intValue());
-            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
-            item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-            item.setTagNameList(tagNames);
-        });
-        return quizList;
+        return postQuiz(quizList);
     }
 
     @Override
@@ -163,8 +143,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         PaginationVO lastQuiz = quizMapper.selectLastQuiz(quizId);
         PaginationVO nextQuiz = quizMapper.selectNextQuiz(quizId);
         // 查询浏览量
-        Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, quizId))
-                .orElse((double) 0);
+        Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, quizId)).orElse((double) 0);
         // 查询点赞量
         Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, quizId.toString());
         // 查询标签
@@ -174,7 +153,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         quiz.setViewCount(viewCount.intValue());
         // 设置当前点赞量为 持久点赞量 + 缓存点赞量
         quiz.setLikeNumber(quiz.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
-        quiz.setTagVOList(tags);
+        quiz.setTagList(tags);
         return quiz;
     }
 
@@ -215,6 +194,29 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
             quiz.setCollectNumber(quiz.getCollectNumber() + 1);
         }
         quizMapper.updateById(quiz);
+    }
+
+    /**
+     * 封装题目信息
+     *
+     * @param list 原始题目列表
+     * @return 封装后的题目列表
+     */
+    private List<Quiz> postQuiz(List<Quiz> list) {
+        list.forEach(item -> {
+            // 查询浏览量
+            Double viewCount = Optional.ofNullable(redisService.getZsetScore(QUIZ_VIEW_COUNT, item.getId()))
+                    .orElse((double) 0);
+            // 查询点赞量
+            Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
+            // 查询标签
+            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), TWO)).orElse(new ArrayList<>());
+            item.setViewCount(viewCount.intValue());
+            // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+            item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
+            item.setTagList(tags);
+        });
+        return list;
     }
 
     /**

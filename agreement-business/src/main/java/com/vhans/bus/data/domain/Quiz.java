@@ -126,8 +126,8 @@ public class Quiz {
      */
     @TableField(exist = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @ApiModelProperty(value = "文章标签集")
-    private List<TagOptionVO> tagVOList;
+    @ApiModelProperty(value = "题目标签集")
+    private List<TagOptionVO> tagList;
 
     /**
      * 标签名称集
@@ -163,9 +163,9 @@ public class Quiz {
         private Integer userId;
 
         /**
-         * 提问标题(like)
+         * 提问标题或者用户昵称(like)
          */
-        @ApiModelProperty(value = "提问标题")
+        @ApiModelProperty(value = "提问标题或者用户昵称")
         private String title;
 
         /**
@@ -173,5 +173,17 @@ public class Quiz {
          */
         @ApiModelProperty(value = "是否通过 (0否 1是)")
         private Integer isCheck;
+
+        /**
+         * 收藏者id
+         */
+        @ApiModelProperty(value = "收藏者id")
+        private Integer collectUid;
+
+        /**
+         * 点赞者id
+         */
+        @ApiModelProperty(value = "点赞者id")
+        private Integer likeUid;
     }
 }

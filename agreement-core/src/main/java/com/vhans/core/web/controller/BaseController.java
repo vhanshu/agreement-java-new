@@ -42,6 +42,18 @@ public class BaseController {
     }
 
     /**
+     * 响应请求分页数据,自定义总数
+     */
+    protected <T> TableDataInfo<T> getDataTable(List<T> list, Integer total) {
+        TableDataInfo<T> rspData = new TableDataInfo<>();
+        rspData.setCode(SUCCESS.getCode());
+        rspData.setRows(list);
+        rspData.setMsg("操作成功");
+        rspData.setTotal(total);
+        return rspData;
+    }
+
+    /**
      * 响应返回结果
      *
      * @param rows 影响行数

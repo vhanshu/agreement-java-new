@@ -3,6 +3,7 @@ package com.vhans.bapi.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
+import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.annotation.VisitLogger;
 import com.vhans.core.web.controller.BaseController;
 import com.vhans.core.web.model.Result;
@@ -111,6 +112,7 @@ public class AgreeController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "加入约起")
+    @AccessLimit(seconds = 10, maxCount = 1)
     @PostMapping("/join/{type}/{agreeId}")
     public Result<String> joinAgreement(@PathVariable Integer type, @PathVariable Integer agreeId) {
         return Result.success(agreeService.joinAgreement(agreeId, type));

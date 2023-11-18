@@ -245,5 +245,17 @@ public class AgreeRecord {
          */
         @ApiModelProperty(value = "是否通过 (0否 1是)")
         private Integer isCheck;
+
+        /**
+         * 收藏者id
+         */
+        @ApiModelProperty(value = "收藏者id")
+        private Integer collectUid;
+
+        /**
+         * 点赞者id
+         */
+        @ApiModelProperty(value = "点赞者id")
+        private Integer likeUid;
     }
 }

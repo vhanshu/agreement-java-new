@@ -15,15 +15,20 @@
         h.`status`
         FROM a_help h
         LEFT JOIN u_user u ON h.user_id = u.id
+        LEFT JOIN u_user_agree ua ON h.id = ua.agree_id AND ua.type = 4
         <where>
-            <if test="query.title != null">
-                and h.title like concat('%',#{query.title},'%')
-            </if>
             <if test="query.userId != null">
-                and h.user_id = #{query.userId}
+                h.user_id = #{query.userId}
             </if>
             <if test="query.status != null">
                 and h.status = #{query.status}
+            </if>
+            <if test="query.title != null and query.title != ''">
+                and (h.title like concat('%',#{query.title},'%') or
+                u.nickname like concat('%',#{query.title},'%'))
+            </if>
+            <if test="query.relateUid != null">
+                and ua.user_id = #{query.relateUid}
             </if>
         </where>
         ORDER BY h.create_time DESC

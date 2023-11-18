@@ -5,14 +5,15 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.agree.domain.Activity;
-import com.vhans.bus.agree.mapper.ActivityMapper;
-import com.vhans.bus.agree.service.IActivityService;
 import com.vhans.bus.agree.domain.dto.AgreeDTO;
 import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
+import com.vhans.bus.agree.mapper.ActivityMapper;
+import com.vhans.bus.agree.service.IActivityService;
 import com.vhans.bus.subsidiary.model.vo.PaginationVO;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.domain.UserAgree;
+import com.vhans.bus.user.domain.vo.UserIntroVO;
 import com.vhans.bus.user.mapper.UserAgreeMapper;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.bus.website.domain.SiteConfig;
@@ -20,7 +21,6 @@ import com.vhans.core.redis.RedisService;
 import com.vhans.core.utils.BeanUtils;
 import com.vhans.core.utils.data.StringUtils;
 import com.vhans.core.web.model.dto.MailDTO;
-import com.vhans.bus.user.domain.vo.UserIntroVO;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.vhans.core.constant.MqConstant.EMAIL_EXCHANGE;
 import static com.vhans.core.constant.MqConstant.EMAIL_HTML_KEY;
-import static com.vhans.core.constant.NumberConstant.TWO;
-import static com.vhans.core.constant.NumberConstant.ZERO;
+import static com.vhans.core.constant.NumberConstant.*;
 import static com.vhans.core.constant.RedisConstant.ACTIVITY_VIEW_COUNT;
 import static com.vhans.core.constant.RedisConstant.SITE_SETTING;
 import static com.vhans.core.constant.ScoreConstant.ACTIVITY_SCORE;
@@ -127,10 +127,10 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
             Optional.ofNullable(activity.getUserList()).orElse(new ArrayList<>()).forEach(item -> {
                 Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                         "用户 [" + item.getNickname() + "] 未注册");
-                userAgreeMapper.saveCompetitionAudience(newActivity.getId(), item.getId());
+                userAgreeMapper.saveAgreeUser(newActivity.getId(), item.getId(), TWO);
             });
             // 活动完成,发送邮件通知活动发起者
-            constructionEmailWord(newActivity.getId());
+            CompletableFuture.runAsync(() -> constructionEmailWord(newActivity.getId(), THREE));
             return "活动完成,正在发送邮件通知活动发起者";
         }
         if (newActivity.getStatus() == 5) {
@@ -142,7 +142,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
                         "用户 [" + item.getNickname() + "] 未注册");
                 User toUser = userMapper.selectById(item.getId());
                 // 分别给活动参与用户发送邮件,通知活动取消
-                sendEmail(newActivity, fromUser, toUser);
+                CompletableFuture.runAsync(() -> sendEmail(newActivity, fromUser, toUser));
             });
             return "活动取消,正在发送邮件通知活动已参与者,约起分数减少: " + ACTIVITY_SCORE;
         }
@@ -151,7 +151,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
                 item -> {
                     Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                             "用户 [" + item.getNickname() + "] 未注册");
-                    userAgreeMapper.saveCompetitionAudience(newActivity.getId(), item.getId());
+                    userAgreeMapper.saveAgreeUser(newActivity.getId(), item.getId(), TWO);
                 });
         return "修改活动成功";
     }
@@ -162,7 +162,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         AgreeVO activityInfo = activityMapper.selectActivityInfoById(activityId);
         Assert.notNull(activityInfo, "没有该活动");
         // 设定活动参与者
-        activityInfo.setUserList(userAgreeMapper.selectUserListByAgreeId(activityId, TWO, ZERO));
+        activityInfo.setUserList(userAgreeMapper.selectUserListByAgreeId(activityId, TWO));
         return activityInfo;
     }
 
@@ -196,7 +196,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         Double viewCount = Optional.ofNullable(redisService.getZsetScore(ACTIVITY_VIEW_COUNT, activityId))
                 .orElse((double) 0);
         // 查询活动参与者
-        List<UserIntroVO> userList = userAgreeMapper.selectUserListByAgreeId(activityId, TWO, ZERO);
+        List<UserIntroVO> userList = userAgreeMapper.selectUserListByAgreeId(activityId, TWO);
         activity.setLastAgreement(lastActivity);
         activity.setNextAgreement(nextActivity);
         activity.setViewCount(viewCount.intValue());
@@ -230,7 +230,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
                 // 活动重新发表
                 activityMapper.updateById(Activity.builder().id(activityId).status(1).build());
                 // 活动重置,发送邮件通知活动发起者
-                constructionEmailWord(activityId);
+                CompletableFuture.runAsync(() -> constructionEmailWord(activityId, ONE));
             }
             // 取消参与,减少约起分数
             userAgreeMapper.deleteById(agreementUserId);
@@ -240,13 +240,13 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
             // 参与活动
             Assert.isTrue(activity.getPeopleNumber() > peopleNumber,
                     "活动参与人数超出限制");
-            userAgreeMapper.saveActivityUser(activityId, userId);
+            userAgreeMapper.saveAgreeUser(activityId, userId, TWO);
             userMapper.updateDegree(userId, ACTIVITY_SCORE);
             if (activity.getPeopleNumber() == peopleNumber + 1) {
                 // 人数已满,活动完成
                 activityMapper.updateById(Activity.builder().id(activityId).status(3).build());
                 // 活动完成,发送邮件通知活动发起者
-                constructionEmailWord(activityId);
+                CompletableFuture.runAsync(() -> constructionEmailWord(activityId, THREE));
             }
             return "成功参与,约起分数增加: " + ACTIVITY_SCORE;
         }
@@ -257,10 +257,11 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
      *
      * @param activityId 活动id
      */
-    private void constructionEmailWord(Integer activityId) {
+    private void constructionEmailWord(Integer activityId, Integer status) {
         Activity activity = activityMapper.selectOne(new LambdaQueryWrapper<Activity>()
-                .select(Activity::getTitle, Activity::getUserId, Activity::getStatus)
+                .select(Activity::getTitle, Activity::getUserId)
                 .eq(Activity::getId, activityId));
+        activity.setStatus(status);
         User toUser = userMapper.selectById(activity.getUserId());
         sendEmail(activity, toUser);
     }

@@ -150,6 +150,16 @@ public class CommentServiceImpl implements ICommentService {
     }
 
     @Override
+    public Comment getCommentInfo(Integer commentId) {
+        Comment comment = commentMapper.selectCommentById(commentId);
+        // 查询评论点赞量
+        Integer likeNumber = redisService.getHash(COMMENT_LIKE_COUNT, commentId.toString());
+        // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+        comment.setLikeNumber(comment.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
+        return comment;
+    }
+
+    @Override
     public List<ReplyVO> listReply(Integer commentId) {
         // 查询子评论
         List<ReplyVO> replyList = commentMapper.selectReplyByParentId(commentId);

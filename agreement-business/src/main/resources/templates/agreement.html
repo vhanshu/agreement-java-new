@@ -29,9 +29,9 @@
         background-color: hsla(0,0%,100%,.4);
         border-radius: 10px 10px 0 0;">
             @<span style="text-decoration:none;
-            color: #F0E68C;" th:text="|《${username}》|"></span> 同学 您的
+            color: #F0E68C;" th:text="${username}"></span> 同学 您的
             <span style="text-decoration:none;
-            color: #F0E68C;" th:text="|《${message}》|"></span>！
+            color: #F0E68C;" th:text="${message}"></span>！
         </p>
     </div>
     <div style="margin:20px auto;
@@ -47,11 +47,11 @@
             <p th:utext="${title}"></p>
         </div>
         <p>
-            您可以点击<a style="text-decoration:none;
-            color:#12addb" th:href="@{${url}}" target="_blank">查看约起的完整內容</a>
+            您可以点击<a style="text-decoration:none;color:#12addb" th:href="${url}"
+                         target="_blank">查看约起的完整內容</a>
         </p>
         <div style="color: #8c8c8c; font-size: 10px;width: 100%;text-align: center;word-wrap: break-word;">
-            <p style="padding: 20px">什么都无法舍弃的人，什么都改变不了。——《进击的巨人》</p>
+            <p style="padding: 20px">什么都无法舍弃的人，什么都改变不了2。——《进击的巨人》</p>
         </div>
     </div>
 </div>

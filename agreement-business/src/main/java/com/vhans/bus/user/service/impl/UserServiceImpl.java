@@ -7,14 +7,14 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
-import com.vhans.bus.agree.domain.vo.MyAgree;
-import com.vhans.bus.agree.domain.vo.MyIssueAgree;
 import com.vhans.bus.agree.service.IAgreeService;
 import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.mapper.CommentMapper;
+import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.service.IAgreeRecordService;
+import com.vhans.bus.data.service.ICommentService;
+import com.vhans.bus.data.service.IQuizAnswerService;
 import com.vhans.bus.data.service.IQuizService;
 import com.vhans.bus.subsidiary.model.dto.DisableDTO;
 import com.vhans.bus.subsidiary.model.dto.EmailDTO;
@@ -23,6 +23,7 @@ import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.domain.UserAgree;
 import com.vhans.bus.user.domain.UserCollect;
 import com.vhans.bus.user.domain.UserLike;
+import com.vhans.bus.user.domain.dto.UserAgreeDTO;
 import com.vhans.bus.user.domain.vo.UserInfoVO;
 import com.vhans.bus.user.mapper.UserAgreeMapper;
 import com.vhans.bus.user.mapper.UserCollectMapper;
@@ -32,7 +33,6 @@ import com.vhans.bus.user.service.IUserService;
 import com.vhans.core.enums.FilePathEnum;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.context.UploadStrategyContext;
-import com.vhans.core.utils.BeanUtils;
 import com.vhans.core.utils.SecurityUtils;
 import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
 import static com.vhans.core.constant.CommonConstant.TRUE;
@@ -72,9 +70,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private UserLikeMapper userLikeMapper;
 
     @Autowired
-    private CommentMapper commentMapper;
-
-    @Autowired
     private IAgreeService agreeService;
 
     @Autowired
@@ -82,6 +77,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private IQuizService quizService;
+
+    @Autowired
+    private IQuizAnswerService quizAnswerService;
+
+    @Autowired
+    private ICommentService commentService;
 
     @Autowired
     private RedisService redisService;
@@ -98,9 +99,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public UserInfoVO getUserInfo() {
         int userId = StpUtil.getLoginIdAsInt();
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                .select(User::getAvatar, User::getNickname, User::getEmail,
-                        User::getUsername, User::getDegree, User::getGrade,
-                        User::getIntro, User::getLoginType)
+                .select(User::getAvatar, User::getNickname, User::getEmail, User::getSex, User::getUsername,
+                        User::getDegree, User::getGrade, User::getIntro, User::getLoginType,
+                        User::getIpSource, User::getLoginTime)
                 .eq(User::getId, userId));
         // 点赞记录
         List<Integer> recordIds = getLikeRecordIds(userId);
@@ -115,15 +116,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 收藏题目
         List<Integer> quizCIds = getCollectIds(userId, QUIZ.getType());
         // 用户参与的约起记录
-        List<MyIssueAgree> myIssueAgrees = getIssueAgreeIds(userId);
-        return UserInfoVO
-                .builder()
+        List<UserAgree> myIssueAgrees = getIssueAgreeIds(userId);
+        return UserInfoVO.builder()
                 .id(userId)
                 .avatar(user.getAvatar())
                 .nickname(user.getNickname())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .intro(user.getIntro())
+                .sex(user.getSex())
                 .degree(user.getDegree())
                 .grade(user.getGrade())
                 .recordLikeSet(recordIds)
@@ -134,110 +135,188 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .quitCollectSet(quizCIds)
                 .agreeIssueSet(myIssueAgrees)
                 .loginType(user.getLoginType())
+                .ipSource(user.getIpSource())
+                .loginTime(user.getLoginTime())
                 .build();
     }
 
     @Override
-    public List<AgreeVO> getIssueAgree(Integer type) {
-        return agreeService.listAgreementVO(
-                AgreeQueryDTO.builder().type(type).userId(StpUtil.getLoginIdAsInt()).build());
+    public List<AgreeVO> getIssueAgree(UserAgreeDTO userAgree) {
+        return agreeService.listAgreementVO(AgreeQueryDTO.builder()
+                .type(userAgree.getType())
+                .title(userAgree.getKeyword())
+                .userId(StpUtil.getLoginIdAsInt())
+                .build());
     }
 
     @Override
-    public List<MyAgree> getTakeAgree() {
-        List<MyAgree> myTakeAgreeList = new ArrayList<>();
-        Map<Integer, List<AgreeVO>> map = new HashMap<>();
-        userAgreeMapper.selectList(
-                new LambdaQueryWrapper<UserAgree>()
-                        .select(UserAgree::getAgreeId, UserAgree::getType)
-                        .eq(UserAgree::getUserId, StpUtil.getLoginIdAsInt())
-        ).forEach(item -> {
-            AgreeVO agreementInfo = agreeService.editAgreement(item.getAgreeId(), item.getType());
-            map.computeIfAbsent(item.getType(), k -> new ArrayList<>())
-                    .add(BeanUtils.copyBean(agreementInfo, AgreeVO.class));
-        });
-        map.forEach((type, agreements) -> myTakeAgreeList.add(MyAgree.builder().type(type).list(agreements).build()));
-        return myTakeAgreeList;
+    public List<AgreeVO> getTakeAgree(UserAgreeDTO userAgree) {
+        return agreeService.listAgreementVO(AgreeQueryDTO.builder()
+                .type(userAgree.getType())
+                .title(userAgree.getKeyword())
+                .relateUid(StpUtil.getLoginIdAsInt())
+                .build());
     }
 
     @Override
-    public List<AgreeRecord> getIssueRecord() {
+    public List<AgreeRecord> getIssueRecord(UserAgreeDTO userAgree) {
         AgreeRecord.Query query = new AgreeRecord.Query();
         query.setIsDelete(FALSE);
         query.setUserId(StpUtil.getLoginIdAsInt());
+        query.setTitle(userAgree.getKeyword());
+        query.setType(userAgree.getType());
         return recordService.listAgreeRecord(query);
     }
 
     @Override
-    public List<Quiz> getIssueQuiz() {
+    public List<Quiz> getIssueQuiz(UserAgreeDTO userAgree) {
         Quiz.Query query = new Quiz.Query();
         query.setUserId(StpUtil.getLoginIdAsInt());
+        query.setTitle(userAgree.getKeyword());
         return quizService.listQuiz(query);
     }
 
     @Override
-    public List<AgreeRecord> getCollectRecord() {
-        // 获取用户收藏的记录id列表
-        List<Integer> recordIds = userCollectMapper.selectList(new LambdaQueryWrapper<UserCollect>()
-                        .select(UserCollect::getTypeId)
-                        .eq(UserCollect::getType, RECORD.getType())
-                        .eq(UserCollect::getUserId, StpUtil.getLoginIdAsInt()))
-                .stream().map(UserCollect::getTypeId).toList();
-        List<AgreeRecord> list = new ArrayList<>();
-        // 遍历获取记录信息
-        recordIds.forEach(item -> list.add(recordService.getRecordInfo(item)));
-        return list;
+    public List<QuizAnswer> getIssueAnswer(UserAgreeDTO userAgree) {
+        QuizAnswer.Query query = new QuizAnswer.Query();
+        query.setUserId(StpUtil.getLoginIdAsInt());
+        query.setKeyword(userAgree.getKeyword());
+        return quizAnswerService.selectAnswerList(query);
     }
 
     @Override
-    public List<Quiz> getCollectQuiz() {
-        // 获取用户收藏的记录id列表
-        List<Integer> quizIds = userCollectMapper.selectList(new LambdaQueryWrapper<UserCollect>()
-                        .select(UserCollect::getTypeId)
-                        .eq(UserCollect::getType, QUIZ.getType())
-                        .eq(UserCollect::getUserId, StpUtil.getLoginIdAsInt()))
-                .stream().map(UserCollect::getTypeId).toList();
-        List<Quiz> list = new ArrayList<>();
-        // 遍历获取记录信息
-        quizIds.forEach(item -> list.add(quizService.getQuizInfo(item)));
-        return list;
+    public List<Comment> getIssueComment(UserAgreeDTO userAgree) {
+        Comment.Query query = new Comment.Query();
+        query.setFromUid(StpUtil.getLoginIdAsInt());
+        query.setTitle(userAgree.getKeyword());
+        return commentService.listCommentVO(query);
     }
 
     @Override
-    public List<AgreeRecord> getLikeRecord() {
-        // 获取用户点赞的记录id列表
-        List<Integer> recordIds = getLikeRecordIds(StpUtil.getLoginIdAsInt());
-        List<AgreeRecord> list = new ArrayList<>();
-        recordIds.forEach(item -> list.add(recordService.getRecordInfo(item)));
-        return list;
+    public List<AgreeRecord> getCollectRecord(UserAgreeDTO userAgree) {
+        AgreeRecord.Query query = new AgreeRecord.Query();
+        query.setIsDelete(FALSE);
+        query.setCollectUid(StpUtil.getLoginIdAsInt());
+        query.setTitle(userAgree.getKeyword());
+        query.setType(userAgree.getType());
+        return recordService.listAgreeRecord(query);
     }
 
     @Override
-    public List<Quiz> getLikeQuiz() {
-        // 获取用户点赞的题目id列表
-        List<Integer> quizIds = getLikeQuizIds(StpUtil.getLoginIdAsInt());
-        List<Quiz> list = new ArrayList<>();
-        quizIds.forEach(item -> list.add(quizService.getQuizInfo(item)));
-        return list;
+    public List<Quiz> getCollectQuiz(UserAgreeDTO userAgree) {
+        Quiz.Query query = new Quiz.Query();
+        query.setCollectUid(StpUtil.getLoginIdAsInt());
+        query.setTitle(userAgree.getKeyword());
+        return quizService.listQuiz(query);
     }
 
     @Override
-    public List<Comment> getLikeComment() {
-        // 获取用户点赞的评论id列表
-        List<Integer> commentIds = getLikeCommentIds(StpUtil.getLoginIdAsInt());
-        return commentIds.isEmpty() ? new ArrayList<>() : commentMapper.selectBatchIds(commentIds);
+    public List<AgreeRecord> getLikeRecord(UserAgreeDTO userAgree) {
+        int userId = StpUtil.getLoginIdAsInt();
+        userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
+        if (userAgree.getFlag()) {
+            return redisService.getSet(USER_RECORD_LIKE + userId).stream().map(id ->
+                    recordService.getRecordInfo(Integer.valueOf(id.toString()))).peek(item -> item.setContent("")).filter(item -> {
+                if (StringUtils.isNotEmpty(userAgree.getKeyword()) && userAgree.getType() != 0) {
+                    return (item.getTitle().contains(userAgree.getKeyword()) ||
+                            item.getNickname().contains(userAgree.getKeyword())) &&
+                            userAgree.getType().equals(item.getType());
+                } else if (StringUtils.isNotEmpty(userAgree.getKeyword())) {
+                    return item.getTitle().contains(userAgree.getKeyword()) ||
+                            item.getNickname().contains(userAgree.getKeyword());
+                } else if (userAgree.getType() != 0) {
+                    return userAgree.getType().equals(item.getType());
+                } else {
+                    return true;
+                }
+            }).toList();
+        } else {
+            AgreeRecord.Query query = new AgreeRecord.Query();
+            query.setTitle(userAgree.getKeyword());
+            query.setType(userAgree.getType());
+            query.setLikeUid(userId);
+            return recordService.listAgreeRecord(query);
+        }
+    }
+
+    @Override
+    public List<Quiz> getLikeQuiz(UserAgreeDTO userAgree) {
+        int userId = StpUtil.getLoginIdAsInt();
+        userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
+        if (userAgree.getFlag()) {
+            return redisService.getSet(USER_QUIZ_LIKE + userId).stream().map(id ->
+                    quizService.getQuizInfo(Integer.valueOf(id.toString()))).peek(item -> item.setContent("")).filter(item -> {
+                if (StringUtils.isNotEmpty(userAgree.getKeyword())) {
+                    return item.getTitle().contains(userAgree.getKeyword()) ||
+                            item.getNickname().contains(userAgree.getKeyword());
+                } else {
+                    return true;
+                }
+            }).toList();
+        } else {
+            Quiz.Query query = new Quiz.Query();
+            query.setTitle(userAgree.getKeyword());
+            query.setLikeUid(userId);
+            return quizService.listQuiz(query);
+        }
+    }
+
+    @Override
+    public List<QuizAnswer> getLikeAnswer(UserAgreeDTO userAgree) {
+        int userId = StpUtil.getLoginIdAsInt();
+        userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
+        if (userAgree.getFlag()) {
+            return redisService.getSet(USER_ANSWER_LIKE + userId).stream().map(id ->
+                    quizAnswerService.selectAnswerById(Integer.valueOf(id.toString()))).peek(item -> item.setContent("")).filter(item -> {
+                if (StringUtils.isNotEmpty(userAgree.getKeyword())) {
+                    return item.getTitle().contains(userAgree.getKeyword()) ||
+                            item.getNickname().contains(userAgree.getKeyword());
+                } else {
+                    return true;
+                }
+            }).toList();
+        } else {
+            QuizAnswer.Query query = new QuizAnswer.Query();
+            query.setKeyword(userAgree.getKeyword());
+            query.setLikeUid(userId);
+            return quizAnswerService.selectAnswerList(query);
+        }
+    }
+
+    @Override
+    public List<Comment> getLikeComment(UserAgreeDTO userAgree) {
+        int userId = StpUtil.getLoginIdAsInt();
+        userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
+        if (userAgree.getFlag()) {
+            return redisService.getSet(USER_COMMENT_LIKE + userId).stream().map(id ->
+                    commentService.getCommentInfo(Integer.valueOf(id.toString()))).filter(item -> {
+                if (StringUtils.isNotEmpty(userAgree.getKeyword()) && userAgree.getType() != 0) {
+                    return (item.getTitle().contains(userAgree.getKeyword()) ||
+                            item.getFromNickname().contains(userAgree.getKeyword())) &&
+                            userAgree.getType().equals(item.getType());
+                } else if (StringUtils.isNotEmpty(userAgree.getKeyword())) {
+                    return item.getTitle().contains(userAgree.getKeyword()) ||
+                            item.getFromNickname().contains(userAgree.getKeyword());
+                } else if (userAgree.getType() != 0) {
+                    return userAgree.getType().equals(item.getType());
+                } else {
+                    return true;
+                }
+            }).toList();
+        } else {
+            Comment.Query query = new Comment.Query();
+            query.setTitle(userAgree.getKeyword());
+            query.setType(userAgree.getType());
+            query.setLikeUid(userId);
+            return commentService.listCommentVO(query);
+        }
     }
 
     @Override
     public void updateUser(User user) {
         // 更新用户信息
-        baseMapper.updateById(User.builder()
-                .id(StpUtil.getLoginIdAsInt())
-                .nickname(user.getNickname())
-                .intro(user.getIntro())
-                .grade(user.getGrade())
-                .degree(user.getDegree())
-                .build());
+        user.setId(StpUtil.getLoginIdAsInt());
+        baseMapper.updateById(user);
     }
 
     @Override
@@ -396,7 +475,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .select(UserCollect::getTypeId)
                 .eq(UserCollect::getType, type)
                 .eq(UserCollect::getUserId, userId));
-        if(StringUtils.isNotEmpty(list)) {
+        if (StringUtils.isNotEmpty(list)) {
             return list.stream().map(UserCollect::getTypeId).toList();
         } else {
             return new ArrayList<>();
@@ -406,15 +485,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     /**
      * 获取用户参与的约起记录ids信息
      */
-    private List<MyIssueAgree> getIssueAgreeIds(Integer userId) {
-        List<MyIssueAgree> myIssueAgreeList = new ArrayList<>();
-        Map<Integer, List<Integer>> map = new HashMap<>();
-        userAgreeMapper.selectList(new LambdaQueryWrapper<UserAgree>()
-                .select(UserAgree::getAgreeId, UserAgree::getType)
-                .eq(UserAgree::getUserId, userId)).forEach(
-                item -> map.computeIfAbsent(item.getType(), k -> new ArrayList<>()).add(item.getAgreeId()));
-        map.forEach((type, ids) -> myIssueAgreeList.add(MyIssueAgree.builder().type(type).ids(ids).build()));
-        return myIssueAgreeList;
+    private List<UserAgree> getIssueAgreeIds(Integer userId) {
+        return userAgreeMapper.selectList(new LambdaQueryWrapper<UserAgree>()
+                .select(UserAgree::getAgreeId, UserAgree::getType, UserAgree::getStatus)
+                .eq(UserAgree::getUserId, userId));
     }
 
 }

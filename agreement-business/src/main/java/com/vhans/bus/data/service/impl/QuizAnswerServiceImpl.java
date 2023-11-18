@@ -49,7 +49,12 @@ public class QuizAnswerServiceImpl extends ServiceImpl<QuizAnswerMapper, QuizAns
 
     @Override
     public QuizAnswer selectAnswerById(Integer id) {
-        return quizAnswerMapper.selectAnswerById(id);
+        QuizAnswer quizAnswer = quizAnswerMapper.selectAnswerById(id);
+        // 查询点赞量
+        Integer likeNumber = redisService.getHash(ANSWER_LIKE_COUNT, id.toString());
+        // 设置当前点赞量为 持久点赞量 + 缓存点赞量
+        quizAnswer.setLikeNumber(quizAnswer.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
+        return quizAnswer;
     }
 
     @Override

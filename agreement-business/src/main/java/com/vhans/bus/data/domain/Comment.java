@@ -165,10 +165,10 @@ public class Comment {
     @Data
     public static class Query {
         /**
-         * 评论用户昵称(like)
+         * 评论用户id
          */
-        @ApiModelProperty(value = "评论用户昵称")
-        private String fromNickname;
+        @ApiModelProperty("评论用户id")
+        private Integer fromUid;
 
         /**
          * 类型(1记录 2提问)
@@ -183,9 +183,9 @@ public class Comment {
         private Integer typeId;
 
         /**
-         * 评论文本标题(like)
+         * 评论文本标题或者评论用户昵称(like)
          */
-        @ApiModelProperty(value = "评论文本标题")
+        @ApiModelProperty(value = "评论文本标题或者评论用户昵称")
         private String title;
 
         /**
@@ -193,5 +193,11 @@ public class Comment {
          */
         @ApiModelProperty("是否通过")
         private Integer isCheck;
+
+        /**
+         * 点赞者id
+         */
+        @ApiModelProperty(value = "点赞者id")
+        private Integer likeUid;
     }
 }

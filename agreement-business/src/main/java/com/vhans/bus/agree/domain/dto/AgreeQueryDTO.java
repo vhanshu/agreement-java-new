@@ -37,6 +37,12 @@ public class AgreeQueryDTO {
     @ApiModelProperty(value = "状态(1发出 2草稿 3完成 4过期 5取消)")
     private Integer status;
 
+    /**
+     * 有关用户id
+     */
+    @ApiModelProperty(value = "有关用户id")
+    private Integer relateUid;
+
     /* 对于约会扩展的 */
     /**
      * 发出类型(1广播 2指定)

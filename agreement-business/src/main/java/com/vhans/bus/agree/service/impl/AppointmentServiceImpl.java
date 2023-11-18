@@ -6,11 +6,11 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.agree.domain.Appointment;
-import com.vhans.bus.agree.mapper.AppointmentMapper;
-import com.vhans.bus.agree.service.IAppointmentService;
 import com.vhans.bus.agree.domain.dto.AgreeDTO;
 import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
+import com.vhans.bus.agree.mapper.AppointmentMapper;
+import com.vhans.bus.agree.service.IAppointmentService;
 import com.vhans.bus.subsidiary.model.vo.PaginationVO;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.domain.UserAgree;
@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.vhans.core.constant.MqConstant.EMAIL_EXCHANGE;
 import static com.vhans.core.constant.MqConstant.EMAIL_HTML_KEY;
-import static com.vhans.core.constant.NumberConstant.ONE;
-import static com.vhans.core.constant.NumberConstant.TWO;
+import static com.vhans.core.constant.NumberConstant.*;
 import static com.vhans.core.constant.RedisConstant.APPOINTMENT_VIEW_COUNT;
 import static com.vhans.core.constant.RedisConstant.SITE_SETTING;
 import static com.vhans.core.constant.ScoreConstant.APPOINTMENT_SCORE;
@@ -77,7 +77,11 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
             if (item.getStatus() == 3) {
                 // 查询约会应约者
                 UserAgree destinedUser = userAgreeMapper.selectAppointmentUser(item.getId());
-                item.setDestinedUserId(destinedUser.getUserId());
+                if (StringUtils.isNull(destinedUser)) {
+                    CompletableFuture.runAsync(() -> this.updateAppointment(AgreeDTO.builder().id(item.getId()).status(ONE).build()));
+                } else {
+                    item.setDestinedUserId(destinedUser.getUserId());
+                }
             }
             // 查询浏览量
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(APPOINTMENT_VIEW_COUNT, item.getId()))
@@ -104,7 +108,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
         if (newAppointment.getType() == 2) {
             Assert.isTrue(StringUtils.isNotEmpty(appointment.getUserList()), "未指定约会人员");
             appointment.getUserList().forEach(item ->
-                    userAgreeMapper.saveAppointmentDestinedUser(appointment.getId(), item.getId()));
+                    userAgreeMapper.saveAgreeUser(appointment.getId(), item.getId(), EIGHT));
             if (newAppointment.getStatus() == 1) {
                 // 查询用户信息
                 User fromUser = userMapper.selectById(userId);
@@ -112,7 +116,8 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                 List<User> toUserList = appointment.getUserList().stream()
                         .map(item -> userMapper.selectById(item.getId())).toList();
                 // 分别发送邮件
-                toUserList.forEach(toUser -> sendEmail(newAppointment, fromUser, toUser));
+                toUserList.forEach(toUser ->
+                        CompletableFuture.runAsync(() -> sendEmail(newAppointment, fromUser, toUser)));
             }
         }
     }
@@ -137,12 +142,13 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                 "约会已发出,不允许保存为草稿");
         appointmentMapper.updateById(newAppointment);
         if (appointment.getStatus() == 3) {
-            return "手动设置约会为完成状态,忽略平台继续寻找约会人员";
+            // 新增用户关联id=0,表示自定义人员
+            userAgreeMapper.insert(UserAgree.builder().agreeId(appointment.getId()).userId(ZERO).type(ONE).build());
+            return "已找到应约人员,忽略平台继续寻找约会人员";
         }
         // 删除之前指定的约会人员
         userAgreeMapper.delete(new LambdaQueryWrapper<UserAgree>()
-                .eq(UserAgree::getType, 1)
-                .eq(UserAgree::getLimitType, 2)
+                .eq(UserAgree::getType, EIGHT)
                 .eq(UserAgree::getAgreeId, appointment.getId()));
         if (appointment.getStatus() == 5 && newAppointment.getType() == 2) {
             // 查询用户信息
@@ -151,7 +157,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
             List<User> toUserList = appointment.getUserList().stream()
                     .map(item -> userMapper.selectById(item.getId())).toList();
             // 分别发送邮件,提醒约会取消
-            toUserList.forEach(toUser -> sendEmail(newAppointment, fromUser, toUser));
+            toUserList.forEach(toUser -> CompletableFuture.runAsync(() -> sendEmail(newAppointment, fromUser, toUser)));
             userMapper.updateDegree(userId, -4 * APPOINTMENT_SCORE);
             return "取消成功,发送邮件通知指定约会人员,约起分数减少 " + -2 * APPOINTMENT_SCORE;
         }
@@ -161,7 +167,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                     item -> {
                         Assert.isFalse(StringUtils.isNull(userMapper.selectById(item.getId())),
                                 "用户 [" + item.getNickname() + "] 未注册");
-                        userAgreeMapper.saveAppointmentDestinedUser(newAppointment.getId(), item.getId());
+                        userAgreeMapper.saveAgreeUser(newAppointment.getId(), item.getId(), EIGHT);
                     });
             if (newAppointment.getStatus() == 1) {
                 // 查询用户信息
@@ -170,7 +176,8 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                 List<User> toUserList = appointment.getUserList().stream()
                         .map(item -> userMapper.selectById(item.getId())).toList();
                 // 分别发送邮件,提醒邀请应约
-                toUserList.forEach(toUser -> sendEmail(newAppointment, fromUser, toUser));
+                toUserList.forEach(toUser ->
+                        CompletableFuture.runAsync(() -> sendEmail(newAppointment, fromUser, toUser)));
                 return "更新成功,正在发送邮件提醒指定约会人员";
             }
             return "更新约会和指定应约者成功";
@@ -249,25 +256,24 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
         int userId = StpUtil.getLoginIdAsInt();
         // 查询约会应约者信息
         UserAgree agreementUser = userAgreeMapper.selectOne(new LambdaQueryWrapper<UserAgree>()
-                .select(UserAgree::getId, UserAgree::getUserId)
-                .eq(UserAgree::getType, 1)
-                .eq(UserAgree::getLimitType, 1)
-                .eq(UserAgree::getAgreeId, appointmentId));
+                .select(UserAgree::getId, UserAgree::getAgreeId, UserAgree::getUserId)
+                .eq(UserAgree::getAgreeId, appointmentId)
+                .eq(UserAgree::getType, ONE));
         if (StringUtils.isNull(agreementUser)) {
             // 应约
-            appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(3).build());
-            userAgreeMapper.saveAppointmentUser(appointmentId, userId);
+            appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(THREE).build());
+            userAgreeMapper.saveAgreeUser(appointmentId, userId, ONE);
             userMapper.updateDegree(userId, APPOINTMENT_SCORE);
-            // 发送邮件,提示约会完成信息
-            constructionEmailWord(appointmentId);
+            // 异步发送邮件,提示约会完成信息
+            CompletableFuture.runAsync(() -> constructionEmailWord(appointmentId, THREE));
             return "应约成功,约起分数增加: " + APPOINTMENT_SCORE;
         } else if (agreementUser.getUserId().equals(userId)) {
             // 取消参与,减少约起分数
             userAgreeMapper.deleteById(agreementUser.getId());
             userMapper.updateDegree(userId, -2 * APPOINTMENT_SCORE);
             appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(1).build());
-            //  给约起发起者发送邮件,提示约会重置信息
-            constructionEmailWord(appointmentId);
+            // 异步给约起发起者发送邮件,提示约会重置信息
+            CompletableFuture.runAsync(() -> constructionEmailWord(appointmentId, ONE));
             return "成功取消,约起分数减少: " + APPOINTMENT_SCORE;
         } else {
             // 已有应约者
@@ -280,42 +286,44 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
     public String uniqueAppointment(Integer appointmentId) {
         // 登录用户id
         int userId = StpUtil.getLoginIdAsInt();
-        int agreementUserId = 0;
         // 查询约会指定约会人员信息
         List<UserAgree> agreementUsers = userAgreeMapper.selectList(new LambdaQueryWrapper<UserAgree>()
                 .select(UserAgree::getId, UserAgree::getUserId, UserAgree::getStatus)
-                .eq(UserAgree::getType, 1)
-                .eq(UserAgree::getLimitType, 2)
+                .eq(UserAgree::getType, SIX)
                 .eq(UserAgree::getAgreeId, appointmentId));
         Assert.isTrue(StringUtils.isNotEmpty(agreementUsers), "未指定约会人员");
-        for (UserAgree item : agreementUsers) {
-            if (item.getStatus().equals(2)) {
-                // 已有用户应约
+        Optional<UserAgree> acceptUser = agreementUsers.stream().filter(item -> item.getStatus() == ONE).findFirst();
+        if (acceptUser.isPresent()) {
+            if (acceptUser.get().getUserId() == userId) {
+                // 取消我之前的应约
+                // 1.约会重新开放
+                appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(ONE).build());
+                // 2.取消参与并减少约起分数
+                userAgreeMapper.updateById(UserAgree.builder().id(acceptUser.get().getId()).status(TWO).build());
+                userMapper.updateDegree(userId, -2 * APPOINTMENT_SCORE);
+                // 3.异步发送邮件,提示约会重置信息
+                CompletableFuture.runAsync(() -> constructionEmailWord(appointmentId, ONE));
+                return "取消成功,约起分数减少: " + APPOINTMENT_SCORE;
+            } else {
+                // 已有其他用户应约
                 return "已被捷足先登";
             }
-            if (item.getUserId().equals(userId)) {
-                // 当前用户是指定约会人员
-                agreementUserId = item.getId();
-            }
-        }
-        if (agreementUserId > 0) {
-            // 约会重新开放
-            appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(1).build());
-            // 取消参与,减少约起分数
-            userAgreeMapper.updateById(UserAgree.builder().id(agreementUserId).status(3).build());
-            userMapper.updateDegree(userId, -2 * APPOINTMENT_SCORE);
-            // 发送邮件,提示约会重置信息
-            constructionEmailWord(appointmentId);
-            return "取消成功,约起分数减少: " + APPOINTMENT_SCORE;
         } else {
-            // 约会完成
-            appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(3).build());
-            // 应约,增加约起分数
-            userAgreeMapper.updateById(UserAgree.builder().id(agreementUserId).status(2).build());
-            userMapper.updateDegree(userId, APPOINTMENT_SCORE);
-            // 发送邮件,提示约会完成信息
-            constructionEmailWord(appointmentId);
-            return "成功参与,约起分数增加: " + APPOINTMENT_SCORE;
+            // 没有用户应约
+            Optional<UserAgree> appointMy = agreementUsers.stream().filter(item -> item.getUserId() == userId).findFirst();
+            if (appointMy.isPresent()) {
+                // 我应约
+                // 1.约会完成
+                appointmentMapper.updateById(Appointment.builder().id(appointmentId).status(THREE).build());
+                // 2.应约并增加约起分数
+                userAgreeMapper.updateById(UserAgree.builder().id(appointMy.get().getId()).status(ONE).build());
+                userMapper.updateDegree(userId, APPOINTMENT_SCORE);
+                // 3.异步发送邮件,提示约会完成信息
+                CompletableFuture.runAsync(() -> constructionEmailWord(appointmentId, THREE));
+                return "成功参与,约起分数增加: " + APPOINTMENT_SCORE;
+            } else {
+                return "您不是指定的约会人员";
+            }
         }
     }
 
@@ -324,11 +332,11 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
      *
      * @param appointmentId 约会id
      */
-    private void constructionEmailWord(Integer appointmentId) {
+    private void constructionEmailWord(Integer appointmentId, Integer status) {
         Appointment appointment = appointmentMapper.selectOne(new LambdaQueryWrapper<Appointment>()
-                .select(Appointment::getTitle, Appointment::getUserId,
-                        Appointment::getStatus, Appointment::getType)
+                .select(Appointment::getTitle, Appointment::getUserId, Appointment::getType)
                 .eq(Appointment::getId, appointmentId));
+        appointment.setStatus(status);
         User toUser = userMapper.selectById(appointment.getUserId());
         sendEmail(appointment, toUser);
     }
@@ -340,9 +348,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
      * @return 链接地址
      */
     private String getUrl(Appointment appointment) {
-        String appointmentId = Optional.ofNullable(appointment.getId())
-                .map(Object::toString)
-                .orElse("");
+        String appointmentId = Optional.ofNullable(appointment.getId()).map(Object::toString).orElse("");
         if (appointment.getType() == 2) {
             // 构造应约链接
             return websiteUrl + APPOINTMENT_SPECIFY.getPath() + appointmentId;
@@ -405,8 +411,8 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
         contentMap.put("username", toUser.getUsername());
         contentMap.put("message", message);
         contentMap.put("time", createTime);
-        contentMap.put("title", appointment.getTitle());
         contentMap.put("url", url);
+        contentMap.put("title", appointment.getTitle());
         mailDTO.setContentMap(contentMap);
         // 发送HTML邮件
         rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_HTML_KEY, mailDTO);

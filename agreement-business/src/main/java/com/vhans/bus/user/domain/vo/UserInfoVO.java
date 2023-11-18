@@ -1,15 +1,17 @@
 package com.vhans.bus.user.domain.vo;
 
-import com.vhans.bus.agree.domain.vo.MyIssueAgree;
+import com.vhans.bus.user.domain.UserAgree;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * 用户登录信息
+ *
  * @author vhans
  */
 @Data
@@ -53,6 +55,12 @@ public class UserInfoVO {
     private String intro;
 
     /**
+     * 用户性别(0保密 1男 2女)
+     */
+    @ApiModelProperty(value = "用户性别(0保密 1男 2女)")
+    private Integer sex;
+
+    /**
      * 活动参与度
      */
     @ApiModelProperty(value = "活动参与度")
@@ -71,10 +79,22 @@ public class UserInfoVO {
     private Integer loginType;
 
     /**
+     * 登录地址
+     */
+    @ApiModelProperty(value = "登录地址")
+    private String ipSource;
+
+    /**
+     * 登录时间
+     */
+    @ApiModelProperty(value = "登录时间")
+    private LocalDateTime loginTime;
+
+    /**
      * 约起参与ids信息
      */
     @ApiModelProperty(value = "约起参与ids信息")
-    private List<MyIssueAgree> agreeIssueSet;
+    private List<UserAgree> agreeIssueSet;
 
     /**
      * 点赞记录集合
