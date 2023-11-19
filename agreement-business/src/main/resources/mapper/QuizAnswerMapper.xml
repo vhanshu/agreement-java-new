@@ -17,7 +17,6 @@
         from d_quiz_answer qa
         left join u_user u on u.id = qa.user_id
         left join d_quiz q on q.id = qa.quiz_id
-        left join u_user_like ul on ul.type_id = qa.id and ul.type = 4
         <where>
             <if test="query.quizId != null">
                 and qa.quiz_id = #{query.quizId}
@@ -33,7 +32,7 @@
                 or q.title like concat('%',#{query.keyword},'%'))
             </if>
             <if test="query.likeUid != null">
-                and ul.user_id = #{query.likeUid}
+                and #{query.likeUid} in (select ul.user_id from u_user_like ul where ul.type = 4 and ul.type_id = qa.id)
             </if>
         </where>
     </select>

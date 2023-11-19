@@ -15,7 +15,6 @@
         h.`status`
         FROM a_help h
         LEFT JOIN u_user u ON h.user_id = u.id
-        LEFT JOIN u_user_agree ua ON h.id = ua.agree_id AND ua.type = 4
         <where>
             <if test="query.userId != null">
                 h.user_id = #{query.userId}
@@ -28,7 +27,7 @@
                 u.nickname like concat('%',#{query.title},'%'))
             </if>
             <if test="query.relateUid != null">
-                and ua.user_id = #{query.relateUid}
+                and #{query.relateUid} in (select ua.user_id from u_user_agree ua where ua.type = 4 and ua.agree_id = h.id)
             </if>
         </where>
         ORDER BY h.create_time DESC

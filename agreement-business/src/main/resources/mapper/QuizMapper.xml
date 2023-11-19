@@ -16,8 +16,6 @@
         u.nickname
         FROM d_quiz q
         LEFT JOIN u_user u on u.id = q.user_id
-        LEFT JOIN u_user_collect uc on uc.type_id = q.id and uc.type = 2
-        LEFT JOIN u_user_like ul on ul.type_id = q.id and ul.type = 2
         <where>
             <if test="query.userId != null">
                 q.user_id = #{query.userId}
@@ -30,10 +28,10 @@
                 or u.nickname like concat('%',#{query.title},'%'))
             </if>
             <if test="query.collectUid != null">
-                and uc.user_id = #{query.collectUid}
+                and #{query.collectUid} in (select uc.user_id from u_user_collect uc where uc.type = 2 and uc.type_id = q.id)
             </if>
             <if test="query.likeUid != null">
-                and ul.user_id = #{query.likeUid}
+                and #{query.likeUid} in (select ul.user_id from u_user_like ul where ul.type = 2 and ul.type_id = q.id)
             </if>
         </where>
         ORDER BY create_time DESC

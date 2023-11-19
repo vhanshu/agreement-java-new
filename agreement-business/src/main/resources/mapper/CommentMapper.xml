@@ -6,6 +6,8 @@
 
     <select id="listCommentVO" resultType="com.vhans.bus.data.domain.Comment">
         SELECT c.id,
+        c.from_uid,
+        c.type_id,
         fu.avatar,
         fu.nickname AS from_nickname,
         tu.nickname AS to_nickname,
@@ -20,13 +22,12 @@
         LEFT JOIN d_quiz q ON c.type = 2 and c.type_id = q.id
         LEFT JOIN u_user fu ON c.from_uid = fu.id
         LEFT JOIN u_user tu ON c.to_uid = tu.id
-        LEFT JOIN u_user_like ul on ul.type_id = c.id and ul.type = 3
         <where>
             <if test="query.type != null and query.type != 0">
                 c.type = #{query.type}
             </if>
             <if test="query.fromUid != null">
-                and fu.from_uid = #{query.fromUid}
+                and c.from_uid = #{query.fromUid}
             </if>
             <if test="query.isCheck != null">
                 and c.is_check = #{query.isCheck}
@@ -37,7 +38,7 @@
                 q.title like concat('%',#{query.title},'%'))
             </if>
             <if test="query.likeUid != null">
-                and ul.user_id = #{query.likeUid}
+                and #{query.likeUid} in (select ul.user_id from u_user_like ul where ul.type = 3 and ul.type_id = c.id)
             </if>
         </where>
         ORDER BY c.id DESC

@@ -20,8 +20,6 @@
         u.nickname
         FROM d_agree_record ar
         LEFT JOIN u_user u ON u.id = ar.user_id
-        LEFT JOIN u_user_collect uc on uc.type_id = ar.id and uc.type = 1
-        LEFT JOIN u_user_like ul on ul.type_id = ar.id and ul.type = 1
         <where>
             <if test="query.isDelete != null">
                 ar.is_delete = #{query.isDelete}
@@ -43,10 +41,10 @@
                 and ar.type = #{query.type}
             </if>
             <if test="query.collectUid != null">
-                and uc.user_id = #{query.collectUid}
+                and #{query.collectUid} in (select uc.user_id from u_user_collect uc where uc.type = 1 and uc.type_id = ar.id)
             </if>
             <if test="query.likeUid != null">
-                and ul.user_id = #{query.likeUid}
+                and #{query.likeUid} in (select ul.user_id from u_user_like ul where ul.type = 1 and ul.type_id = ar.id)
             </if>
         </where>
         ORDER BY is_top DESC, is_recommend DESC, create_time DESC
