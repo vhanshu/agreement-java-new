@@ -34,93 +34,98 @@ public interface IUserService extends IService<User> {
     /**
      * 获取登录用户信息
      *
-     * @return 用户信息
+     * @return 登录用户信息
      */
-    UserInfoVO getUserInfo();
+    UserInfoVO getLoginInfo();
 
     /**
-     * 获取登录用户发布的约起
+     * 获取用户信息
+     */
+    User getUserById(Integer id);
+
+    /**
+     * 获取用户发布的约起
      *
      * @return 发布的约起
      */
-    List<AgreeVO> getIssueAgree(UserAgreeDTO userAgree);
+    List<AgreeVO> getIssueAgree(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户参与的约起
+     * 获取用户参与的约起
      *
      * @return 参与的约起
      */
-    List<AgreeVO> getTakeAgree(UserAgreeDTO userAgree);
+    List<AgreeVO> getTakeAgree(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户发表的记录
+     * 获取用户发表的记录
      *
      * @return 发表的记录
      */
-    List<AgreeRecord> getIssueRecord(UserAgreeDTO userAgree);
+    List<AgreeRecord> getIssueRecord(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户发表的题目
+     * 获取用户发表的题目
      *
      * @return 发表的题目
      */
-    List<Quiz> getIssueQuiz(UserAgreeDTO userAgree);
+    List<Quiz> getIssueQuiz(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户发表的题目作答
+     * 获取用户发表的题目作答
      *
      * @return 发表的题目作答
      */
-    List<QuizAnswer> getIssueAnswer(UserAgreeDTO userAgree);
+    List<QuizAnswer> getIssueAnswer(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户发表的评论
+     * 获取用户发表的评论
      *
      * @return 发表的评论
      */
-    List<Comment> getIssueComment(UserAgreeDTO userAgree);
+    List<Comment> getIssueComment(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户收藏的记录
+     * 获取用户收藏的记录
      *
      * @return 收藏的记录
      */
-    List<AgreeRecord> getCollectRecord(UserAgreeDTO userAgree);
+    List<AgreeRecord> getCollectRecord(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户收藏的题目
+     * 获取用户收藏的题目
      *
      * @return 收藏的题目
      */
-    List<Quiz> getCollectQuiz(UserAgreeDTO userAgree);
+    List<Quiz> getCollectQuiz(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户点赞的记录
+     * 获取用户点赞的记录
      *
      * @return 点赞的记录
      */
-    List<AgreeRecord> getLikeRecord(UserAgreeDTO userAgree);
+    List<AgreeRecord> getLikeRecord(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户点赞的题目
+     * 获取用户点赞的题目
      *
      * @return 点赞的题目
      */
-    List<Quiz> getLikeQuiz(UserAgreeDTO userAgree);
+    List<Quiz> getLikeQuiz(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户点赞的题目作答
+     * 获取用户点赞的题目作答
      *
      * @return 点赞的题目作答
      */
-    List<QuizAnswer> getLikeAnswer(UserAgreeDTO userAgree);
+    List<QuizAnswer> getLikeAnswer(Integer userId, UserAgreeDTO userAgree);
 
     /**
-     * 获取登录用户点赞的评论
+     * 获取用户点赞的评论
      *
      * @return 点赞的评论
      */
-    List<Comment> getLikeComment(UserAgreeDTO userAgree);
+    List<Comment> getLikeComment(Integer userId, UserAgreeDTO userAgree);
 
     /**
      * 修改用户

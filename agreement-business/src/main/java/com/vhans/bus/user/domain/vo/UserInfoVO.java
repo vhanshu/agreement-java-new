@@ -61,18 +61,6 @@ public class UserInfoVO {
     private Integer sex;
 
     /**
-     * 活动参与度
-     */
-    @ApiModelProperty(value = "活动参与度")
-    private Integer degree;
-
-    /**
-     * 解疑等级
-     */
-    @ApiModelProperty(value = "解疑等级")
-    private Integer grade;
-
-    /**
      * 登录方式(1邮箱 2QQ 3Gitee 4Github)
      */
     @ApiModelProperty(value = "登录方式(1邮箱 2QQ 3Gitee 4Github)")
@@ -106,7 +94,7 @@ public class UserInfoVO {
      * 点赞题目集合
      */
     @ApiModelProperty(value = "点赞题目集合")
-    private List<Integer> quitLikeSet;
+    private List<Integer> quizLikeSet;
 
     /**
      * 点赞作答集合
@@ -130,5 +118,5 @@ public class UserInfoVO {
      * 收藏题目集合
      */
     @ApiModelProperty(value = "收藏题目集合")
-    private List<Integer> quitCollectSet;
+    private List<Integer> quizCollectSet;
 }

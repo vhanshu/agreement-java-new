@@ -11,6 +11,7 @@ import lombok.Data;
 @Data
 @ApiModel(description = "用户约起数据")
 public class UserAgreeDTO {
+
     /**
      * 搜索关键字
      */

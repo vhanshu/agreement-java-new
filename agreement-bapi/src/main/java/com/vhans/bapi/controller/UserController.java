@@ -45,10 +45,24 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "获取用户登录信息")
-    @GetMapping("/getUserInfo")
-    public Result<UserInfoVO> getUserInfo() {
-        return Result.success(userService.getUserInfo());
+    @GetMapping("/loginInfo")
+    public Result<UserInfoVO> getLoginInfo() {
+        return Result.success(userService.getLoginInfo());
     }
+
+    /**
+     * 获取用户基本信息
+     *
+     * @param userId 用户id
+     * @return {@link User} 用户基本信息
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "获取用户基本信息")
+    @GetMapping("/getInfo/{userId}")
+    public Result<User> getInfo(@PathVariable Integer userId) {
+        return Result.success(userService.getUserById(userId));
+    }
+
 
     /**
      * 修改用户邮箱
@@ -112,10 +126,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "发布的约起(type1~4)")
-    @GetMapping("/getAgree/issue")
-    public TableDataInfo<AgreeVO> getIssueAgreement(UserAgreeDTO userAgree) {
+    @GetMapping("/getAgree/issue/{userId}")
+    public TableDataInfo<AgreeVO> getIssueAgreement(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<AgreeVO> list = userService.getIssueAgree(userAgree);
+        List<AgreeVO> list = userService.getIssueAgree(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -127,10 +141,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "参与的约起(type1~4)")
-    @GetMapping("/getAgree/take")
-    public TableDataInfo<AgreeVO> getTakeAgreement(UserAgreeDTO userAgree) {
+    @GetMapping("/getAgree/take/{userId}")
+    public TableDataInfo<AgreeVO> getTakeAgreement(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<AgreeVO> list = userService.getTakeAgree(userAgree);
+        List<AgreeVO> list = userService.getTakeAgree(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -142,10 +156,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "发表的记录(type0~4)")
-    @GetMapping("/getRecord/issue")
-    public TableDataInfo<AgreeRecord> getIssueRecord(UserAgreeDTO userAgree) {
+    @GetMapping("/getRecord/issue/{userId}")
+    public TableDataInfo<AgreeRecord> getIssueRecord(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<AgreeRecord> list = userService.getIssueRecord(userAgree);
+        List<AgreeRecord> list = userService.getIssueRecord(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -157,10 +171,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "发表的题目(type无)")
-    @GetMapping("/getQuiz/issue")
-    public TableDataInfo<Quiz> getIssueQuiz(UserAgreeDTO userAgree) {
+    @GetMapping("/getQuiz/issue/{userId}")
+    public TableDataInfo<Quiz> getIssueQuiz(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<Quiz> list = userService.getIssueQuiz(userAgree);
+        List<Quiz> list = userService.getIssueQuiz(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -172,10 +186,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "发表的题目作答(type无)")
-    @GetMapping("/getAnswer/issue")
-    public TableDataInfo<QuizAnswer> getIssueAnswer(UserAgreeDTO userAgree) {
+    @GetMapping("/getAnswer/issue/{userId}")
+    public TableDataInfo<QuizAnswer> getIssueAnswer(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<QuizAnswer> list = userService.getIssueAnswer(userAgree);
+        List<QuizAnswer> list = userService.getIssueAnswer(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -187,10 +201,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "发表的评论(type0~2)")
-    @GetMapping("/getComment/issue")
-    public TableDataInfo<Comment> getIssueComment(UserAgreeDTO userAgree) {
+    @GetMapping("/getComment/issue/{userId}")
+    public TableDataInfo<Comment> getIssueComment(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<Comment> list = userService.getIssueComment(userAgree);
+        List<Comment> list = userService.getIssueComment(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -202,10 +216,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "收藏的记录(type0~4)")
-    @GetMapping("/getRecord/collect")
-    public TableDataInfo<AgreeRecord> getCollectRecord(UserAgreeDTO userAgree) {
+    @GetMapping("/getRecord/collect/{userId}")
+    public TableDataInfo<AgreeRecord> getCollectRecord(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<AgreeRecord> list = userService.getCollectRecord(userAgree);
+        List<AgreeRecord> list = userService.getCollectRecord(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -217,10 +231,10 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "收藏的题目(type无)")
-    @GetMapping("/getQuiz/collect")
-    public TableDataInfo<Quiz> getCollectQuiz(UserAgreeDTO userAgree) {
+    @GetMapping("/getQuiz/collect/{userId}")
+    public TableDataInfo<Quiz> getCollectQuiz(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
-        List<Quiz> list = userService.getCollectQuiz(userAgree);
+        List<Quiz> list = userService.getCollectQuiz(userId, userAgree);
         clearPage();
         return getDataTable(list);
     }
@@ -232,15 +246,15 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞的记录(type0~4)")
-    @GetMapping("/getRecord/like")
-    public TableDataInfo<AgreeRecord> getLikeRecord(UserAgreeDTO userAgree) {
+    @GetMapping("/getRecord/like/{userId}")
+    public TableDataInfo<AgreeRecord> getLikeRecord(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
         if (!userAgree.getFlag()) {
             startPage();
         }
-        List<AgreeRecord> list = userService.getLikeRecord(userAgree);
+        List<AgreeRecord> list = userService.getLikeRecord(userId, userAgree);
         clearPage();
-        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
+        return userAgree.getFlag() ? getDataTable(list, -1) : getDataTable(list);
     }
 
     /**
@@ -250,15 +264,15 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞的题目(type无)")
-    @GetMapping("/getQuiz/like")
-    public TableDataInfo<Quiz> getLikeQuiz(UserAgreeDTO userAgree) {
+    @GetMapping("/getQuiz/like/{userId}")
+    public TableDataInfo<Quiz> getLikeQuiz(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
         if (!userAgree.getFlag()) {
             startPage();
         }
-        List<Quiz> list = userService.getLikeQuiz(userAgree);
+        List<Quiz> list = userService.getLikeQuiz(userId, userAgree);
         clearPage();
-        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
+        return userAgree.getFlag() ? getDataTable(list, -1) : getDataTable(list);
     }
 
     /**
@@ -268,15 +282,15 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞的题目作答(type无)")
-    @GetMapping("/getAnswer/like")
-    public TableDataInfo<QuizAnswer> getLikeAnsWer(UserAgreeDTO userAgree) {
+    @GetMapping("/getAnswer/like/{userId}")
+    public TableDataInfo<QuizAnswer> getLikeAnsWer(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
         if (!userAgree.getFlag()) {
             startPage();
         }
-        List<QuizAnswer> list = userService.getLikeAnswer(userAgree);
+        List<QuizAnswer> list = userService.getLikeAnswer(userId, userAgree);
         clearPage();
-        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
+        return userAgree.getFlag() ? getDataTable(list, -1) : getDataTable(list);
     }
 
     /**
@@ -286,14 +300,14 @@ public class UserController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "点赞的评论(type0~2)")
-    @GetMapping("/getComment/like")
-    public TableDataInfo<Comment> getLikeComment(UserAgreeDTO userAgree) {
+    @GetMapping("/getComment/like/{userId}")
+    public TableDataInfo<Comment> getLikeComment(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
         if (!userAgree.getFlag()) {
             startPage();
         }
-        List<Comment> list = userService.getLikeComment(userAgree);
+        List<Comment> list = userService.getLikeComment(userId, userAgree);
         clearPage();
-        return userAgree.getFlag() ? getDataTable(list, list.size()) : getDataTable(list);
+        return userAgree.getFlag() ? getDataTable(list, -1) : getDataTable(list);
     }
 }

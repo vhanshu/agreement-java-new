@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.agree.domain.dto.AgreeQueryDTO;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
 import com.vhans.bus.agree.service.IAgreeService;
+import com.vhans.bus.chat.domain.Friend;
+import com.vhans.bus.chat.mapper.FriendMapper;
 import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.domain.Quiz;
@@ -70,6 +72,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private UserLikeMapper userLikeMapper;
 
     @Autowired
+    private FriendMapper friendMapper;
+
+    @Autowired
     private IAgreeService agreeService;
 
     @Autowired
@@ -96,12 +101,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public UserInfoVO getUserInfo() {
+    public UserInfoVO getLoginInfo() {
         int userId = StpUtil.getLoginIdAsInt();
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                 .select(User::getAvatar, User::getNickname, User::getEmail, User::getSex, User::getUsername,
-                        User::getDegree, User::getGrade, User::getIntro, User::getLoginType,
-                        User::getIpSource, User::getLoginTime)
+                        User::getIntro, User::getLoginType, User::getIpSource, User::getLoginTime)
                 .eq(User::getId, userId));
         // 点赞记录
         List<Integer> recordIds = getLikeRecordIds(userId);
@@ -125,14 +129,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .email(user.getEmail())
                 .intro(user.getIntro())
                 .sex(user.getSex())
-                .degree(user.getDegree())
-                .grade(user.getGrade())
                 .recordLikeSet(recordIds)
-                .quitLikeSet(quizIds)
+                .quizLikeSet(quizIds)
                 .answerLikeSet(answerIds)
                 .commentLikeSet(commentIds)
                 .recordCollectSet(recordCIds)
-                .quitCollectSet(quizCIds)
+                .quizCollectSet(quizCIds)
                 .agreeIssueSet(myIssueAgrees)
                 .loginType(user.getLoginType())
                 .ipSource(user.getIpSource())
@@ -141,78 +143,99 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public List<AgreeVO> getIssueAgree(UserAgreeDTO userAgree) {
+    public User getUserById(Integer id) {
+        int userId = StpUtil.getLoginIdAsInt();
+        User user = userMapper.selectById(id);
+        if (id != userId) {
+            user.setPassword("");
+            user.setLoginType(0);
+            user.setIpSource(null);
+            user.setIpAddress("");
+            Friend friend = friendMapper.selectOne(new LambdaQueryWrapper<Friend>()
+                    .select(Friend::getFriendRemark)
+                    .eq(Friend::getUserId, userId)
+                    .eq(Friend::getFriendId, id));
+            if (StringUtils.isNotNull(friend)) {
+                user.setFriendRemark(friend.getFriendRemark());
+            } else {
+                user.setLoginTime(null);
+            }
+        }
+        return user;
+    }
+
+    @Override
+    public List<AgreeVO> getIssueAgree(Integer userId, UserAgreeDTO userAgree) {
         return agreeService.listAgreementVO(AgreeQueryDTO.builder()
                 .type(userAgree.getType())
                 .title(userAgree.getKeyword())
-                .userId(StpUtil.getLoginIdAsInt())
+                .userId(userId)
                 .build());
     }
 
     @Override
-    public List<AgreeVO> getTakeAgree(UserAgreeDTO userAgree) {
+    public List<AgreeVO> getTakeAgree(Integer userId, UserAgreeDTO userAgree) {
         return agreeService.listAgreementVO(AgreeQueryDTO.builder()
                 .type(userAgree.getType())
                 .title(userAgree.getKeyword())
-                .relateUid(StpUtil.getLoginIdAsInt())
+                .relateUid(userId)
                 .build());
     }
 
     @Override
-    public List<AgreeRecord> getIssueRecord(UserAgreeDTO userAgree) {
+    public List<AgreeRecord> getIssueRecord(Integer userId, UserAgreeDTO userAgree) {
         AgreeRecord.Query query = new AgreeRecord.Query();
         query.setIsDelete(FALSE);
-        query.setUserId(StpUtil.getLoginIdAsInt());
+        query.setUserId(userId);
         query.setTitle(userAgree.getKeyword());
         query.setType(userAgree.getType());
         return recordService.listAgreeRecord(query);
     }
 
     @Override
-    public List<Quiz> getIssueQuiz(UserAgreeDTO userAgree) {
+    public List<Quiz> getIssueQuiz(Integer userId, UserAgreeDTO userAgree) {
         Quiz.Query query = new Quiz.Query();
-        query.setUserId(StpUtil.getLoginIdAsInt());
+        query.setUserId(userId);
         query.setTitle(userAgree.getKeyword());
         return quizService.listQuiz(query);
     }
 
     @Override
-    public List<QuizAnswer> getIssueAnswer(UserAgreeDTO userAgree) {
+    public List<QuizAnswer> getIssueAnswer(Integer userId, UserAgreeDTO userAgree) {
         QuizAnswer.Query query = new QuizAnswer.Query();
-        query.setUserId(StpUtil.getLoginIdAsInt());
+        query.setUserId(userId);
         query.setKeyword(userAgree.getKeyword());
         return quizAnswerService.selectAnswerList(query);
     }
 
     @Override
-    public List<Comment> getIssueComment(UserAgreeDTO userAgree) {
+    public List<Comment> getIssueComment(Integer userId, UserAgreeDTO userAgree) {
         Comment.Query query = new Comment.Query();
-        query.setFromUid(StpUtil.getLoginIdAsInt());
+        query.setFromUid(userId);
         query.setTitle(userAgree.getKeyword());
         return commentService.listCommentVO(query);
     }
 
     @Override
-    public List<AgreeRecord> getCollectRecord(UserAgreeDTO userAgree) {
+    public List<AgreeRecord> getCollectRecord(Integer userId, UserAgreeDTO userAgree) {
         AgreeRecord.Query query = new AgreeRecord.Query();
         query.setIsDelete(FALSE);
-        query.setCollectUid(StpUtil.getLoginIdAsInt());
+        query.setCollectUid(userId);
         query.setTitle(userAgree.getKeyword());
         query.setType(userAgree.getType());
         return recordService.listAgreeRecord(query);
     }
 
     @Override
-    public List<Quiz> getCollectQuiz(UserAgreeDTO userAgree) {
+    public List<Quiz> getCollectQuiz(Integer userId, UserAgreeDTO userAgree) {
         Quiz.Query query = new Quiz.Query();
-        query.setCollectUid(StpUtil.getLoginIdAsInt());
+        query.setCollectUid(userId);
         query.setTitle(userAgree.getKeyword());
         return quizService.listQuiz(query);
     }
 
     @Override
-    public List<AgreeRecord> getLikeRecord(UserAgreeDTO userAgree) {
-        int userId = StpUtil.getLoginIdAsInt();
+    public List<AgreeRecord> getLikeRecord(Integer userId, UserAgreeDTO userAgree) {
         userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
         if (userAgree.getFlag()) {
             return redisService.getSet(USER_RECORD_LIKE + userId).stream().map(id ->
@@ -240,8 +263,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public List<Quiz> getLikeQuiz(UserAgreeDTO userAgree) {
-        int userId = StpUtil.getLoginIdAsInt();
+    public List<Quiz> getLikeQuiz(Integer userId, UserAgreeDTO userAgree) {
         userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
         if (userAgree.getFlag()) {
             return redisService.getSet(USER_QUIZ_LIKE + userId).stream().map(id ->
@@ -262,12 +284,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public List<QuizAnswer> getLikeAnswer(UserAgreeDTO userAgree) {
-        int userId = StpUtil.getLoginIdAsInt();
+    public List<QuizAnswer> getLikeAnswer(Integer userId, UserAgreeDTO userAgree) {
         userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
         if (userAgree.getFlag()) {
             return redisService.getSet(USER_ANSWER_LIKE + userId).stream().map(id ->
-                    quizAnswerService.selectAnswerById(Integer.valueOf(id.toString()))).peek(item -> item.setContent("")).filter(item -> {
+                    quizAnswerService.selectAnswerById(Integer.valueOf(id.toString()))).peek(item -> item.setContent(item.getContent().length() >= 200 ? (item.getContent().substring(0, 200) + "...") : item.getContent())).filter(item -> {
                 if (StringUtils.isNotEmpty(userAgree.getKeyword())) {
                     return item.getTitle().contains(userAgree.getKeyword()) ||
                             item.getNickname().contains(userAgree.getKeyword());
@@ -284,8 +305,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public List<Comment> getLikeComment(UserAgreeDTO userAgree) {
-        int userId = StpUtil.getLoginIdAsInt();
+    public List<Comment> getLikeComment(Integer userId, UserAgreeDTO userAgree) {
         userAgree.setType(userAgree.getType() == null ? 0 : userAgree.getType());
         if (userAgree.getFlag()) {
             return redisService.getSet(USER_COMMENT_LIKE + userId).stream().map(id ->
@@ -314,9 +334,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public void updateUser(User user) {
-        // 更新用户信息
-        user.setId(StpUtil.getLoginIdAsInt());
-        baseMapper.updateById(user);
+        int userId = StpUtil.getLoginIdAsInt();
+        user.setId(userId);
+        User oldUser = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .select(User::getUsername, User::getNickname)
+                .eq(User::getId, userId));
+        if (!oldUser.getUsername().equals(user.getUsername())) {
+            User flagUser = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                    .select(User::getId)
+                    .eq(User::getUsername, user.getUsername())
+                    .ne(User::getNickname, oldUser.getNickname()));
+            Assert.isNull(flagUser, "账号[" + user.getUsername() + "]已被使用");
+        }
+        if (StringUtils.isNotEmpty(user.getNickname())) {
+            User flagUser = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                    .select(User::getId)
+                    .eq(User::getNickname, user.getNickname())
+                    .ne(User::getUsername, oldUser.getUsername()));
+            Assert.isNull(flagUser, "昵称[" + user.getNickname() + "]已被使用");
+        }
+        userMapper.updateById(user);
     }
 
     @Override

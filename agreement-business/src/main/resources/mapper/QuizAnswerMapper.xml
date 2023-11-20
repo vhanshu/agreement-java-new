@@ -9,6 +9,7 @@
         qa.user_id,
         qa.like_number,
         qa.is_check,
+        IF(LENGTH(qa.content) > 200, CONCAT(SUBSTRING(qa.content, 1, 200), '...'), qa.content) AS content,
         qa.create_time,
         qa.update_time,
         u.avatar,

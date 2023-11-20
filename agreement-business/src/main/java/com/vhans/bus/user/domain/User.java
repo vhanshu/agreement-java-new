@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 /**
@@ -33,12 +34,14 @@ public class User {
     /**
      * 用户昵称
      */
+    @NotBlank(message = "用户昵称不能为空")
     @ApiModelProperty(value = "用户昵称")
     private String nickname;
 
     /**
      * 用户名
      */
+    @NotBlank(message = "用户名不能为空")
     @ApiModelProperty(value = "用户名")
     private String username;
 
@@ -127,6 +130,14 @@ public class User {
     @TableField(fill = FieldFill.UPDATE)
     @ApiModelProperty(value = "更新时间")
     private LocalDateTime updateTime;
+
+    /* 除数据表的额外字段 */
+    /**
+     * 好友备注
+     */
+    @ApiModelProperty(value = "好友备注")
+    @TableField(exist = false)
+    private String friendRemark;
 
     /* 定义需要查询的字段对象 */
     @Data
