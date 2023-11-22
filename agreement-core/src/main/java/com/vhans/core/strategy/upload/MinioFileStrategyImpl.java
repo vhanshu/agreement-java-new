@@ -3,13 +3,13 @@ package com.vhans.core.strategy.upload;
 import com.vhans.core.config.properties.MinioProperties;
 import com.vhans.core.exception.ServiceException;
 import com.vhans.core.utils.data.StringUtils;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.StatObjectArgs;
+import io.minio.*;
+import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 /**
@@ -19,7 +19,7 @@ import java.io.InputStream;
  */
 @Slf4j
 @Service("minioUploadStrategyImpl")
-public class MinioUploadStrategyImpl extends AbstractUploadStrategyImpl {
+public class MinioFileStrategyImpl extends AbstractFileStrategyImpl {
 
     @Autowired
     private MinioProperties minioProperties;
@@ -39,9 +39,13 @@ public class MinioUploadStrategyImpl extends AbstractUploadStrategyImpl {
     }
 
     @Override
+    public String getFileAccessUrl(String filePath) {
+        return minioProperties.getEndpointUrl() + "/" + minioProperties.getBucketName() + filePath;
+    }
+
+    @Override
     public void upload(String path, String fileName, InputStream inputStream) {
         MinioClient minioClient = getMinioClient();
-        path = path.endsWith("/") ? path : path + "/";
         try {
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(minioProperties.getBucketName())
@@ -54,8 +58,38 @@ public class MinioUploadStrategyImpl extends AbstractUploadStrategyImpl {
     }
 
     @Override
-    public String getFileAccessUrl(String filePath) {
-        return minioProperties.getEndpointUrl() + "/" + minioProperties.getBucketName() + filePath;
+    public void create(String creteObj) {
+        MinioClient minioClient = getMinioClient();
+        try {
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(minioProperties.getBucketName())
+                    .object(creteObj)
+                    .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
+                    .build());
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void delete(String deleteObj) throws Exception {
+        MinioClient minioClient = getMinioClient();
+        try {
+            String bucketName = minioProperties.getBucketName();
+            Iterable<Result<Item>> deletes = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(bucketName)
+                    .prefix(deleteObj)
+                    .recursive(true)
+                    .build());
+            for (Result<Item> item : deletes) {
+                minioClient.removeObject(RemoveObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(item.get().objectName())
+                        .build());
+            }
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage());
+        }
     }
 
     /**

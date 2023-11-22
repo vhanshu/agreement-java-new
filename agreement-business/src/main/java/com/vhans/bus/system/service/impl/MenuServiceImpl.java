@@ -119,7 +119,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements IM
         return menuList.stream()
                 .filter(item -> item.getParentId().equals(parentId))
                 .peek(item -> item.setChildren(recurMenuList(item.getId(), menuList)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -133,7 +133,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements IM
         return menuTreeList.stream()
                 .filter(item -> item.getParentId().equals(parentId))
                 .peek(item -> item.setChildren(recurMenuTreeList(item.getId(), menuTreeList)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
 }

@@ -34,7 +34,7 @@ import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.bus.user.service.IUserService;
 import com.vhans.core.enums.FilePathEnum;
 import com.vhans.core.redis.RedisService;
-import com.vhans.core.strategy.context.UploadStrategyContext;
+import com.vhans.core.strategy.context.FileStrategyContext;
 import com.vhans.core.utils.SecurityUtils;
 import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +93,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private RedisService redisService;
 
     @Autowired
-    private UploadStrategyContext uploadStrategyContext;
+    private FileStrategyContext fileStrategyContext;
 
     @Override
     public List<User> listUser(User.Query query) {
@@ -393,7 +393,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public String updateUserAvatar(MultipartFile file) {
         // 头像上传
-        String avatar = uploadStrategyContext.executeUploadStrategy(file, FilePathEnum.AVATAR.getPath());
+        String avatar = fileStrategyContext.executeUploadStrategy(file, FilePathEnum.AVATAR.getPath());
         // 更新用户头像
         userMapper.updateById(User.builder()
                 .id(StpUtil.getLoginIdAsInt())

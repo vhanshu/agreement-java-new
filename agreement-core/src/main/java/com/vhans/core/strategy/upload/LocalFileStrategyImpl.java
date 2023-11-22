@@ -1,6 +1,7 @@
 package com.vhans.core.strategy.upload;
 
 import com.vhans.core.exception.ServiceException;
+import com.vhans.core.utils.file.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,7 @@ import java.io.*;
  * @author vhans
  */
 @Service
-public class LocalUploadStrategyImpl extends AbstractUploadStrategyImpl {
+public class LocalFileStrategyImpl extends AbstractFileStrategyImpl {
 
     /**
      * 本地路径
@@ -32,8 +33,13 @@ public class LocalUploadStrategyImpl extends AbstractUploadStrategyImpl {
     }
 
     @Override
+    public String getFileAccessUrl(String filePath) {
+        return localUrl + filePath;
+    }
+
+    @Override
     public void upload(String path, String fileName, InputStream inputStream) throws IOException {
-        // 判断目录是否存在
+        // 目录不存在则创建
         File directory = new File(localPath + path);
         if (!directory.exists()) {
             if (!directory.mkdirs()) {
@@ -55,8 +61,19 @@ public class LocalUploadStrategyImpl extends AbstractUploadStrategyImpl {
     }
 
     @Override
-    public String getFileAccessUrl(String filePath) {
-        return localUrl + filePath;
+    public void create(String creteObj) throws Exception {
+        File directory = new File(localPath + creteObj);
+        if (!directory.mkdirs()) {
+            throw new ServiceException("创建目录失败");
+        }
+    }
+
+    @Override
+    public void delete(String deleteObj) throws Exception {
+        File file = new File(deleteObj);
+        if (file.exists()) {
+            FileUtils.deleteFile(file);
+        }
     }
 
 }

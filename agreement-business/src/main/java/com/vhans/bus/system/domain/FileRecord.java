@@ -1,6 +1,7 @@
 package com.vhans.bus.system.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 【文件记录】对象 s_file_record
@@ -29,6 +31,12 @@ public class FileRecord {
     @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "文件id")
     private Integer id;
+
+    /**
+     * 用户id
+     */
+    @ApiModelProperty(value = "用户id")
+    private Integer userId;
 
     /**
      * 文件url
@@ -79,4 +87,13 @@ public class FileRecord {
     @TableField(fill = FieldFill.UPDATE)
     @ApiModelProperty(value = "更新时间")
     private LocalDateTime updateTime;
+
+    /* 除数据库字段外的其它字段 */
+    /**
+     * 子文件列表
+     */
+    @TableField(exist = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @ApiModelProperty(value = "子文件列表")
+    private List<FileRecord> children;
 }

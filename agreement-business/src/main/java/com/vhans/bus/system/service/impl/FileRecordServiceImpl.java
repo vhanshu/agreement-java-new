@@ -1,5 +1,6 @@
 package com.vhans.bus.system.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,7 +9,7 @@ import com.vhans.bus.system.domain.dto.FolderDTO;
 import com.vhans.bus.system.mapper.FileRecordMapper;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.exception.ServiceException;
-import com.vhans.core.strategy.context.UploadStrategyContext;
+import com.vhans.core.strategy.context.FileStrategyContext;
 import com.vhans.core.utils.data.StringUtils;
 import com.vhans.core.utils.file.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -43,7 +44,7 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     /**
      * 本地路径
      */
-    @Value("${upload.local.url}")
+    @Value("${upload.local.path}")
     private String localPath;
 
     /**
@@ -56,76 +57,84 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     private FileRecordMapper fileRecordMapper;
 
     @Autowired
-    private UploadStrategyContext uploadStrategyContext;
+    private FileStrategyContext fileStrategyContext;
 
     @Autowired
     private HttpServletResponse response;
 
     @Override
     public List<FileRecord> listFileRecordList(String filePath) {
+        filePath = filePath.endsWith("/") ? filePath : filePath + "/";
+        filePath = filePath.startsWith("/") ? filePath : "/" + filePath;
         return fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
                 .eq(StringUtils.isNotEmpty(filePath), FileRecord::getFilePath, filePath));
     }
 
     @Override
+    public List<FileRecord> listFileRecordHome(String filePath) {
+        filePath = filePath.endsWith("/") ? filePath : filePath + "/";
+        filePath = filePath.startsWith("/") ? filePath : "/" + filePath;
+        return fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
+                .eq(StringUtils.isNotEmpty(filePath), FileRecord::getFilePath, filePath)
+                .eq(FileRecord::getUserId, StpUtil.getLoginIdAsInt()));
+    }
+
+    @Override
     public void uploadFile(MultipartFile file, String path) {
-        path = path.endsWith("/") ? path : path + "/";
         // 上传文件
-        String url = uploadStrategyContext.executeUploadStrategy(file, path);
-        Assert.isFalse(fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>()
-                .eq(FileRecord::getFileUrl, url)), "已存在文件内容相同的文件");
-        insertFileRecord(file, url, path);
+        String url = fileStrategyContext.executeUploadStrategy(file, path);
+        if (!fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>().eq(FileRecord::getFileUrl, url))) {
+            insertFileRecord(file, url, path);
+        }
+
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void createFolder(FolderDTO folder) {
         String fileName = folder.getFileName();
-        String filePath = folder.getFilePath().endsWith("/") ? folder.getFilePath() : folder.getFilePath() + "/";
+        String path = folder.getFilePath().endsWith("/") ? folder.getFilePath() : folder.getFilePath() + "/";
+        path = path.startsWith("/") ? path : "/" + path;
         Assert.isFalse(fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>()
-                .eq(FileRecord::getFilePath, filePath)
+                .eq(FileRecord::getIsDir, TRUE)
+                .eq(FileRecord::getFilePath, path)
                 .eq(FileRecord::getFileName, fileName)), "目录已存在");
         // 创建目录
-        File directory = new File(localPath + filePath + fileName);
-        if (FileUtils.mkdir(directory)) {
-            fileRecordMapper.insert(FileRecord.builder()
-                    .fileName(fileName)
-                    .filePath(filePath)
-                    .isDir(TRUE).build());
-        } else {
-            throw new ServiceException("创建目录失败");
-        }
+        fileStrategyContext.executeCreateStrategy(path, fileName);
+        fileRecordMapper.insert(FileRecord.builder()
+                .userId(StpUtil.getLoginIdAsInt())
+                .fileName(fileName)
+                .fileUrl("")
+                .filePath(path)
+                .extendName("")
+                .fileSize(0)
+                .isDir(TRUE).build());
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteFile(List<Integer> fileIdList) {
         List<FileRecord> fileRecords = fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
-                .select(FileRecord::getFileName, FileRecord::getFilePath, FileRecord::getExtendName, FileRecord::getIsDir)
+                .select(FileRecord::getFileName, FileRecord::getFilePath, FileRecord::getExtendName,
+                        FileRecord::getIsDir, FileRecord::getFileUrl)
                 .in(FileRecord::getId, fileIdList));
-        // 删除数据库中的文件信息
-        fileRecordMapper.deleteBatchIds(fileIdList);
         fileRecords.forEach(item -> {
-            File file;
-            String fileName = localPath + item.getFilePath() + item.getFileName();
             if (item.getIsDir().equals(TRUE)) {
-                // 删除数据库中目录下的子文件
-                // 子目录 = 当前路径 + 文件名
-                String filePath = item.getFilePath() + item.getFileName();
-                fileRecordMapper.delete(new LambdaQueryWrapper<FileRecord>().eq(FileRecord::getFilePath, filePath));
-                // 删除目录下的所有文件
-                file = new File(fileName);
-                if (file.exists()) {
-                    FileUtils.deleteFile(file);
-                }
+                String filePath = item.getFilePath() + item.getFileName() + "/";
+                // 删除文件服务器上的父/子文件和子目录
+                fileStrategyContext.executeDeleteStrategy(filePath);
+                // 删除数据库中目录下的父/子文件和子目录
+                fileRecordMapper.delete(new LambdaQueryWrapper<FileRecord>().likeRight(FileRecord::getFilePath, filePath));
             } else {
-                // 删除文件
-                file = new File(fileName + "." + item.getExtendName());
-                if (file.exists()) {
-                    file.delete();
-                }
+                // 删除文件服务器上的文件(文件名md5)
+                String fileName = item.getFileUrl().substring(item.getFileUrl().lastIndexOf("/") + 1);
+                fileStrategyContext.executeDeleteStrategy(item.getFilePath() + fileName);
+                // 删除数据库中上的文件
+                fileRecordMapper.delete(new LambdaQueryWrapper<FileRecord>().eq(FileRecord::getFileUrl, item.getFileUrl()));
             }
         });
+        // 删除数据库中的文件信息
+        fileRecordMapper.deleteBatchIds(fileIdList);
     }
 
     @Override
@@ -136,30 +145,42 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
                         FileRecord::getExtendName, FileRecord::getIsDir)
                 .eq(FileRecord::getId, fileId));
         Assert.notNull(fileRecord, "文件不存在");
-        if (!"local".equals(strategy) && fileRecord.getIsDir().equals(FALSE)) {
-            // 上传策略不是local并且不是目录,通过网络链接响应文件
-            String fileName = fileRecord.getFileName() + "." + fileRecord.getExtendName();
-            downloadFileByUrl(fileRecord.getFileUrl(), fileName);
-            return;
-        }
-        String filePath = localPath + fileRecord.getFilePath();
+        // 本地文件路径
+        String localFilePath = localPath + fileRecord.getFilePath();
         if (fileRecord.getIsDir().equals(FALSE)) {
-            // 要下载的不是目录
+            // 要下载的是一个文件
             String fileName = fileRecord.getFileName() + "." + fileRecord.getExtendName();
-            downloadFile(filePath, fileName);
+            if ("local".equals(strategy)) {
+                //本地下载
+                responseFile(localFilePath, fileName);
+            } else {
+                //云端下载
+                responseFileByUrl(fileRecord.getFileUrl(), fileName);
+            }
         } else {
             // 下载的是目录则压缩下载
-            String fileName = filePath + fileRecord.getFileName();
-            File src = new File(fileName);
             // 本地缓存压缩文件
-            File dest = new File(fileName + ".zip");
+            String cacheFileName = localFilePath + fileRecord.getFileName();
+            File dest = new File(cacheFileName + ".zip");
             try {
-                ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(dest));
                 // 压缩文件
-                toZip(src, zipOutputStream, src.getName());
+                ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(dest));
+                if ("local".equals(strategy)) {
+                    // 本地压缩
+                    File src = new File(cacheFileName);
+                    toLocalZip(src, zipOutputStream, src.getName());
+                } else {
+                    // 云端压缩(这里不区分上下级,直接压缩所有子文件入一个包)
+                    List<FileRecord> fileRecords = fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
+                            .select(FileRecord::getFileUrl, FileRecord::getFileName, FileRecord::getExtendName)
+                            .eq(FileRecord::getIsDir, FALSE)
+                            .likeRight(FileRecord::getFilePath, fileRecord.getFilePath()));
+                    Assert.notEmpty(fileRecords, "该目录下没有任何文件");
+                    toCloudZip(fileRecords, zipOutputStream, fileRecord.getFileName());
+                }
                 zipOutputStream.close();
                 // 下载压缩包
-                downloadFile(filePath, fileRecord.getFileName() + ".zip");
+                responseFile(localFilePath, fileRecord.getFileName() + ".zip");
             } catch (IOException e) {
                 throw new ServiceException(e.getMessage());
             } finally {
@@ -174,7 +195,7 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     @Override
     public String uploadCommonFile(MultipartFile file, String path) {
         // 上传文件
-        String url = uploadStrategyContext.executeUploadStrategy(file, path);
+        String url = fileStrategyContext.executeUploadStrategy(file, path);
         // 记录新文件消息到数据库中
         if (!fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>()
                 .eq(FileRecord::getFileUrl, url))) {
@@ -195,12 +216,35 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     }
 
     /**
-     * 下载文件
+     * 数据库中新增文件记录
+     *
+     * @param file 上传的文件
+     * @param url  访问链接
+     * @param path 文件路径
+     */
+    private void insertFileRecord(MultipartFile file, String url, String path) {
+        path = "/" + path.replaceAll("^/?(.*?)/?$", "$1") + "/";
+        // 获取文件名和扩展名
+        String fileName = Objects.requireNonNull(file.getOriginalFilename()).substring(0, file.getOriginalFilename().lastIndexOf("."));
+        String extName = FileUtils.getExtension(file);
+        // 保存文件信息
+        fileRecordMapper.insert(FileRecord.builder()
+                .userId(StpUtil.getLoginIdAsInt())
+                .fileUrl(url)
+                .fileName(fileName)
+                .filePath(path)
+                .extendName(extName)
+                .fileSize((int) file.getSize())
+                .isDir(FALSE).build());
+    }
+
+    /**
+     * 响应本地文件内容
      *
      * @param filePath 文件路径
      * @param fileName 文件名
      */
-    private void downloadFile(String filePath, String fileName) {
+    private void responseFile(String filePath, String fileName) {
         FileInputStream fileInputStream = null;
         ServletOutputStream outputStream = null;
         try {
@@ -218,12 +262,12 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     }
 
     /**
-     * 根据文件URL下载文件
+     * 根据文件URL响应文件
      *
      * @param fileUrl  文件URL
      * @param fileName 文件名
      */
-    private void downloadFileByUrl(String fileUrl, String fileName) {
+    private void responseFileByUrl(String fileUrl, String fileName) {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
         ServletOutputStream outputStream = null;
@@ -253,20 +297,20 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     }
 
     /**
-     * 压缩文件夹
+     * 压缩本地文件夹
      *
      * @param src             源文件
      * @param zipOutputStream 压缩输出流
-     * @param name            文件名
-     * @throws IOException IO异常
+     * @param fileName        文件名
      */
-    private static void toZip(File src, ZipOutputStream zipOutputStream, String name) throws IOException {
+    private static void toLocalZip(File src, ZipOutputStream zipOutputStream, String fileName) throws IOException {
         for (File file : Objects.requireNonNull(src.listFiles())) {
             if (file.isFile()) {
                 // 为文件，变成ZipEntry对象，放入到压缩包中
-                ZipEntry zipEntry = new ZipEntry(name + "/" + file.getName());
-                // 读取文件中的数据，写到压缩包
+                ZipEntry zipEntry = new ZipEntry(fileName + "/" + file.getName());
+                // 绑定压缩文件到压缩包
                 zipOutputStream.putNextEntry(zipEntry);
+                // 读取本地文件中的数据
                 FileInputStream fileInputStream = new FileInputStream(file);
                 int b;
                 while ((b = fileInputStream.read()) != -1) {
@@ -275,30 +319,49 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
                 fileInputStream.close();
                 zipOutputStream.closeEntry();
             } else {
-                toZip(file, zipOutputStream, name + "/" + file.getName());
+                toLocalZip(file, zipOutputStream, fileName + "/" + file.getName());
             }
         }
     }
 
     /**
-     * 数据库中新增文件记录
+     * 压缩云端文件夹
      *
-     * @param file 上传的文件
-     * @param url  访问链接
-     * @param path 文件路径
+     * @param fileList        文件列表
+     * @param zipOutputStream 压缩输出流
+     * @param fileName        文件名
      */
-    private void insertFileRecord(MultipartFile file, String url, String path) {
-        // 获取文件名和扩展名
-        String fileName = Objects.requireNonNull(file.getOriginalFilename()).substring(0, file.getOriginalFilename().lastIndexOf("."));
-        String extName = FileUtils.getExtension(file);
-        // 保存文件信息
-        fileRecordMapper.insert(FileRecord.builder()
-                .fileUrl(url)
-                .fileName(fileName)
-                .filePath(path)
-                .extendName(extName)
-                .fileSize((int) file.getSize())
-                .isDir(FALSE).build());
+    private static void toCloudZip(List<FileRecord> fileList, ZipOutputStream zipOutputStream, String fileName) throws IOException {
+        for (FileRecord fileRecord : fileList) {
+            String currentName = fileRecord.getFileName() + "." + fileRecord.getExtendName();
+            // 要放入的压缩文件
+            ZipEntry zipEntry = new ZipEntry(fileName + "/" + currentName);
+            // 绑定压缩文件
+            zipOutputStream.putNextEntry(zipEntry);
+            // 下载文件并写入 ZipOutputStream
+            downloadFile(fileRecord.getFileUrl(), zipOutputStream);
+            zipOutputStream.closeEntry();
+        }
+
+    }
+
+    /**
+     * 根据网络url下载文件
+     *
+     * @param fileUrl      文件url
+     * @param outputStream 输出流
+     */
+    private static void downloadFile(String fileUrl, OutputStream outputStream) throws IOException {
+        URL url = new URL(fileUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        //将获取到的数据写入输出流
+        try (InputStream inputStream = connection.getInputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        }
     }
 }
 

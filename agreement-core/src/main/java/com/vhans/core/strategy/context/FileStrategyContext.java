@@ -1,6 +1,6 @@
 package com.vhans.core.strategy.context;
 
-import com.vhans.core.strategy.UploadStrategy;
+import com.vhans.core.strategy.FileStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,12 +11,12 @@ import java.util.Map;
 import static com.vhans.core.enums.UploadModeEnum.getStrategy;
 
 /**
- * 上传策略上下文
+ * 系统文件策略上下文
  *
  * @author vhans
  */
 @Service
-public class UploadStrategyContext {
+public class FileStrategyContext {
     /**
      * 上传模式
      */
@@ -24,7 +24,7 @@ public class UploadStrategyContext {
     private String uploadStrategy;
 
     @Autowired
-    private Map<String, UploadStrategy> uploadStrategyMap;
+    private Map<String, FileStrategy> uploadStrategyMap;
 
     /**
      * 上传文件
@@ -35,6 +35,25 @@ public class UploadStrategyContext {
      */
     public String executeUploadStrategy(MultipartFile file, String path) {
         return uploadStrategyMap.get(getStrategy(uploadStrategy)).uploadFile(file, path);
+    }
+
+    /**
+     * 创建目录
+     *
+     * @param path       路径
+     * @param folderName 目录名
+     */
+    public void executeCreateStrategy(String path, String folderName) {
+        uploadStrategyMap.get(getStrategy(uploadStrategy)).createFolder(path, folderName);
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param deleteObj 删除key
+     */
+    public void executeDeleteStrategy(String deleteObj) {
+        uploadStrategyMap.get(getStrategy(uploadStrategy)).deleteFile(deleteObj);
     }
 
 }

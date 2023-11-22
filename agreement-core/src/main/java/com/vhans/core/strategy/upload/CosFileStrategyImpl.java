@@ -7,9 +7,12 @@ import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.http.HttpProtocol;
+import com.qcloud.cos.model.COSObjectSummary;
+import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.region.Region;
 import com.vhans.core.config.properties.CosProperties;
+import com.vhans.core.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ import java.io.InputStream;
  */
 @Service
 @Slf4j
-public class CosUploadStrategyImpl extends AbstractUploadStrategyImpl {
+public class CosFileStrategyImpl extends AbstractFileStrategyImpl {
 
     @Autowired
     private CosProperties cosProperties;
@@ -48,9 +51,9 @@ public class CosUploadStrategyImpl extends AbstractUploadStrategyImpl {
             log.error("Error Code:" + e.getErrorCode());
             log.info("Request ID:" + e.getRequestId());
         } catch (CosClientException e) {
-            log.error("Caught an CosClientException, Error Message:" + e.getMessage());
+            log.error("捕获一个CosClientException,错误消息:" + e.getMessage());
         } catch (IOException e) {
-            log.error("Caught an IOException, Error Message:" + e.getMessage());
+            log.error("Error Message:捕获一个IOException,错误消息:" + e.getMessage());
         } finally {
             cosClient.shutdown();
         }
@@ -59,6 +62,32 @@ public class CosUploadStrategyImpl extends AbstractUploadStrategyImpl {
     @Override
     public String getFileAccessUrl(String filePath) {
         return cosProperties.getUrl() + filePath;
+    }
+
+    @Override
+    public void create(String creteObj) {
+        COSClient cosClient = getCosClient();
+        try {
+            cosClient.putObject(cosProperties.getBucketName(), creteObj, "");
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage());
+        } finally {
+            cosClient.shutdown();
+        }
+    }
+
+    @Override
+    public void delete(String deleteObj) throws Exception {
+        COSClient cosClient = getCosClient();
+        try {
+            String bucketName = cosProperties.getBucketName();
+            ObjectListing listing = cosClient.listObjects(bucketName, deleteObj);
+            for (COSObjectSummary summary : listing.getObjectSummaries()) {
+                cosClient.deleteObject(bucketName, summary.getKey());
+            }
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage());
+        }
     }
 
     /**

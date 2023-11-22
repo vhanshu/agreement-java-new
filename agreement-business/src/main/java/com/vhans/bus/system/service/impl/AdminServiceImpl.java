@@ -24,7 +24,7 @@ import com.vhans.bus.system.mapper.RoleMapper;
 import com.vhans.bus.system.service.IAdminService;
 import com.vhans.core.enums.FilePathEnum;
 import com.vhans.core.redis.RedisService;
-import com.vhans.core.strategy.context.UploadStrategyContext;
+import com.vhans.core.strategy.context.FileStrategyContext;
 import com.vhans.core.utils.SecurityUtils;
 import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private RedisService redisService;
 
     @Autowired
-    private UploadStrategyContext uploadStrategyContext;
+    private FileStrategyContext fileStrategyContext;
 
     @Override
     public AdminInfo getAdminInfo() {
@@ -194,7 +194,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     public String updateAdminAvatar(MultipartFile file) {
         // 头像上传
-        String avatar = uploadStrategyContext.executeUploadStrategy(file, FilePathEnum.AVATAR.getPath());
+        String avatar = fileStrategyContext.executeUploadStrategy(file, FilePathEnum.AVATAR.getPath());
         // 更新管理员头像
         adminMapper.updateById(Admin.builder()
                 .id(StpUtil.getLoginIdAsInt())

@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.vhans.bus.system.mapper.FileRecordMapper">
+    <select id="selectFileTree" resultType="com.vhans.bus.system.domain.vo.FileTree">
+        SELECT id,
+               file_name as name,
+               file_url as url
+        FROM s_file_record
+        WHERE file_path like concat(#{basePath},'%') AND (user_id = #{userId} OR #{userId} = 1)
+        ORDER BY file_path
+    </select>
 
+    <select id="selectAllFileTree" resultType="com.vhans.bus.system.domain.vo.FileTree">
+        SELECT id,
+               file_name as name,
+               file_url as url
+        FROM s_file_record
+        ORDER BY file_path
+    </select>
 </mapper>

@@ -23,6 +23,14 @@ public interface IFileRecordService extends IService<FileRecord> {
     List<FileRecord> listFileRecordList(String filePath);
 
     /**
+     * 查看前台文件列表
+     *
+     * @param filePath 文件路径
+     * @return 文件列表
+     */
+    List<FileRecord> listFileRecordHome(String filePath);
+
+    /**
      * 上传文件
      *
      * @param file 文件
