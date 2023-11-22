@@ -33,12 +33,6 @@ public class FileRecord {
     private Integer id;
 
     /**
-     * 用户id
-     */
-    @ApiModelProperty(value = "用户id")
-    private Integer userId;
-
-    /**
      * 文件url
      */
     @ApiModelProperty(value = "文件url")

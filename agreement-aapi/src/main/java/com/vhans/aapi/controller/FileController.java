@@ -60,9 +60,19 @@ public class FileController extends BaseController {
     @ApiImplicitParam(name = "file", value = "文件", required = true, dataType = "MultipartFile")
     @SaCheckPermission("system:file:upload")
     @PostMapping("/upload")
-    public Result<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("path") String path) {
-        fileService.uploadFile(file, path);
-        return Result.success();
+    public Result<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("path") String path) {
+        return Result.success(fileService.uploadFile(file, path));
+    }
+
+    /**
+     * 下载或响应文件
+     *
+     * @param fileId 文件id
+     */
+    @ApiOperation(value = "下载或响应文件")
+    @GetMapping("/file/download/{fileId}")
+    public void downloadFile(@PathVariable("fileId") Integer fileId) {
+        fileService.downloadFile(fileId);
     }
 
     /**
@@ -91,19 +101,8 @@ public class FileController extends BaseController {
     @SaCheckPermission("system:file:delete")
     @DeleteMapping("/delete")
     public Result<?> deleteFile(@RequestBody List<Integer> fileIdList) {
-        fileService.deleteFile(fileIdList);
+        fileService.deleteFile(fileIdList, null);
         return Result.success();
-    }
-
-    /**
-     * 响应文件
-     *
-     * @param fileId 文件id
-     */
-    @ApiOperation(value = "下载文件")
-    @GetMapping("/file/download/{fileId}")
-    public void downloadFile(@PathVariable("fileId") Integer fileId) {
-        fileService.downloadFile(fileId);
     }
 
 }

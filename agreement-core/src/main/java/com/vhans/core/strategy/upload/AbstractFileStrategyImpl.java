@@ -1,5 +1,6 @@
 package com.vhans.core.strategy.upload;
 
+import cn.hutool.core.lang.Assert;
 import com.vhans.core.exception.ServiceException;
 import com.vhans.core.strategy.FileStrategy;
 import com.vhans.core.utils.file.FileUtils;
@@ -17,7 +18,8 @@ public abstract class AbstractFileStrategyImpl implements FileStrategy {
 
     @Override
     public String uploadFile(MultipartFile file, String path) {
-        path = "/" + path.replaceAll("^/?(.*?)/?$", "$1") + "/";
+        path = path.startsWith("/") ? path : "/" + path;
+        path = path.endsWith("/") ? path : path + "/";
         try {
             // 获取文件md5值
             String md5 = FileUtils.getMd5(file.getInputStream());
@@ -40,7 +42,8 @@ public abstract class AbstractFileStrategyImpl implements FileStrategy {
 
     @Override
     public void createFolder(String path, String folderName) {
-        path = "/" + path.replaceAll("^/?(.*?)/?$", "$1") + "/";
+        path = path.startsWith("/") ? path : "/" + path;
+        path = path.endsWith("/") ? path : path + "/";
         if (exists(path + folderName)) {
             return;
         }
@@ -55,6 +58,7 @@ public abstract class AbstractFileStrategyImpl implements FileStrategy {
 
     @Override
     public void deleteFile(String filePath) {
+        Assert.isFalse("/".equals(filePath), "不能删除所有文件");
         filePath = filePath.replaceFirst("^/", "");
         try {
             delete(filePath);

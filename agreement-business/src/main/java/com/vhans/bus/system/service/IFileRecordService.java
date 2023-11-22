@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * 文件业务接口
+ * 说明:系统中用一个user的文件包下以userId命名的包表示前台某个用户的使用文件,前后端用户对文件的操作以此区分
  *
  * @author vhans
  */
@@ -23,20 +24,19 @@ public interface IFileRecordService extends IService<FileRecord> {
     List<FileRecord> listFileRecordList(String filePath);
 
     /**
-     * 查看前台文件列表
-     *
-     * @param filePath 文件路径
-     * @return 文件列表
-     */
-    List<FileRecord> listFileRecordHome(String filePath);
-
-    /**
      * 上传文件
      *
      * @param file 文件
      * @param path 文件路径
      */
-    void uploadFile(MultipartFile file, String path);
+    String uploadFile(MultipartFile file, String path);
+
+    /**
+     * 根据文件url获取文件id
+     *
+     * @param fileUrl 文件url
+     */
+    Integer getFileIdByUrl(String fileUrl);
 
     /**
      * 创建文件夹
@@ -49,8 +49,9 @@ public interface IFileRecordService extends IService<FileRecord> {
      * 删除文件
      *
      * @param fileIdList 文件id列表
+     * @param userPath   用户文件路径
      */
-    void deleteFile(List<Integer> fileIdList);
+    void deleteFile(List<Integer> fileIdList, String userPath);
 
     /**
      * 下载文件
@@ -58,19 +59,4 @@ public interface IFileRecordService extends IService<FileRecord> {
      * @param fileId 文件id
      */
     void downloadFile(Integer fileId);
-
-    /**
-     * 系统通用文件上传
-     *
-     * @param file 文件
-     * @param path 上传路径
-     * @return 文件url
-     */
-    String uploadCommonFile(MultipartFile file, String path);
-
-    /**
-     * 根据文件url获取文件id
-     * @param fileUrl 文件url
-     */
-    Integer getFileIdByUrl(String fileUrl);
 }

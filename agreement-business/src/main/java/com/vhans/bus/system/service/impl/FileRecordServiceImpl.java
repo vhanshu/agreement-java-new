@@ -1,6 +1,5 @@
 package com.vhans.bus.system.service.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -64,29 +63,31 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
 
     @Override
     public List<FileRecord> listFileRecordList(String filePath) {
-        filePath = filePath.endsWith("/") ? filePath : filePath + "/";
-        filePath = filePath.startsWith("/") ? filePath : "/" + filePath;
+        filePath = "/" + filePath.replaceAll("^/?(.*?)/?$", "$1") + "/";
         return fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
                 .eq(StringUtils.isNotEmpty(filePath), FileRecord::getFilePath, filePath));
     }
 
     @Override
-    public List<FileRecord> listFileRecordHome(String filePath) {
-        filePath = filePath.endsWith("/") ? filePath : filePath + "/";
-        filePath = filePath.startsWith("/") ? filePath : "/" + filePath;
-        return fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
-                .eq(StringUtils.isNotEmpty(filePath), FileRecord::getFilePath, filePath)
-                .eq(FileRecord::getUserId, StpUtil.getLoginIdAsInt()));
-    }
-
-    @Override
-    public void uploadFile(MultipartFile file, String path) {
+    public String uploadFile(MultipartFile file, String path) {
         // 上传文件
         String url = fileStrategyContext.executeUploadStrategy(file, path);
+        // 记录新文件消息到数据库中
         if (!fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>().eq(FileRecord::getFileUrl, url))) {
             insertFileRecord(file, url, path);
         }
+        return url;
+    }
 
+    @Override
+    public Integer getFileIdByUrl(String fileUrl) {
+        FileRecord fileRecord = fileRecordMapper.selectOne(new LambdaQueryWrapper<FileRecord>()
+                .select(FileRecord::getId)
+                .eq(FileRecord::getFileUrl, fileUrl));
+        if (Objects.isNull(fileRecord)) {
+            return null;
+        }
+        return fileRecord.getId();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -102,7 +103,6 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
         // 创建目录
         fileStrategyContext.executeCreateStrategy(path, fileName);
         fileRecordMapper.insert(FileRecord.builder()
-                .userId(StpUtil.getLoginIdAsInt())
                 .fileName(fileName)
                 .fileUrl("")
                 .filePath(path)
@@ -113,10 +113,11 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void deleteFile(List<Integer> fileIdList) {
+    public void deleteFile(List<Integer> fileIdList, String userPath) {
         List<FileRecord> fileRecords = fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
                 .select(FileRecord::getFileName, FileRecord::getFilePath, FileRecord::getExtendName,
                         FileRecord::getIsDir, FileRecord::getFileUrl)
+                .likeRight(userPath != null, FileRecord::getFilePath, userPath)
                 .in(FileRecord::getId, fileIdList));
         fileRecords.forEach(item -> {
             if (item.getIsDir().equals(TRUE)) {
@@ -129,8 +130,6 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
                 // 删除文件服务器上的文件(文件名md5)
                 String fileName = item.getFileUrl().substring(item.getFileUrl().lastIndexOf("/") + 1);
                 fileStrategyContext.executeDeleteStrategy(item.getFilePath() + fileName);
-                // 删除数据库中上的文件
-                fileRecordMapper.delete(new LambdaQueryWrapper<FileRecord>().eq(FileRecord::getFileUrl, item.getFileUrl()));
             }
         });
         // 删除数据库中的文件信息
@@ -174,7 +173,7 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
                     List<FileRecord> fileRecords = fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
                             .select(FileRecord::getFileUrl, FileRecord::getFileName, FileRecord::getExtendName)
                             .eq(FileRecord::getIsDir, FALSE)
-                            .likeRight(FileRecord::getFilePath, fileRecord.getFilePath()));
+                            .likeRight(FileRecord::getFilePath, fileRecord.getFilePath() + fileRecord.getFileName() + "/"));
                     Assert.notEmpty(fileRecords, "该目录下没有任何文件");
                     toCloudZip(fileRecords, zipOutputStream, fileRecord.getFileName());
                 }
@@ -192,29 +191,6 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
         }
     }
 
-    @Override
-    public String uploadCommonFile(MultipartFile file, String path) {
-        // 上传文件
-        String url = fileStrategyContext.executeUploadStrategy(file, path);
-        // 记录新文件消息到数据库中
-        if (!fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>()
-                .eq(FileRecord::getFileUrl, url))) {
-            insertFileRecord(file, url, path);
-        }
-        return url;
-    }
-
-    @Override
-    public Integer getFileIdByUrl(String fileUrl) {
-        FileRecord fileRecord = fileRecordMapper.selectOne(new LambdaQueryWrapper<FileRecord>()
-                .select(FileRecord::getId)
-                .eq(FileRecord::getFileUrl, fileUrl));
-        if (Objects.isNull(fileRecord)) {
-            return null;
-        }
-        return fileRecord.getId();
-    }
-
     /**
      * 数据库中新增文件记录
      *
@@ -229,7 +205,6 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
         String extName = FileUtils.getExtension(file);
         // 保存文件信息
         fileRecordMapper.insert(FileRecord.builder()
-                .userId(StpUtil.getLoginIdAsInt())
                 .fileUrl(url)
                 .fileName(fileName)
                 .filePath(path)
