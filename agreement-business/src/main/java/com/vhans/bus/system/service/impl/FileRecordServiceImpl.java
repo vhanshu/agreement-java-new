@@ -1,5 +1,6 @@
 package com.vhans.bus.system.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -7,6 +8,8 @@ import com.vhans.bus.system.domain.FileRecord;
 import com.vhans.bus.system.domain.dto.FolderDTO;
 import com.vhans.bus.system.mapper.FileRecordMapper;
 import com.vhans.bus.system.service.IFileRecordService;
+import com.vhans.bus.user.domain.User;
+import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.exception.ServiceException;
 import com.vhans.core.strategy.context.FileStrategyContext;
 import com.vhans.core.utils.data.StringUtils;
@@ -56,6 +59,9 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
     private FileRecordMapper fileRecordMapper;
 
     @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
     private FileStrategyContext fileStrategyContext;
 
     @Autowired
@@ -63,13 +69,42 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
 
     @Override
     public List<FileRecord> listFileRecordList(String filePath) {
-        filePath = "/" + filePath.replaceAll("^/?(.*?)/?$", "$1") + "/";
+        filePath = filePath.startsWith("/") ? filePath : "/" + filePath;
+        filePath = filePath.endsWith("/") ? filePath : filePath + "/";
         return fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
-                .eq(StringUtils.isNotEmpty(filePath), FileRecord::getFilePath, filePath));
+                .eq(StringUtils.isNotEmpty(filePath), FileRecord::getFilePath, filePath)
+                .orderByDesc(FileRecord::getIsDir)
+                .orderByAsc(FileRecord::getFileName));
     }
 
     @Override
     public String uploadFile(MultipartFile file, String path) {
+        // 上传文件
+        String url = fileStrategyContext.executeUploadStrategy(file, path);
+        // 记录新文件消息到数据库中
+        if (!fileRecordMapper.exists(new LambdaQueryWrapper<FileRecord>().eq(FileRecord::getFileUrl, url))) {
+            insertFileRecord(file, url, path);
+        }
+        return url;
+    }
+
+    @Override
+    public String uploadUserFile(MultipartFile file, String path) {
+        int userId = StpUtil.getLoginIdAsInt();
+        String basePath = "/user/" + userId;
+        //用户可使用存储大小=约起热度/10,最小为10M
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .select(User::getDegree)
+                .eq(User::getId, userId));
+        int store = Math.max(user.getDegree() / 10, 10);
+        List<FileRecord> fileRecords = fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
+                .select(FileRecord::getFileSize)
+                .likeRight(FileRecord::getFilePath, basePath));
+        int totalSize = (int) (fileRecords.stream().mapToLong(FileRecord::getFileSize).sum() / (1024 * 1024));
+        Assert.isTrue(store >= totalSize, "存储空间不足,您的总存储空间为" + store + "MB,已使用" + totalSize + "MB");
+        path = path.startsWith("/") ? path : "/" + path;
+        path = path.endsWith("/") ? path : path + "/";
+        path = basePath + path;
         // 上传文件
         String url = fileStrategyContext.executeUploadStrategy(file, path);
         // 记录新文件消息到数据库中
@@ -92,7 +127,7 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void createFolder(FolderDTO folder) {
+    public FileRecord createFolder(FolderDTO folder) {
         String fileName = folder.getFileName();
         String path = folder.getFilePath().endsWith("/") ? folder.getFilePath() : folder.getFilePath() + "/";
         path = path.startsWith("/") ? path : "/" + path;
@@ -102,13 +137,10 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
                 .eq(FileRecord::getFileName, fileName)), "目录已存在");
         // 创建目录
         fileStrategyContext.executeCreateStrategy(path, fileName);
-        fileRecordMapper.insert(FileRecord.builder()
-                .fileName(fileName)
-                .fileUrl("")
-                .filePath(path)
-                .extendName("")
-                .fileSize(0)
-                .isDir(TRUE).build());
+        FileRecord newFile = FileRecord.builder().fileName(fileName).fileUrl("").filePath(path)
+                .extendName("").fileSize(0).isDir(TRUE).build();
+        fileRecordMapper.insert(newFile);
+        return newFile;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -160,6 +192,13 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
             // 下载的是目录则压缩下载
             // 本地缓存压缩文件
             String cacheFileName = localFilePath + fileRecord.getFileName();
+            // 目录不存在则创建(云端储存会出现不存在localFilePath目录的情况)
+            File directory = new File(localFilePath);
+            if (!directory.exists()) {
+                if (!directory.mkdirs()) {
+                    throw new ServiceException("创建压缩目录失败");
+                }
+            }
             File dest = new File(cacheFileName + ".zip");
             try {
                 // 压缩文件

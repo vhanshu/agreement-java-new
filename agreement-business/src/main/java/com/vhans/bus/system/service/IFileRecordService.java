@@ -32,6 +32,14 @@ public interface IFileRecordService extends IService<FileRecord> {
     String uploadFile(MultipartFile file, String path);
 
     /**
+     * 上传用户个人文件
+     *
+     * @param file 文件
+     * @param path 文件路径,前面会添加"/user/userId"
+     */
+    String uploadUserFile(MultipartFile file, String path);
+
+    /**
      * 根据文件url获取文件id
      *
      * @param fileUrl 文件url
@@ -43,7 +51,7 @@ public interface IFileRecordService extends IService<FileRecord> {
      *
      * @param folder 文件夹信息
      */
-    void createFolder(FolderDTO folder);
+    FileRecord createFolder(FolderDTO folder);
 
     /**
      * 删除文件

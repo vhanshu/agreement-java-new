@@ -85,9 +85,8 @@ public class FileController extends BaseController {
     @ApiOperation(value = "创建目录")
     @SaCheckPermission("system:file:folder")
     @PostMapping("/createFolder")
-    public Result<?> createFolder(@Validated @RequestBody FolderDTO folder) {
-        fileService.createFolder(folder);
-        return Result.success();
+    public Result<FileRecord> createFolder(@Validated @RequestBody FolderDTO folder) {
+        return Result.success(fileService.createFolder(folder));
     }
 
     /**
