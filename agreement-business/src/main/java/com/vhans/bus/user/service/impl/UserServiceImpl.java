@@ -146,6 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public User getUserById(Integer id) {
         int userId = StpUtil.getLoginIdAsInt();
         User user = userMapper.selectById(id);
+        Assert.notNull(user, "不存在用户,ID=" + id);
         if (id != userId) {
             user.setPassword("");
             user.setLoginType(0);
