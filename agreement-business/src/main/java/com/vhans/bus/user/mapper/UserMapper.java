@@ -24,6 +24,15 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> listUser(@Param("query") User.Query query);
 
     /**
+     * 搜索用户列表(不为好友)
+     *
+     * @param name 用户昵称或用户名
+     * @param userId 用户id
+     * @return 用户列表
+     */
+    List<User> searchUserList(@Param("name") String name, @Param("userId") Integer userId);
+
+    /**
      * 更新用户约起分数
      *
      * @param userId 用户id

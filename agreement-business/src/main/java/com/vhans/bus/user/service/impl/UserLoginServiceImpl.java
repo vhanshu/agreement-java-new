@@ -5,7 +5,6 @@ import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.vhans.bus.subsidiary.model.dto.LoginDTO;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.domain.dto.GitDTO;
@@ -98,7 +97,7 @@ public class UserLoginServiceImpl implements IUserLoginService {
                 USERNAME_PREFIX + register.getEmail().substring(0, 4);
         // 添加用户
         userMapper.insert(User.builder()
-                .username(USERNAME_PREFIX + IdWorker.getId())
+                .username(USERNAME_PREFIX + register.getEmail().substring(0, register.getEmail().indexOf("@")))
                 .email(register.getEmail())
                 .nickname(nickname)
                 .avatar(siteConfig.getUserAvatar())

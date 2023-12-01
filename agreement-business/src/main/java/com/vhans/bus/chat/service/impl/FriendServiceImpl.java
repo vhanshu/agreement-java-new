@@ -104,7 +104,7 @@ public class FriendServiceImpl implements IFriendService {
     @Override
     @Transactional
     public int insertFriend(Friend friend) {
-        Assert.isTrue(friendMapper.exists(new LambdaQueryWrapper<Friend>()
+        Assert.isFalse(friendMapper.exists(new LambdaQueryWrapper<Friend>()
                 .select(Friend::getId)
                 .eq(Friend::getUserId, friend.getUserId())
                 .eq(Friend::getFriendId, friend.getFriendId())), "已添加好友");

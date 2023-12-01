@@ -6,13 +6,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.mapper.RequestMapper;
 import com.vhans.bus.chat.service.IRequestService;
+import com.vhans.core.exception.ServiceException;
+import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.vhans.core.constant.NumberConstant.*;
+
 /**
- * 好友请求Service业务层处理
+ * 请求Service业务层处理
  *
  * @author vhans
  * @date 2023-05-21
@@ -64,14 +68,21 @@ public class RequestServiceImpl implements IRequestService {
 
     @Override
     public int insertRequest(Request request) {
-        //这里要考虑之前拒绝的情况,之后在写,先过滤
-        if (!requestMapper.exists(new LambdaQueryWrapper<Request>()
-                .select(Request::getId)
+        //这里要考虑之前请求的情况
+        Request oldRequest = requestMapper.selectOne(new LambdaQueryWrapper<Request>()
+                .select(Request::getId, Request::getStatus)
                 .eq(Request::getFromUid, request.getFromUid())
-                .eq(Request::getToUid, request.getToUid()))) {
+                .eq(Request::getToUid, request.getToUid()));
+        if (StringUtils.isNull(oldRequest)) {
             // 添加好友请求
             return requestMapper.insert(request);
+        } else {
+            switch (oldRequest.getStatus()) {
+                case ZERO -> throw new ServiceException("已发送请求,等待对方同意");
+                case ONE -> throw new ServiceException("对方已同意,无需发送");
+                case TWO -> throw new ServiceException("已被对方拒绝,请3天后尝试再次请求");
+            }
+            return 0;
         }
-        return 0;
     }
 }

@@ -63,6 +63,19 @@ public class UserController extends BaseController {
         return Result.success(userService.getUserById(userId));
     }
 
+    /**
+     * 搜索平台用户列表
+     *
+     * @param name 用户昵称或用户名
+     * @return {@link User} 用户列表
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "搜索平台用户列表")
+    @GetMapping("/list/{name}")
+    public Result<List<User>> searchUser(@PathVariable String name) {
+        return Result.success(userService.searchUserList(name));
+    }
+
 
     /**
      * 修改用户邮箱

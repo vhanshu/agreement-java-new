@@ -8,11 +8,11 @@ import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.service.*;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.service.ICommentService;
+import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.bus.transmit.model.DataContent;
 import com.vhans.bus.transmit.model.Forward;
 import com.vhans.bus.transmit.model.PushData;
 import com.vhans.bus.transmit.model.Revoke;
-import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
 import io.netty.channel.Channel;
@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.log4j.Log4j2;
 
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     public static void pushInfo(Integer type, String data, Integer userId) {
         PushData pushData = PushData.builder().type(type).data(data).build();
         String jsonData = JSONUtil.toJsonStr(DataContent.success(PUSH, JSONUtil.toJsonStr(pushData)));
-        if(userId == 0) {
+        if (userId == 0) {
             // 给所有在线用户发送消息
             manager.forEach((item, value) -> value.writeAndFlush(new TextWebSocketFrame(jsonData)));
         } else {
@@ -109,7 +110,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 default -> currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
             }
         } catch (Exception e) {
-            currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
+            currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail(e.getMessage()))));
         }
     }
 
@@ -236,25 +237,30 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 处理请求
      */
     private void dealRequest(Request request) {
+        request.setUpdateTime(LocalDateTime.now());
         String jsonData = JSONUtil.toJsonStr(DataContent.success(DEAL_REQUEST, JSONUtil.toJsonStr(request)));
         if (request.getStatus() == 1) { // 同意
             // 添加好友或者群友
             int row = request.getType() == 1 ? friendService.insertFriend(
-                    Friend.builder().userId(request.getToUid())
+                    Friend.builder()
+                            .userId(request.getToUid())
                             .friendId(request.getFromUid())
-                            .friendRemark(request.getNickname()).build()) :
+                            .friendRemark(request.getNickname())
+                            .build()) :
                     (request.getType() == 2 ? groupService.addNewGroupUser(
-                            Request.builder().groupId(request.getGroupId())
-                                    .fromUid(request.getFromUid()).build()) : 0);
+                            Request.builder()
+                                    .groupId(request.getGroupId())
+                                    .fromUid(request.getFromUid())
+                                    .build()) : 0);
             // 给自己发送响应消息
-            sendTo(request.getFromUid(), jsonData, row > 0);
+            sendTo(request.getToUid(), jsonData, row > 0);
             if (row > 0) {
                 // 通知发送方,你的请求我同意了
                 sendTo(request.getFromUid(), jsonData, true);
             }
         } else if (request.getStatus() == 2) { // 拒绝
             // 给自己发送响应消息
-            sendTo(request.getFromUid(), jsonData, true);
+            sendTo(request.getToUid(), jsonData, true);
             // 通知发送方,你的请求我拒绝了
             sendTo(request.getFromUid(), jsonData, true);
         }

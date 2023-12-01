@@ -166,6 +166,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
+    public List<User> searchUserList(String name) {
+        return userMapper.searchUserList(name, StpUtil.getLoginIdAsInt());
+    }
+
+    @Override
     public List<AgreeVO> getIssueAgree(Integer userId, UserAgreeDTO userAgree) {
         return agreeService.listAgreementVO(AgreeQueryDTO.builder()
                 .type(userAgree.getType())

@@ -23,12 +23,28 @@
             <if test="query.loginType != null">
                 and login_type = #{query.loginType}
             </if>
-            <if test="query.name != null">
+            <if test="query.name != null and query.name != ''">
                 and (nickname like concat('%',#{query.name},'%')
                 or username like concat('%',#{query.name},'%'))
             </if>
         </where>
         ORDER BY id
+    </select>
+
+    <select id="searchUserList" resultType="com.vhans.bus.user.domain.User">
+        SELECT u.id,
+        u.nickname,
+        u.avatar,
+        u.create_time
+        FROM u_user u
+        <where>
+            u.is_disable = 0 and u.id != #{userId} and (id not in (select friend_id from c_friend where user_id = #{userId}))
+            <if test="name != null">
+                and (nickname like concat('%',#{name},'%')
+                or username like concat('%',#{name},'%'))
+            </if>
+        </where>
+        ORDER BY u.nickname
     </select>
 
     <update id="updateDegree">

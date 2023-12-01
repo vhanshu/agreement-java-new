@@ -44,6 +44,12 @@ public interface IUserService extends IService<User> {
     User getUserById(Integer id);
 
     /**
+     * 搜索用户列表(不为好友)
+     * @param name 用户昵称或用户名
+     */
+    List<User> searchUserList(String name);
+
+    /**
      * 获取用户发布的约起
      *
      * @return 发布的约起

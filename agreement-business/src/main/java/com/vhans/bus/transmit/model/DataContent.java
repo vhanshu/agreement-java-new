@@ -48,6 +48,10 @@ public class DataContent {
         return buildDataContent(null, false, null, "发送失败");
     }
 
+    public static DataContent fail(String msg) {
+        return buildDataContent(null, false, null, msg);
+    }
+
     private static DataContent buildDataContent(Integer action, Boolean flag, String data, String message) {
         DataContent r = new DataContent();
         r.setAction(action);
