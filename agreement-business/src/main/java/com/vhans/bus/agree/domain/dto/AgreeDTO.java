@@ -47,7 +47,6 @@ public class AgreeDTO {
     /**
      * 发起者id
      */
-    @NotNull(message = "发起者不能为空")
     @ApiModelProperty(value = "发起者id")
     private Integer userId;
 

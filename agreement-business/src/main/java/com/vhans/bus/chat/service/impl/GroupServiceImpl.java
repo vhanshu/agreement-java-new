@@ -113,9 +113,39 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public int updateGroup(Group group) {
+        Group oldGroup = groupMapper.selectById(group.getId());
+        if(!oldGroup.getMasterId().equals(group.getMasterId())){
+            groupMsgMapper.insert(GroupMsg.builder()
+                    .msgType(ZERO)
+                    .fromUid(group.getMasterId())
+                    .toUid(group.getId())
+                    .content("群主之位发生改变").build());
+        }
+        if(!oldGroup.getName().equals(group.getName())){
+            groupMsgMapper.insert(GroupMsg.builder()
+                    .msgType(ZERO)
+                    .fromUid(group.getMasterId())
+                    .toUid(group.getId())
+                    .content("群主将群聊名称改为：" + group.getName()).build());
+        }
+        if (!oldGroup.getRemark().equals(group.getRemark())) {
+            groupMsgMapper.insert(GroupMsg.builder()
+                    .msgType(ZERO)
+                    .fromUid(group.getMasterId())
+                    .toUid(group.getId())
+                    .content(group.getRemark()).build());
+        }
+        if (!oldGroup.getImg().equals(group.getImg())) {
+            groupMsgMapper.insert(GroupMsg.builder()
+                    .msgType(ZERO)
+                    .fromUid(group.getMasterId())
+                    .toUid(group.getId())
+                    .content("群主更新了群缩略图").build());
+        }
         return groupMapper.updateById(group);
     }
 
+    @Transactional
     @Override
     public List<Group> searchGroup(String groupName) {
         // 当前用户id
@@ -132,22 +162,30 @@ public class GroupServiceImpl implements IGroupService {
     @Transactional
     @Override
     public int createGroup(Group group) {
+        Assert.isFalse(groupMapper.exists(new LambdaQueryWrapper<Group>()
+                .eq(Group::getName, group.getName())), "群名称已被使用");
         int userId = StpUtil.getLoginIdAsInt();
-        // 添加群消息
-        groupMapper.insert(group);
-        // 设置群主:群中默认称呼为用户昵称
+        // 1.设置群主:群中默认称呼为用户昵称
         group.setMasterId(userId);
+        // 2.新增群聊并绑定群主
+        int row = groupMapper.insert(group);
         groupUserMapper.insert(GroupUser.builder()
                 .groupId(group.getId())
                 .userId(userId)
                 .username(userMapper.selectById(userId).getNickname()).build());
-        // 设置最初的群用户:群中默认称呼为用户昵称
+        // 3.设置最初的群用户:群中默认称呼为用户昵称
         group.getUserList().forEach(item ->
                 groupUserMapper.insert(GroupUser.builder()
                         .groupId(group.getId())
                         .userId(item.getId())
                         .username(item.getNickname()).build()));
-        return groupMapper.insert(group);
+        // 4.添加一条建群消息
+        groupMsgMapper.insert(GroupMsg.builder()
+                .msgType(ZERO)
+                .fromUid(group.getMasterId())
+                .toUid(group.getId())
+                .content(group.getRemark()).build());
+        return row;
     }
 
     @Transactional

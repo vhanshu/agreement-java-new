@@ -50,7 +50,6 @@ public class Group {
     /**
      * 群主id
      */
-    @NotBlank(message = "群主不能为空")
     @ApiModelProperty(value = "群主id")
     private Integer masterId;
 

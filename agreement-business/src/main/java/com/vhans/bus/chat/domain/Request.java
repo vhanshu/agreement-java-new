@@ -107,6 +107,13 @@ public class Request {
     @TableField(exist = false)
     private String nickname;
 
+    /**
+     * 接收者昵称(仅前端websocket使用)
+     */
+    @ApiModelProperty(value = "接收者昵称")
+    @TableField(exist = false)
+    private String toNickname;
+
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {

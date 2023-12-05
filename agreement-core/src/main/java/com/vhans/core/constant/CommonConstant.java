@@ -30,7 +30,7 @@ public class CommonConstant {
     /**
      * 默认用户账号前缀
      */
-    public static final String USERNAME_PREFIX = "ag";
+    public static final String USERNAME_PREFIX = "yq";
 
     /**
      * 在线用户

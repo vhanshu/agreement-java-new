@@ -34,10 +34,10 @@
                g.master_id,
                g.create_time
         from c_group g
-                 left join c_group_user gu on gu.group_id = g.id
         where g.is_delete = 0
+          and g.master_id != #{userId}
+          and (g.id not in (select group_id from c_group_user where user_id = #{userId}))
           and g.name like concat('%', #{groupName}, '%')
-          and gu.user_id != #{userId}
     </select>
 
     <select id="selectRecentConversation" resultType="com.vhans.bus.chat.domain.vo.ConversationVO">
