@@ -265,7 +265,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
             sendTo(request.getFromUid(), jsonData, true);
         }
         // 更改请求状态
-        requestService.changeFriendRequestStatus(request.getId(), request.getStatus());
+        requestService.changeFriendRequestStatus(request);
     }
 
     /**

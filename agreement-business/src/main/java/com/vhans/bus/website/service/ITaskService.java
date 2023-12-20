@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.vhans.bus.subsidiary.model.dto.StatusDTO;
 import com.vhans.bus.website.domain.dto.TaskRunDTO;
 import com.vhans.bus.website.domain.Task;
+import org.quartz.SchedulerException;
 
 import java.util.List;
 
@@ -14,6 +15,8 @@ import java.util.List;
  */
 public interface ITaskService extends IService<Task> {
 
+    void init() throws SchedulerException;
+
     /**
      * 查看定时任务列表
      *
@@ -21,6 +24,7 @@ public interface ITaskService extends IService<Task> {
      * @return 定时任务列表
      */
     List<Task> listTask(Task.Query query);
+
 
     /**
      * 添加定时任务

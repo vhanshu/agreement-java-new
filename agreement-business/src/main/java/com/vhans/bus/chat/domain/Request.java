@@ -73,10 +73,10 @@ public class Request {
     private Integer status;
 
     /**
-     * 是否查看
+     * 删除状态(0未删除 1请求 2目标)
      */
-    @ApiModelProperty(value = "是否查看")
-    private Integer isLook;
+    @ApiModelProperty(value = "删除状态(0未删除 1请求 2目标)")
+    private Integer delStatus;
 
     /**
      * 添加时间
@@ -140,12 +140,6 @@ public class Request {
          */
         @ApiModelProperty(value = "请求状态(1通过 2拒绝 3申请中)")
         private Integer status;
-
-        /**
-         * 是否查看
-         */
-        @ApiModelProperty(value = "是否查看")
-        private Integer isLook;
     }
 
 }

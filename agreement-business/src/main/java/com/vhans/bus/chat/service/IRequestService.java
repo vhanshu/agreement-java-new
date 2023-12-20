@@ -29,6 +29,14 @@ public interface IRequestService {
     Request selectRequestInfoById(Integer id);
 
     /**
+     * 用户删除好友请求
+     *
+     * @param id 需要删除的好友请求主键
+     * @return 影响行
+     */
+    int deleteRequestById(Integer id);
+
+    /**
      * 批量删除好友请求
      *
      * @param idList 需要删除的好友请求主键列表
@@ -52,8 +60,9 @@ public interface IRequestService {
 
     /**
      * 改变请求的状态
+     * @param request 对方的请求
      */
-    void changeFriendRequestStatus(Integer requestId, Integer status);
+    void changeFriendRequestStatus(Request request);
 
     /**
      * 新增请求

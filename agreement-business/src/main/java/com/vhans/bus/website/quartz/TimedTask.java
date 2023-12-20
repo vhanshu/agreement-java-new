@@ -158,4 +158,11 @@ public class TimedTask {
             helpMapper.updateById(Help.builder().id(item).status(FIVE).build());
         });
     }
+
+    /**
+     * 清除用户拒绝列表缓存
+     */
+    public void clearRefuse() {
+        redisService.deleteObject(REQUEST_REJECT);
+    }
 }

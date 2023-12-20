@@ -62,7 +62,7 @@
         FROM a_activity a
                  LEFT JOIN u_user u ON u.id = a.user_id
         <where>
-            a.`status` = 1
+            a.`status` = 1 and a.time_start >= sysdate()
             <if test="keyword != null and keyword != ''">
                 and (a.title like concat('%',#{keyword},'%')
                 or u.nickname like concat('%',#{keyword},'%'))
@@ -95,7 +95,7 @@
                      create_time,
                      update_time
               FROM a_activity
-              WHERE `status` = 1
+              WHERE `status` = 1 and time_start >= sysdate()
                 AND id = #{activityId}) a
                  LEFT JOIN u_user u ON a.user_id = u.id
     </select>
@@ -103,7 +103,7 @@
     <select id="selectLastActivity" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
         SELECT id, cover as img, title
         FROM a_activity
-        WHERE `status` = 1
+        WHERE `status` = 1 and time_start >= sysdate()
           AND id &lt; #{activityId}
         ORDER BY id DESC
         LIMIT 1
@@ -112,7 +112,7 @@
     <select id="selectNextActivity" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
         SELECT id, cover as img, title
         FROM a_activity
-        WHERE `status` = 1
+        WHERE `status` = 1 and time_start >= sysdate()
           AND id &gt; #{activityId}
         ORDER BY id
         LIMIT 1
@@ -122,6 +122,6 @@
         SELECT id
         FROM a_activity
         WHERE status != 5
-          AND sysdate() >= time_start;
+          AND sysdate() >= time_start
     </select>
 </mapper>

@@ -35,7 +35,12 @@ public enum StatusCodeEnum {
     /**
      * 操作失败
      */
-    FAIL(500, "操作失败");
+    FAIL(500, "操作失败"),
+
+    /**
+     * 通讯失败
+     */
+    FAIL_CHAT(408, "通讯失败");
 
     /**
      * 状态码

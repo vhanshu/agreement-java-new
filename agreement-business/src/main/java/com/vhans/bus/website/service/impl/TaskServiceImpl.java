@@ -4,8 +4,8 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.subsidiary.model.dto.StatusDTO;
-import com.vhans.bus.website.domain.dto.TaskRunDTO;
 import com.vhans.bus.website.domain.Task;
+import com.vhans.bus.website.domain.dto.TaskRunDTO;
 import com.vhans.bus.website.mapper.TaskMapper;
 import com.vhans.bus.website.quartz.utils.CronUtils;
 import com.vhans.bus.website.quartz.utils.ScheduleUtils;
@@ -21,7 +21,6 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements IT
      * 项目启动时，初始化定时器 主要是防止手动修改数据库导致未同步到定时任务处理
      * 注：不能手动修改数据库ID和任务组名，否则会导致脏数据
      */
-    @PostConstruct
+    @Override
     public void init() throws SchedulerException {
         scheduler.clear();
         List<Task> taskList = taskMapper.selectList(null);

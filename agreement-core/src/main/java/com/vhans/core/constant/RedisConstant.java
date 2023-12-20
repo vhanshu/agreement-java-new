@@ -117,4 +117,9 @@ public class RedisConstant {
      */
     public static final String LATELY_GROUP_IDS = "lately_group_ids";
 
+    /**
+     * 最近拒绝用户请求的userIds:谁拒绝谁(formUid_toUid)
+     */
+    public static final String REQUEST_REJECT = "request_reject";
+
 }

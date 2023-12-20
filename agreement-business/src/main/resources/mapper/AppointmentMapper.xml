@@ -67,7 +67,7 @@
         FROM a_appointment a
                  LEFT JOIN u_user u ON u.id = a.user_id
         <where>
-            a.type = 1 and a.`status` = 1
+            a.type = 1 and a.`status` = 1 and a.time_start >= sysdate()
             <if test="keyword != null and keyword != ''">
                 and (a.title like concat('%',#{keyword},'%')
                 or u.nickname like concat('%',#{keyword},'%'))
@@ -99,7 +99,7 @@
                      update_time
               From a_appointment
               WHERE type = #{type}
-                AND `status` = 1
+                AND `status` = 1 and time_start >= sysdate()
                 AND id = #{appointmentId}) a
                  LEFT JOIN u_user u ON a.user_id = u.id
     </select>
@@ -128,6 +128,6 @@
         SELECT id
         FROM a_appointment
         WHERE status != 5
-          AND sysdate() >= time_start;
+          AND sysdate() >= time_start
     </select>
 </mapper>

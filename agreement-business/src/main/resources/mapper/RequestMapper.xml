@@ -11,7 +11,7 @@
         type,
         reason,
         status,
-        is_look,
+        del_status,
         create_time,
         update_time
         from c_request
@@ -28,9 +28,6 @@
             <if test="query.status != null">
                 and status = #{query.status}
             </if>
-            <if test="query.isLook != null">
-                and is_look = #{query.isLook}
-            </if>
         </where>
     </select>
 
@@ -42,14 +39,14 @@
                r.reason,
                r.type,
                r.group_id,
-               r.is_look,
+               r.del_status,
                r.create_time,
                r.update_time,
                u.avatar,
                u.nickname
         from c_request r
                  left join u_user u on r.from_uid = u.id
-        where r.to_uid = #{userId}
+        where r.to_uid = #{userId} and r.del_status != 2
         order by r.create_time desc
     </select>
 
@@ -61,14 +58,13 @@
                r.type,
                r.group_id,
                r.status,
-               r.is_look,
                r.create_time,
                r.update_time,
                u.avatar,
                u.nickname
         from c_request r
                  left join u_user u on r.to_uid = u.id
-        where r.from_uid = #{userId}
+        where r.from_uid = #{userId} and r.del_status != 1
         order by r.create_time desc
     </select>
 

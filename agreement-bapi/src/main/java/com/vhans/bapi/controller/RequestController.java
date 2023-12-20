@@ -8,9 +8,7 @@ import com.vhans.core.web.model.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -49,5 +47,18 @@ public class RequestController extends BaseController {
     @GetMapping("/listMy")
     public Result<List<Request>> listIRequest() {
         return Result.success(requestService.selectIRequestList());
+    }
+
+    /**
+     * 删除好友请求
+     *
+     * @param id 请求主键
+     * @return 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "删除好友请求")
+    @DeleteMapping("/delete/{id}")
+    public Result<?> deleteRequest(@PathVariable Integer id) {
+        return toAjax(requestService.deleteRequestById(id));
     }
 }
