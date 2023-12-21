@@ -128,16 +128,12 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements ITagS
         if (StringUtils.isNotEmpty(tagNameList)) {
             // 新标签列表
             List<Tag> newTagList = tagNameList.stream()
-                    .map(item -> Tag.builder()
-                            .tagName(item)
-                            .build())
+                    .map(item -> Tag.builder().tagName(item).build())
                     .toList();
             // 批量保存新标签
             newTagList.forEach(item -> tagMapper.insert(item));
             // 获取新标签id列表
-            List<Integer> newTagIdList = newTagList.stream()
-                    .map(Tag::getId)
-                    .toList();
+            List<Integer> newTagIdList = newTagList.stream().map(Tag::getId).toList();
             // 新标签id添加到已有标签的id列表
             existTagIdList.addAll(newTagIdList);
         }

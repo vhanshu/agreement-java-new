@@ -79,7 +79,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         quiz.setUserId(StpUtil.getLoginIdAsInt());
         baseMapper.insert(quiz);
         // 保存题目标签
-        saveQuizTag(quiz, quiz.getId());
+        saveQuizTag(quiz);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -99,7 +99,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         quiz.setUserId(StpUtil.getLoginIdAsInt());
         baseMapper.updateById(quiz);
         // 保存题目标签
-        saveQuizTag(quiz, quiz.getId());
+        saveQuizTag(quiz);
     }
 
     @Override
@@ -223,19 +223,18 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
      * 保存题目标签
      *
      * @param quiz   题目信息
-     * @param quizId 题目id
      */
-    private void saveQuizTag(Quiz quiz, Integer quizId) {
+    private void saveQuizTag(Quiz quiz) {
         // 删除题目标签
         tagTextMapper.delete(new LambdaQueryWrapper<TagText>()
-                .eq(TagText::getTypeId, quizId));
+                .eq(TagText::getTypeId, quiz.getId()));
         // 标签名列表
         List<String> tagNameList = quiz.getTagNameList();
         if (StringUtils.isNotEmpty(tagNameList)) {
             // 提供覆盖的标签
-            List<Integer> coverTag = tagService.getCoverTag(tagNameList);
-            // 将所有的标签绑定到题目标签关联表
-            tagTextMapper.saveBatchQuizTag(quizId, coverTag);
+            List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
+            // 将所有的新标签绑定到题目标签关联表
+            tagTextMapper.saveBatchTag(quiz.getId(), TWO, coverTagIds);
         }
     }
 }

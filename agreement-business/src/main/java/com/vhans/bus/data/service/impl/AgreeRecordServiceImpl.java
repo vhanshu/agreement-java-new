@@ -94,7 +94,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         record.setUserId(StpUtil.getLoginIdAsInt());
         recordMapper.insert(record);
         // 保存记录标签
-        saveRecordTag(record, record.getId());
+        saveRecordTag(record);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -134,11 +134,10 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     @Override
     public void updateRecord(AgreeRecord record) {
         // 修改记录
-        AgreeRecord newAgreeRecord = BeanUtils.copyBean(record, AgreeRecord.class);
-        newAgreeRecord.setUserId(StpUtil.getLoginIdAsInt());
-        recordMapper.updateById(newAgreeRecord);
+        record.setUserId(StpUtil.getLoginIdAsInt());
+        recordMapper.updateById(record);
         // 保存记录标签
-        saveRecordTag(record, newAgreeRecord.getId());
+        saveRecordTag(record);
     }
 
     @Override
@@ -324,20 +323,19 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
      * 保存记录标签
      *
      * @param record   记录信息
-     * @param recordId 记录id
      */
-    private void saveRecordTag(AgreeRecord record, Integer recordId) {
+    private void saveRecordTag(AgreeRecord record) {
         // 删除记录标签
         tagTextMapper.delete(new LambdaQueryWrapper<TagText>()
                 .eq(TagText::getType, ONE)
-                .eq(TagText::getTypeId, recordId));
+                .eq(TagText::getTypeId, record.getId()));
         // 标签名列表
         List<String> tagNameList = record.getTagNameList();
         if (StringUtils.isNotEmpty(tagNameList)) {
             // 提供覆盖的标签
-            List<Integer> coverTag = tagService.getCoverTag(tagNameList);
-            // 将所有的标签绑定到记录标签关联表
-            tagTextMapper.saveBatchRecordTag(recordId, coverTag);
+            List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
+            // 将所有的新标签绑定到记录标签关联表
+            tagTextMapper.saveBatchTag(record.getId(), ONE, coverTagIds);
         }
     }
 }

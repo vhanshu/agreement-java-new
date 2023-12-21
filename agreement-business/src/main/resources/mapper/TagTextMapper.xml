@@ -3,17 +3,10 @@
 
 <mapper namespace="com.vhans.bus.data.mapper.TagTextMapper">
 
-    <insert id="saveBatchRecordTag">
+    <insert id="saveBatchTag">
         insert into d_tag_text(tag_id,type,type_id) values
         <foreach collection="tagIdList" item="tagId" separator=",">
-            (#{tagId},1,#{recordId})
-        </foreach>
-    </insert>
-
-    <insert id="saveBatchQuizTag">
-        insert into d_tag_text(tag_id,type,type_id) values
-        <foreach collection="tagIdList" item="tagId" separator=",">
-            (#{tagId},2,#{quizId})
+            (#{tagId},#{type},#{typeId})
         </foreach>
     </insert>
 </mapper>

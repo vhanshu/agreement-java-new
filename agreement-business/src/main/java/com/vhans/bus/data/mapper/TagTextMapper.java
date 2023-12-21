@@ -16,18 +16,11 @@ import java.util.List;
 @Repository
 public interface TagTextMapper extends BaseMapper<TagText> {
     /**
-     * 批量保存记录标签
+     * 批量保存标签
      *
-     * @param recordId 记录id
+     * @param type      文本类型
+     * @param typeId    文本id
      * @param tagIdList 标签id列表
      */
-    void saveBatchRecordTag(@Param("recordId") Integer recordId, List<Integer> tagIdList);
-
-    /**
-     * 批量保存题目标签
-     *
-     * @param quizId 题目id
-     * @param tagIdList 标签id列表
-     */
-    void saveBatchQuizTag(@Param("quizId") Integer quizId, List<Integer> tagIdList);
+    void saveBatchTag(@Param("type") Integer type, @Param("typeId") Integer typeId, List<Integer> tagIdList);
 }
