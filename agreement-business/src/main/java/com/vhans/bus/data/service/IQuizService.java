@@ -60,6 +60,14 @@ public interface IQuizService extends IService<Quiz> {
     List<SearchVO> listQuizBySearch(String keyword);
 
     /**
+     * 根据标签查找题目列表
+     * @param tagNames 标签名列表
+     * @param isInter 是否相交
+     * @return 题目列表
+     */
+    List<Quiz> listQuizByTag(List<String> tagNames, boolean isInter);
+
+    /**
      * 查看前台题目列表
      *
      * @return 题目列表

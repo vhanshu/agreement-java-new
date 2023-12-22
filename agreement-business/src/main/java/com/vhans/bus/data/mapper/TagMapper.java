@@ -31,7 +31,16 @@ public interface TagMapper extends BaseMapper<Tag> {
      * @param tagNameList 标签名列表
      * @return 标签
      */
-    List<Tag> selectTagList(List<String> tagNameList);
+    List<Tag> selectTagList(@Param("tagNameList") List<String> tagNameList);
+
+    /**
+     * 在相应文本类型下根据标签名列表查询文本ids
+     *
+     * @param tagNameList 标签名列表
+     * @param type        文本类型
+     * @return 文本ids
+     */
+    List<Integer> selectTextIds(@Param("tagNameList") List<String> tagNameList, @Param("type") Integer type);
 
     /**
      * 根据文本类型id查询相应类型的标签名称列表

@@ -5,16 +5,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.Tag;
 import com.vhans.bus.data.domain.TagText;
+import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.bus.data.mapper.TagMapper;
 import com.vhans.bus.data.mapper.TagTextMapper;
 import com.vhans.bus.data.service.ITagService;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
-import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,25 +33,16 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements ITagS
 
     @Override
     public List<Tag> listTagVO(Tag.Query query) {
-        Assert.isFalse(StringUtils.isNull(query.getType()), "未指定标签类型");
-        Assert.isTrue(query.getType() == 1 || query.getType() == 2,
-                "指定标签类型错误");
         return tagMapper.selectTag(query);
     }
 
     @Override
     public void addTag(Tag tag) {
         // 标签是否存在
-        Tag existTag = tagMapper.selectOne(new LambdaQueryWrapper<Tag>()
-                .select(Tag::getId)
-                .ne(Tag::getId, tag.getId())
-                .eq(Tag::getTagName, tag.getTagName()));
-        Assert.isNull(existTag, tag.getTagName() + "标签已存在");
+        Assert.isFalse(tagMapper.exists(new LambdaQueryWrapper<Tag>()
+                .eq(Tag::getTagName, tag.getTagName())), tag.getTagName() + "标签已存在");
         // 添加新标签
-        Tag newTag = Tag.builder()
-                .tagName(tag.getTagName())
-                .build();
-        baseMapper.insert(newTag);
+        baseMapper.insert(tag);
     }
 
     @Override
@@ -85,33 +75,15 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements ITagS
 
     @Override
     public List<TagStatisticsVO> listTagVO(Integer type) {
-        Assert.isTrue(StringUtils.isNotNull(type), "请提供标签类型");
+        Assert.notNull(type, "请提供标签类型");
         return tagMapper.selectTagVOList(type);
-    }
-
-    /**
-     * 根据标签ids获取标签名列表
-     *
-     * @param tagIds 标签ids
-     * @return 标签名
-     */
-    private List<String> getTagNames(List<Integer> tagIds) {
-        List<Tag> tags = tagMapper.selectList(new LambdaQueryWrapper<Tag>()
-                .select(Tag::getTagName)
-                .in(Tag::getId, tagIds));
-        List<String> tagNames = new ArrayList<>();
-        if (StringUtils.isNotEmpty(tags)) {
-            tags.forEach(
-                    tag -> tagNames.add(tag.getTagName())
-            );
-        }
-        return tagNames;
     }
 
     /**
      * 覆盖标签生成
      *
      * @param tagNameList 标签名列表
+     * @return 覆盖标签ids
      */
     public List<Integer> getCoverTag(List<String> tagNameList) {
         // 查询出已存在的标签

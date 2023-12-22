@@ -36,12 +36,28 @@ public interface QuizMapper extends BaseMapper<Quiz> {
     List<SearchVO> searchQuiz(@Param("keyword") String keyword);
 
     /**
+     * 根据标签获取题目列表
+     *
+     * @param tagNames 标签名列表
+     * @return 题目列表
+     */
+    List<Quiz> selectQuizByTag(@Param("tagNames") List<String> tagNames);
+
+    /**
      * 查询前台题目列表
      *
      * @param query 关键字
      * @return 题目列表
      */
     List<Quiz> selectQuizHomeList(@Param("query") Quiz.Query query);
+
+    /**
+     * 根据题目ids查询前台题目列表
+     *
+     * @param quizIds 题目ids
+     * @return 题目列表
+     */
+    List<Quiz> selectQuizHomeListByIds(@Param("quizIds") List<Integer> quizIds);
 
     /**
      * 根据id查询前台题目
@@ -90,8 +106,9 @@ public interface QuizMapper extends BaseMapper<Quiz> {
 
     /**
      * 增减题目作答数
+     *
      * @param quizId 题目id
-     * @param num 作答数变化量
+     * @param num    作答数变化量
      */
     void updateAnswerNumber(@Param("quizId") Integer quizId, @Param("num") Integer num);
 }

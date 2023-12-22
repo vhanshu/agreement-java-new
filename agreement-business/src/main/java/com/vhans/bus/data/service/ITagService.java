@@ -70,6 +70,7 @@ public interface ITagService extends IService<Tag> {
      * 覆盖标签生成
      *
      * @param tagNameList 标签名列表
+     * @return 覆盖标签ids
      */
     List<Integer> getCoverTag(List<String> tagNameList);
 }

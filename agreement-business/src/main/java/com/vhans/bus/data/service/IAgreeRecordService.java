@@ -2,10 +2,10 @@ package com.vhans.bus.data.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.vhans.bus.data.domain.AgreeRecord;
+import com.vhans.bus.data.domain.vo.OverviewVO;
 import com.vhans.bus.subsidiary.model.dto.DeleteDTO;
 import com.vhans.bus.subsidiary.model.dto.RecommendDTO;
 import com.vhans.bus.subsidiary.model.dto.TopDTO;
-import com.vhans.bus.data.domain.vo.OverviewVO;
 import com.vhans.core.web.model.vo.SearchVO;
 
 import java.util.List;
@@ -82,6 +82,14 @@ public interface IAgreeRecordService extends IService<AgreeRecord> {
      * @return 记录列表
      */
     List<SearchVO> listRecordsBySearch(String keyword);
+
+    /**
+     * 根据标签查找记录列表
+     * @param tagNames 标签名列表
+     * @param isInter 是否相交
+     * @return 记录列表
+     */
+    List<AgreeRecord> listRecordByTag(List<String> tagNames, boolean isInter);
 
     /**
      * 查看前台记录列表

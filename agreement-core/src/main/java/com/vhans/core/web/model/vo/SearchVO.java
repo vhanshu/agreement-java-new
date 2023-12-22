@@ -24,15 +24,15 @@ public class SearchVO {
     private Integer id;
 
     /**
-     * 记录标题
+     * 标题
      */
     @ApiModelProperty(value = "标题")
     private String title;
 
     /**
-     * 类型(1记录 2题目)
+     * 类型
      */
-    @ApiModelProperty(value = "类型(1记录 2题目)")
+    @ApiModelProperty(value = "类型")
     private Integer type;
 
     /**

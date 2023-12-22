@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.TagText;
+import com.vhans.bus.data.domain.vo.OverviewVO;
+import com.vhans.bus.data.domain.vo.TagOptionVO;
 import com.vhans.bus.data.mapper.AgreeRecordMapper;
 import com.vhans.bus.data.mapper.TagMapper;
 import com.vhans.bus.data.mapper.TagTextMapper;
@@ -14,9 +16,7 @@ import com.vhans.bus.data.service.ITagService;
 import com.vhans.bus.subsidiary.model.dto.DeleteDTO;
 import com.vhans.bus.subsidiary.model.dto.RecommendDTO;
 import com.vhans.bus.subsidiary.model.dto.TopDTO;
-import com.vhans.bus.data.domain.vo.OverviewVO;
 import com.vhans.bus.subsidiary.model.vo.PaginationVO;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
 import com.vhans.bus.user.domain.UserCollect;
 import com.vhans.bus.user.domain.UserLike;
 import com.vhans.bus.user.mapper.UserCollectMapper;
@@ -35,13 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Validator;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
-import static com.vhans.core.constant.NumberConstant.ONE;
 import static com.vhans.core.constant.RedisConstant.*;
+import static com.vhans.core.constant.TextContent.RECORD;
 
 /**
  * 记录业务处理
@@ -150,7 +151,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         // 查询点赞量
         Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, recordId.toString());
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, ONE)).orElse(new ArrayList<>());
+        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, RECORD)).orElse(new ArrayList<>());
         record.setViewCount(viewCount.intValue());
         // 设置当前点赞量为 持久点赞量 + 缓存点赞量
         record.setLikeNumber(record.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
@@ -178,7 +179,21 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
 
     @Override
     public List<SearchVO> listRecordsBySearch(String keyword) {
-        return searchStrategyContext.executeSearchStrategy(keyword, ONE);
+        return searchStrategyContext.executeSearchStrategy(keyword, RECORD);
+    }
+
+    @Override
+    public List<AgreeRecord> listRecordByTag(List<String> tagNames, boolean isInter) {
+        if (isInter) {
+            List<Integer> quizIds = tagMapper.selectTextIds(tagNames, RECORD); //这里已被分页
+            quizIds = quizIds.stream().filter(id -> {
+                List<String> tagAllNames = tagMapper.selectTagNameByTypeId(id, RECORD);
+                return new HashSet<>(tagAllNames).containsAll(tagNames);
+            }).toList();
+            return StringUtils.isNotEmpty(quizIds) ? postRecord(recordMapper.selectRecordHomeListByIds(quizIds)) : new ArrayList<>();
+        } else {
+            return postRecord(recordMapper.selectRecordByTag(tagNames));
+        }
     }
 
     @Override
@@ -204,7 +219,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         // 查询点赞量
         Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, recordId.toString());
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, ONE)).orElse(new ArrayList<>());
+        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(recordId, RECORD)).orElse(new ArrayList<>());
         record.setViewCount(viewCount.intValue());
         record.setLastRecord(lastRecord);
         record.setNextRecord(nextRecord);
@@ -310,7 +325,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
             // 查询记录点赞量
             Integer likeNumber = redisService.getHash(RECORD_LIKE_COUNT, item.getId().toString());
             // 查询记录标签
-            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), ONE)).orElse(new ArrayList<>());
+            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), RECORD)).orElse(new ArrayList<>());
             item.setViewCount(viewCount.intValue());
             // 设置当前记录点赞量为 持久点赞量 + 缓存点赞量
             item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
@@ -327,7 +342,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     private void saveRecordTag(AgreeRecord record) {
         // 删除记录标签
         tagTextMapper.delete(new LambdaQueryWrapper<TagText>()
-                .eq(TagText::getType, ONE)
+                .eq(TagText::getType, RECORD)
                 .eq(TagText::getTypeId, record.getId()));
         // 标签名列表
         List<String> tagNameList = record.getTagNameList();
@@ -335,7 +350,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
             // 提供覆盖的标签
             List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
             // 将所有的新标签绑定到记录标签关联表
-            tagTextMapper.saveBatchTag(record.getId(), ONE, coverTagIds);
+            tagTextMapper.saveBatchTag(record.getId(), RECORD, coverTagIds);
         }
     }
 }

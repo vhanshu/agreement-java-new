@@ -37,6 +37,14 @@ public interface AgreeRecordMapper extends BaseMapper<AgreeRecord> {
     List<SearchVO> searchRecord(@Param("keyword") String keyword);
 
     /**
+     * 根据标签获取记录列表
+     *
+     * @param tagNames 标签名列表
+     * @return 记录列表
+     */
+    List<AgreeRecord> selectRecordByTag(@Param("tagNames") List<String> tagNames);
+
+    /**
      * 根据id查看前台记录信息
      *
      * @param recordId 记录id
@@ -51,6 +59,14 @@ public interface AgreeRecordMapper extends BaseMapper<AgreeRecord> {
      * @return 记录列表
      */
     List<AgreeRecord> listAgreeRecord(@Param("query") AgreeRecord.Query query);
+
+    /**
+     * 根据记录ids查询前台记录列表
+     *
+     * @param recordIds 记录ids
+     * @return 记录列表
+     */
+    List<AgreeRecord> selectRecordHomeListByIds(@Param("recordIds") List<Integer> recordIds);
 
     /**
      * 查询推荐记录

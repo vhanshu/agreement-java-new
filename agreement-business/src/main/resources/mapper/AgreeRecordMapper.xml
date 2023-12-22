@@ -54,10 +54,7 @@
         SELECT id,
         title,
         type,
-        content,
-        is_check,
-        is_delete,
-        `status`
+        content
         FROM d_agree_record
         <where>
             is_delete = 0 and `status` = 1
@@ -66,6 +63,31 @@
                 or content like concat('%',#{keyword},'%'))
             </if>
         </where>
+    </select>
+
+    <select id="selectRecordByTag" resultType="com.vhans.bus.data.domain.AgreeRecord">
+        SELECT r.id,
+        r.user_id,
+        r.cover,
+        r.type,
+        r.title,
+        r.images,
+        r.video,
+        r.like_number,
+        r.collect_number,
+        r.is_top,
+        r.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_agree_record r
+        LEFT JOIN u_user u ON u.id = r.user_id
+        where r.is_check = 1 and r.id in
+        (select tt.type_id from d_tag_text tt
+        left join d_tag t on tt.tag_id = t.id
+        where tt.type = 1 and t.tag_name in
+        <foreach collection="tagNames" item="tagName" open="(" close=")" separator=",">
+            #{tagName}
+        </foreach>)
     </select>
 
     <select id="selectRecordHomeById" resultType="com.vhans.bus.data.domain.AgreeRecord">
@@ -120,6 +142,28 @@
             </if>
         </where>
         ORDER BY is_top DESC, id DESC
+    </select>
+
+    <select id="selectRecordHomeListByIds" resultType="com.vhans.bus.data.domain.AgreeRecord">
+        SELECT r.id,
+        r.user_id,
+        r.cover,
+        r.type,
+        r.title,
+        r.images,
+        r.video,
+        r.like_number,
+        r.collect_number,
+        r.is_top,
+        r.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_agree_record r
+        LEFT JOIN u_user u ON u.id = r.user_id
+        WHERE r.is_check = 1 and r.id in
+        <foreach collection="recordIds" item="recordId" open="(" close=")" separator=",">
+            #{recordId}
+        </foreach>
     </select>
 
     <select id="listAgreeRecordR" resultType="com.vhans.bus.data.domain.AgreeRecord">

@@ -119,9 +119,25 @@ public class QuizController extends BaseController {
     }
 
     /**
-     * 查看前台题目列表
-     * @param query 题目查询
+     * 根据标签查找题目列表
      *
+     * @param tagNames 标签名列表
+     * @param type     all并列 inter交叉
+     * @return 题目列表
+     */
+    @ApiOperation(value = "根据标签查找题目列表")
+    @PostMapping("/list/tags/{type}")
+    public TableDataInfo<Quiz> listQuizByTag(@RequestBody List<String> tagNames, @PathVariable String type) {
+        startPage();
+        List<Quiz> list = quizService.listQuizByTag(tagNames, "inter".equals(type));
+        clearPage();
+        return getDataTable(list);
+    }
+
+    /**
+     * 查看前台题目列表
+     *
+     * @param query 题目查询
      * @return {@link Quiz}
      */
     @VisitLogger(value = "学习中心")
@@ -177,6 +193,7 @@ public class QuizController extends BaseController {
 
     /**
      * 删除题目
+     *
      * @param quizIds 题目ids
      * @return 结果
      */

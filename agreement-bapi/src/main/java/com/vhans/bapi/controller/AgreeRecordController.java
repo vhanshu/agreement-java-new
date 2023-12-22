@@ -134,6 +134,22 @@ public class AgreeRecordController extends BaseController {
     }
 
     /**
+     * 根据标签查找记录列表
+     *
+     * @param tagNames 标签名列表
+     * @param type     all并列 inter交叉
+     * @return 记录列表
+     */
+    @ApiOperation(value = "根据标签查找记录列表")
+    @PostMapping("/list/tags/{type}")
+    public TableDataInfo<AgreeRecord> listQuizByTag(@RequestBody List<String> tagNames, @PathVariable String type) {
+        startPage();
+        List<AgreeRecord> list = recordService.listRecordByTag(tagNames, "inter".equals(type));
+        clearPage();
+        return getDataTable(list);
+    }
+
+    /**
      * 查看前台记录列表
      *
      * @param query 标题或者发起人昵称及文本类型

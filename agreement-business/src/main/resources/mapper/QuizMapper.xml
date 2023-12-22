@@ -51,6 +51,28 @@
         </where>
     </select>
 
+    <select id="selectQuizByTag" resultType="com.vhans.bus.data.domain.Quiz">
+        SELECT q.id,
+        q.user_id,
+        q.title,
+        q.solve_number,
+        q.cover,
+        q.like_number,
+        q.collect_number,
+        q.create_time,
+        u.avatar,
+        u.nickname
+        from d_quiz q
+        left join u_user u on u.id = q.user_id
+        where q.is_check = 1 and q.id in
+        (select tt.type_id from d_tag_text tt
+        left join d_tag t on tt.tag_id = t.id
+        where tt.type = 2 and t.tag_name in
+        <foreach collection="tagNames" item="tagName" open="(" close=")" separator=",">
+            #{tagName}
+        </foreach>)
+    </select>
+
     <select id="selectQuizHomeList" resultType="com.vhans.bus.data.domain.Quiz">
         SELECT q.id,
         q.user_id,
@@ -71,6 +93,25 @@
                 or u.nickname like concat('%',#{query.title},'%'))
             </if>
         </where>
+    </select>
+
+    <select id="selectQuizHomeListByIds" resultType="com.vhans.bus.data.domain.Quiz">
+        SELECT q.id,
+        q.user_id,
+        q.title,
+        q.solve_number,
+        q.cover,
+        q.like_number,
+        q.collect_number,
+        q.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_quiz q
+        LEFT JOIN u_user u on u.id = q.user_id
+        WHERE q.is_check = 1 and q.id in
+        <foreach collection="quizIds" item="quizId" open="(" close=")" separator=",">
+            #{quizId}
+        </foreach>
     </select>
 
     <select id="selectQuizHomeById" resultType="com.vhans.bus.data.domain.Quiz">

@@ -10,12 +10,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.vhans.core.constant.ElasticConstant.POST_TAG;
 import static com.vhans.core.constant.ElasticConstant.PRE_TAG;
-import static com.vhans.core.constant.NumberConstant.ONE;
 import static com.vhans.core.constant.NumberConstant.ZERO;
+import static com.vhans.core.constant.TextContent.RECORD;
 
 /**
  * MySQL搜索策略
@@ -36,10 +35,10 @@ public class MysqlSearchStrategyImpl implements SearchStrategy {
         if (StringUtils.isBlank(keyword)) {
             return new ArrayList<>();
         }
-        List<SearchVO> searchVOList = type == ONE ? recordMapper.searchRecord(keyword) : quizMapper.searchQuiz(keyword);
-        return searchVOList.stream().map(item -> {
+        List<SearchVO> searchVOList = type.equals(RECORD) ? recordMapper.searchRecord(keyword) : quizMapper.searchQuiz(keyword);
+        return searchVOList.stream().peek(item -> {
+            item.setType(StringUtils.isNull(item.getType()) ? ZERO : item.getType());
             // 获取关键词第一次出现的位置
-            String recordContent = item.getContent();
             int index = item.getContent().indexOf(keyword);
             if (index != -1) {
                 // 获取关键词前面的文字
@@ -51,16 +50,12 @@ public class MysqlSearchStrategyImpl implements SearchStrategy {
                 int postIndex = postLength > 175 ? last + 175 : last + postLength;
                 String postText = item.getContent().substring(index, postIndex);
                 // 内容高亮
-                recordContent = (preText + postText).replaceAll(keyword, PRE_TAG + keyword + POST_TAG);
+                item.setContent((preText + postText).replaceAll(keyword, PRE_TAG + keyword + POST_TAG));
+            } else {
+                item.setContent(item.getContent().length() > 200 ? item.getContent().substring(0, 200) + "..." : item.getContent());
             }
             // 标题高亮
-            String recordTitle = item.getTitle().replaceAll(keyword, PRE_TAG + keyword + POST_TAG);
-            return SearchVO.builder()
-                    .id(item.getId())
-                    .title(recordTitle)
-                    .content(recordContent)
-                    .type(StringUtils.isNotNull(item.getType()) ? item.getType() : ZERO)
-                    .build();
-        }).collect(Collectors.toList());
+            item.setTitle(item.getTitle().replaceAll(keyword, PRE_TAG + keyword + POST_TAG));
+        }).toList();
     }
 }

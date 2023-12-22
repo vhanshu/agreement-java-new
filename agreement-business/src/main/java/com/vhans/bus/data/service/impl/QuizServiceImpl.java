@@ -26,11 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import static com.vhans.core.constant.NumberConstant.TWO;
 import static com.vhans.core.constant.RedisConstant.*;
+import static com.vhans.core.constant.TextContent.QUIZ;
 
 /**
  * 题目业务处理
@@ -112,7 +113,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         // 查询点赞量
         Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, quizId.toString());
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, TWO)).orElse(new ArrayList<>());
+        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, QUIZ)).orElse(new ArrayList<>());
         quiz.setViewCount(viewCount.intValue());
         // 设置当前点赞量为 持久点赞量 + 缓存点赞量
         quiz.setLikeNumber(quiz.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
@@ -122,7 +123,21 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
 
     @Override
     public List<SearchVO> listQuizBySearch(String keyword) {
-        return searchStrategyContext.executeSearchStrategy(keyword, TWO);
+        return searchStrategyContext.executeSearchStrategy(keyword, QUIZ);
+    }
+
+    @Override
+    public List<Quiz> listQuizByTag(List<String> tagNames, boolean isInter) {
+        if (isInter) {
+            List<Integer> quizIds = tagMapper.selectTextIds(tagNames, QUIZ); //这里已被分页
+            quizIds = quizIds.stream().filter(id -> {
+                List<String> tagAllNames = tagMapper.selectTagNameByTypeId(id, QUIZ);
+                return new HashSet<>(tagAllNames).containsAll(tagNames);
+            }).toList();
+            return StringUtils.isNotEmpty(quizIds) ? postQuiz(quizMapper.selectQuizHomeListByIds(quizIds)) : new ArrayList<>();
+        } else {
+            return postQuiz(quizMapper.selectQuizByTag(tagNames));
+        }
     }
 
     @Override
@@ -147,7 +162,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         // 查询点赞量
         Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, quizId.toString());
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, TWO)).orElse(new ArrayList<>());
+        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, QUIZ)).orElse(new ArrayList<>());
         quiz.setLastQuiz(lastQuiz);
         quiz.setNextQuiz(nextQuiz);
         quiz.setViewCount(viewCount.intValue());
@@ -210,7 +225,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
             // 查询点赞量
             Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
             // 查询标签
-            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), TWO)).orElse(new ArrayList<>());
+            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), QUIZ)).orElse(new ArrayList<>());
             item.setViewCount(viewCount.intValue());
             // 设置当前点赞量为 持久点赞量 + 缓存点赞量
             item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
@@ -222,7 +237,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     /**
      * 保存题目标签
      *
-     * @param quiz   题目信息
+     * @param quiz 题目信息
      */
     private void saveQuizTag(Quiz quiz) {
         // 删除题目标签
@@ -234,7 +249,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
             // 提供覆盖的标签
             List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
             // 将所有的新标签绑定到题目标签关联表
-            tagTextMapper.saveBatchTag(quiz.getId(), TWO, coverTagIds);
+            tagTextMapper.saveBatchTag(quiz.getId(), QUIZ, coverTagIds);
         }
     }
 }
