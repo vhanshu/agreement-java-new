@@ -2,14 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.vhans.bus.user.mapper.UserCollectMapper">
-
-    <insert id="saveUserCollectRecord">
+    <insert id="saveUserCollect">
         insert into u_user_collect(user_id, type, type_id)
-        values (#{userId}, 1, #{collectId})
-    </insert>
-
-    <insert id="saveUserCollectQuiz">
-        insert into u_user_collect(user_id, type, type_id)
-        values (#{userId}, 2, #{collectId})
+        values (#{userId}, #{type}, #{collectId})
     </insert>
 </mapper>

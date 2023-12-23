@@ -46,7 +46,7 @@ public interface TagMapper extends BaseMapper<Tag> {
      * 根据文本类型id查询相应类型的标签名称列表
      *
      * @param typeId 类型id
-     * @param type   标签类型(1:记录标签,2:题目标签)
+     * @param type   标签类型(1:记录标签,2:题目标签,3:商品标签)
      * @return 记录标签名称列表
      */
     List<String> selectTagNameByTypeId(@Param("typeId") Integer typeId, @Param("type") Integer type);
@@ -55,7 +55,7 @@ public interface TagMapper extends BaseMapper<Tag> {
      * 根据文本类型id查询相应类型的标签列表
      *
      * @param typeId 类型id
-     * @param type   标签类型(1:记录标签,2:题目标签)
+     * @param type   标签类型(1:记录标签,2:题目标签,3:商品标签)
      * @return 记录标签
      */
     List<TagOptionVO> selectTagByTypeId(@Param("typeId") Integer typeId, @Param("type") Integer type);
@@ -63,7 +63,7 @@ public interface TagMapper extends BaseMapper<Tag> {
     /**
      * 查询对应标签统计列表
      *
-     * @param type 标签类型(1:记录标签,2:题目标签)
+     * @param type 标签类型(1:记录标签,2:题目标签,3:商品标签)
      * @return 标签统计列表
      */
     List<TagStatisticsVO> selectTagVOList(@Param("type") Integer type);
@@ -71,7 +71,7 @@ public interface TagMapper extends BaseMapper<Tag> {
     /**
      * 查询相应标签选项
      *
-     * @param type 标签类型(1:记录标签,2:题目标签)
+     * @param type 标签类型(1:记录标签,2:题目标签,3:商品标签)
      * @return 标签列表
      */
     List<TagOptionVO> selectTagOptionList(@Param("type") Integer type);

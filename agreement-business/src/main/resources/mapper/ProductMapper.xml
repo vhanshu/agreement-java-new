@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vhans.bus.data.mapper.ProductMapper">
+
+    <select id="selectProduct" resultType="com.vhans.bus.data.domain.Product">
+        SELECT p.id,
+        p.user_id,
+        p.cover,
+        p.title,
+        p.price,
+        p.type,
+        p.collect_number,
+        p.is_top,
+        p.is_check,
+        p.is_recommend,
+        p.is_delete,
+        p.is_lease,
+        p.`status`,
+        p.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_product p
+        LEFT JOIN u_user u ON u.id = p.user_id
+        <where>
+            <if test="query.isDelete != null">
+                p.is_delete = #{query.isDelete}
+            </if>
+            <if test="query.isCheck != null">
+                and p.is_check = #{query.isCheck}
+            </if>
+            <if test="query.userId != null">
+                and p.user_id = #{query.userId}
+            </if>
+            <if test="query.title != null and query.title != ''">
+                and (p.title like concat('%',#{query.title},'%')
+                or u.nickname like concat('%',#{query.title},'%'))
+            </if>
+            <if test="query.status != null">
+                and p.status = #{query.status}
+            </if>
+            <if test="query.type != null and query.type != 0">
+                and p.type = #{query.type}
+            </if>
+            <if test="query.collectUid != null">
+                and #{query.collectUid} in (select uc.user_id from u_user_collect uc where uc.type = 1 and uc.type_id = p.id)
+            </if>
+            <if test="query.likeUid != null">
+                and #{query.likeUid} in (select ul.user_id from u_user_like ul where ul.type = 1 and ul.type_id = p.id)
+            </if>
+        </where>
+        ORDER BY is_top DESC, is_recommend DESC, create_time DESC
+    </select>
+
+    <select id="searchProduct" resultType="com.vhans.core.web.model.vo.SearchVO">
+        SELECT id,
+        title,
+        type,
+        content
+        FROM d_product
+        <where>
+            is_delete = 0 and `status` = 1
+            <if test="keyword != null">
+                and (title like concat('%',#{keyword},'%')
+                or content like concat('%',#{keyword},'%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="selectProductByTag" resultType="com.vhans.bus.data.domain.Product">
+        SELECT p.id,
+        p.user_id,
+        p.cover,
+        p.type,
+        p.title,
+        p.price,
+        p.images,
+        p.video,
+        p.collect_number,
+        p.is_lease,
+        p.is_top,
+        p.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_product p
+        LEFT JOIN u_user u ON u.id = p.user_id
+        where p.is_check = 1 and p.id in
+        (select tt.type_id from d_tag_text tt
+        left join d_tag t on tt.tag_id = t.id
+        where tt.type = 1 and t.tag_name in
+        <foreach collection="tagNames" item="tagName" open="(" close=")" separator=",">
+            #{tagName}
+        </foreach>)
+    </select>
+
+    <select id="selectProductHomeById" resultType="com.vhans.bus.data.domain.Product">
+        SELECT p.id,
+               p.user_id,
+               p.cover,
+               p.title,
+               p.price,
+               p.content,
+               p.type,
+               p.collect_number,
+               p.is_lease,
+               p.is_top,
+               p.is_check,
+               p.is_recommend,
+               p.is_delete,
+               p.`status`,
+               p.video,
+               p.images,
+               p.create_time,
+               p.update_time,
+               u.nickname,
+               u.avatar
+        FROM d_product p
+                 LEFT JOIN u_user u ON u.id = p.user_id
+        where p.id = #{productId}
+    </select>
+
+    <select id="listProduct" resultType="com.vhans.bus.data.domain.Product">
+        SELECT p.id,
+        p.user_id,
+        p.cover,
+        p.type,
+        p.title,
+        p.price,
+        p.images,
+        p.video,
+        p.collect_number,
+        p.is_lease,
+        p.is_top,
+        p.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_product p
+        LEFT JOIN u_user u ON u.id = p.user_id
+        <where>
+            p.is_delete = 0 and p.`status` = 1 and p.is_check = 1
+            <if test="query.title != null and query.title != ''">
+                and (p.title like concat('%',#{query.title},'%')
+                or u.nickname like concat('%',#{query.title},'%'))
+            </if>
+            <if test="query.type != null and query.type != 0">
+                and p.type = #{query.type}
+            </if>
+        </where>
+        ORDER BY is_top DESC, id DESC
+    </select>
+
+    <select id="selectProductHomeListByIds" resultType="com.vhans.bus.data.domain.Product">
+        SELECT p.id,
+        p.user_id,
+        p.cover,
+        p.type,
+        p.title,
+        p.price,
+        p.images,
+        p.video,
+        p.collect_number,
+        p.is_lease,
+        p.is_top,
+        p.create_time,
+        u.avatar,
+        u.nickname
+        FROM d_product p
+        LEFT JOIN u_user u ON u.id = p.user_id
+        WHERE p.is_check = 1 and p.id in
+        <foreach collection="productIds" item="productId" open="(" close=")" separator=",">
+            #{productId}
+        </foreach>
+    </select>
+
+    <select id="listProductR" resultType="com.vhans.bus.data.domain.Product">
+        SELECT p.id,
+               p.user_id,
+               p.cover,
+               p.type,
+               p.title,
+               p.price,
+               p.images,
+               p.video,
+               p.collect_number,
+               p.create_time,
+               p.is_lease,
+               u.avatar,
+               u.nickname
+        FROM d_product p
+                 LEFT JOIN u_user u ON u.id = p.user_id
+        where is_delete = 0
+          and `status` = 1
+          and is_recommend = 1
+        ORDER BY is_top DESC, create_time DESC
+    </select>
+
+    <select id="selectLastProduct" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM d_product
+        WHERE is_delete = 0
+          AND `status` = 1
+          AND is_check = 1
+          AND id &lt; #{productId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextProduct" resultType="com.vhans.bus.subsidiary.model.vo.PaginationVO">
+        SELECT id, cover as img, title
+        FROM d_product
+        WHERE is_delete = 0
+          AND `status` = 1
+          AND is_check = 1
+          AND id &gt; #{productId}
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="selectOverviewProductList" resultType="com.vhans.bus.data.domain.vo.OverviewVO">
+        select id, title, cover as img, type, create_time
+        from d_product
+        where is_delete = 0
+          and `status` = 1
+        order by create_time desc
+    </select>
+
+    <select id="selectProductStatistics" resultType="com.vhans.bus.data.domain.vo.StatisticsVO">
+        SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS date,
+               COUNT(*)                             AS count
+        FROM d_product
+        GROUP BY date
+        ORDER BY date DESC
+    </select>
+
+</mapper>

@@ -53,6 +53,11 @@ public class RedisConstant {
     public static final String HELP_VIEW_COUNT = "help_view_count";
 
     /**
+     * 商品浏览量
+     */
+    public static final String PRODUCT_VIEW_COUNT = "product_view_count";
+
+    /**
      * 记录点赞量
      */
     public static final String RECORD_LIKE_COUNT = "record_like_count";

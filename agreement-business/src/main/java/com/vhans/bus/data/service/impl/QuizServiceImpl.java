@@ -98,7 +98,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     public void updateQuiz(Quiz quiz) {
         // 修改题目
         quiz.setUserId(StpUtil.getLoginIdAsInt());
-        baseMapper.updateById(quiz);
+        quizMapper.updateById(quiz);
         // 保存题目标签
         saveQuizTag(quiz);
     }
@@ -204,7 +204,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
             quiz.setCollectNumber(quiz.getCollectNumber() - 1);
         } else {
             // 收藏则添加用户的该收藏
-            userCollectMapper.saveUserCollectQuiz(StpUtil.getLoginIdAsInt(), quizId);
+            userCollectMapper.saveUserCollect(StpUtil.getLoginIdAsInt(), QUIZ, quizId);
             // 题目收藏数+1
             quiz.setCollectNumber(quiz.getCollectNumber() + 1);
         }

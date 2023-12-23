@@ -17,15 +17,8 @@ public interface UserCollectMapper extends BaseMapper<UserCollect> {
      * 保存记录收藏的用户
      *
      * @param userId    用户id
+     * @param type      收藏类型
      * @param collectId 收藏id
      */
-    void saveUserCollectRecord(@Param("userId") Integer userId, @Param("collectId") Integer collectId);
-
-    /**
-     * 保存题目收藏的用户
-     *
-     * @param userId    用户id
-     * @param collectId 收藏id
-     */
-    void saveUserCollectQuiz(@Param("userId") Integer userId, @Param("collectId") Integer collectId);
+    void saveUserCollect(@Param("userId") Integer userId, @Param("type") Integer type, @Param("collectId") Integer collectId);
 }

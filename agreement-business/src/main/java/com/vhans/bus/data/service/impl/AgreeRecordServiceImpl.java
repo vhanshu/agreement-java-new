@@ -129,6 +129,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
         userCollectMapper.delete(new LambdaQueryWrapper<UserCollect>()
                 .in(UserCollect::getTypeId, recordIds));
         userLikeMapper.delete(new LambdaQueryWrapper<UserLike>()
+                .eq(UserLike::getType, RECORD)
                 .in(UserLike::getTypeId, recordIds));
     }
 
@@ -185,12 +186,12 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     @Override
     public List<AgreeRecord> listRecordByTag(List<String> tagNames, boolean isInter) {
         if (isInter) {
-            List<Integer> quizIds = tagMapper.selectTextIds(tagNames, RECORD); //这里已被分页
-            quizIds = quizIds.stream().filter(id -> {
+            List<Integer> recordIds = tagMapper.selectTextIds(tagNames, RECORD); //这里已被分页
+            recordIds = recordIds.stream().filter(id -> {
                 List<String> tagAllNames = tagMapper.selectTagNameByTypeId(id, RECORD);
                 return new HashSet<>(tagAllNames).containsAll(tagNames);
             }).toList();
-            return StringUtils.isNotEmpty(quizIds) ? postRecord(recordMapper.selectRecordHomeListByIds(quizIds)) : new ArrayList<>();
+            return StringUtils.isNotEmpty(recordIds) ? postRecord(recordMapper.selectRecordHomeListByIds(recordIds)) : new ArrayList<>();
         } else {
             return postRecord(recordMapper.selectRecordByTag(tagNames));
         }
@@ -262,7 +263,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
             agreeRecord.setCollectNumber(agreeRecord.getCollectNumber() - 1);
         } else {
             // 收藏则添加用户的该收藏
-            userCollectMapper.saveUserCollectRecord(StpUtil.getLoginIdAsInt(), recordId);
+            userCollectMapper.saveUserCollect(StpUtil.getLoginIdAsInt(), RECORD, recordId);
             // 记录收藏数+1
             agreeRecord.setCollectNumber(agreeRecord.getCollectNumber() + 1);
         }
@@ -337,7 +338,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     /**
      * 保存记录标签
      *
-     * @param record   记录信息
+     * @param record 记录信息
      */
     private void saveRecordTag(AgreeRecord record) {
         // 删除记录标签
