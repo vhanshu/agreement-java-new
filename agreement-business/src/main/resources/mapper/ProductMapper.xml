@@ -28,6 +28,9 @@
             <if test="query.isCheck != null">
                 and p.is_check = #{query.isCheck}
             </if>
+            <if test="query.isLease != null">
+                and p.is_lease = #{query.isLease}
+            </if>
             <if test="query.userId != null">
                 and p.user_id = #{query.userId}
             </if>

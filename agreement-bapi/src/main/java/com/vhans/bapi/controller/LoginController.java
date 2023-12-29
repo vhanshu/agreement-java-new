@@ -83,7 +83,6 @@ public class LoginController {
      * @param password 验证对象
      * @return 结果
      */
-    @SaCheckLogin
     @ApiOperation(value = "忘记密码时重新设置密码")
     @PutMapping("/password")
     public Result<?> updatePassword(@Validated @RequestBody RegisterDTO password) {

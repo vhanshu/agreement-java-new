@@ -36,8 +36,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
             "/v2/api-docs",
             "/doc.html",
             "/favicon.ico",
-            "/login",
-            "/oauth/*",
+            // 以下先注释，防止客户端应用预检跨域
+//            "/login",
+//            "/oauth/*",
     };
 
     private final long timeout = 600;
@@ -75,8 +76,6 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 })
                 // 认证函数: 每次请求执行
                 .setAuth(obj -> {
-                    // 检查是否登录
-                    SaRouter.match("/user/**").check(r -> StpUtil.checkLogin());
                     // 刷新token有效期
                     if (StpUtil.getTokenTimeout() < timeout) {
                         StpUtil.renewTimeout(1800);

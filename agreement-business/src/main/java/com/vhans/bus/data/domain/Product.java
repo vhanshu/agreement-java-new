@@ -73,8 +73,8 @@ public class Product {
      * 商品类型(1电子 2服饰 3装扮 4日用 5工具 6虚拟 7其它)
      */
     @NotNull(message = "商品类型不能为空")
-    @ApiModelProperty(value = "商品类型(1电子 2服饰 3装扮 4日用 5工具 6虚拟 7其它)")
-    @Excel(name = "商品类型", readConverterExp = "1=电子,2=服饰,3=装扮,4=日用,5=工具,6=虚拟,7=其它")
+    @ApiModelProperty(value = "商品类型(1电子 2服饰 3装扮 4日用 5工具 6食品 7虚拟 8其它)")
+    @Excel(name = "商品类型", readConverterExp = "1=电子,2=服饰,3=装扮,4=日用,5=工具,6=食品，7=虚拟,8=其它")
     private Integer type;
 
     /**
@@ -255,6 +255,12 @@ public class Product {
          */
         @ApiModelProperty(value = "是否通过")
         private Integer isCheck;
+
+        /**
+         * 是否租赁
+         */
+        @ApiModelProperty(value = "是否租赁")
+        private Integer isLease;
 
         /**
          * 收藏者id
