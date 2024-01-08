@@ -42,9 +42,9 @@ public class Comment {
     private Integer id;
 
     /**
-     * 类型(1记录 2提问)
+     * 类型(1记录 2提问 3商品)
      */
-    @CommentType(values = {1, 2}, message = "评论类型只能为1记录、2题目")
+    @CommentType(values = {1, 2}, message = "评论类型只能为1记录、2题目、3商品")
     @NotNull(message = "评论类型不能为空")
     @ApiModelProperty("类型")
     private Integer type;

@@ -47,11 +47,11 @@ public interface IFriendService {
     /**
      * 修改好友备注
      *
-     * @param id           表编号
+     * @param friendId     好友id
      * @param friendRemark 好友备注
      * @return 影响行
      */
-    int updateFriendRemark(Integer id, String friendRemark);
+    int updateFriendRemark(Integer friendId, String friendRemark);
 
     /**
      * 删除好友

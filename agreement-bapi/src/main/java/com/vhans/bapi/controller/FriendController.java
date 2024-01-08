@@ -55,15 +55,15 @@ public class FriendController extends BaseController {
     /**
      * 修改好友备注
      *
-     * @param id           表id
+     * @param friendId     好友id
      * @param friendRemark 好友备注
      * @return {@link Result} 结果
      */
     @SaCheckLogin
     @ApiOperation(value = "修改好友备注")
-    @PutMapping("/update/{id}/{friendRemark}")
-    public Result<?> updateFriendRemark(@PathVariable("id") Integer id, @PathVariable("friendRemark") String friendRemark) {
-        return toAjax(friendService.updateFriendRemark(id, friendRemark));
+    @PutMapping("/update/{friendId}/{friendRemark}")
+    public Result<?> updateFriendRemark(@PathVariable("friendId") Integer friendId, @PathVariable("friendRemark") String friendRemark) {
+        return toAjax(friendService.updateFriendRemark(friendId, friendRemark));
     }
 
     /**
@@ -74,7 +74,7 @@ public class FriendController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "删除好友")
-    @PostMapping("/delete/{friendId}")
+    @DeleteMapping("/delete/{friendId}")
     public Result<?> deleteFriend(@PathVariable("friendId") Integer friendId) {
         return toAjax(friendService.deleteFriend(friendId));
     }

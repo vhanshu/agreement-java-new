@@ -66,5 +66,5 @@ public interface IMsgService {
      * @param idList 需要删除的用户聊天信息主键列表
      * @return 影响行
      */
-    int deleteMsgByIdIdList(List<Integer> idList);
+    int deleteMsgByIdList(List<Integer> idList);
 }

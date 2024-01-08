@@ -84,7 +84,7 @@ public class MsgServiceImpl implements IMsgService {
     }
 
     @Override
-    public int deleteMsgByIdIdList(List<Integer> idList) {
+    public int deleteMsgByIdList(List<Integer> idList) {
         // 删除用户聊天信息
         return msgMapper.deleteBatchIds(idList);
     }

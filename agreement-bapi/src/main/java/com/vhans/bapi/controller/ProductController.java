@@ -122,7 +122,7 @@ public class ProductController extends BaseController {
      */
     @ApiOperation(value = "根据标签查找商品列表")
     @PostMapping("/list/tags/{type}")
-    public TableDataInfo<Product> listQuizByTag(@RequestBody List<String> tagNames, @PathVariable String type) {
+    public TableDataInfo<Product> listProductByTag(@RequestBody List<String> tagNames, @PathVariable String type) {
         startPage();
         List<Product> list = productService.listProductByTag(tagNames, "inter".equals(type));
         clearPage();

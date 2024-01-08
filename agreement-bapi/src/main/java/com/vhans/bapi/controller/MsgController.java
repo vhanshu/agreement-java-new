@@ -71,4 +71,18 @@ public class MsgController extends BaseController {
         clearPage();
         return getDataTable(list);
     }
+
+    /**
+     * 删除系统通知
+     *
+     * @param ids 通知ids
+     * @return 结果
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "删除系统通知")
+    @DeleteMapping("/delete")
+    public Result<?> deleteQuiz(@RequestBody List<Integer> ids) {
+        msgService.deleteMsgByIdList(ids);
+        return Result.success();
+    }
 }

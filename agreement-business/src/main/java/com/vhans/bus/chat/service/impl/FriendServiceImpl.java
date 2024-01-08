@@ -121,8 +121,10 @@ public class FriendServiceImpl implements IFriendService {
     }
 
     @Override
-    public int updateFriendRemark(Integer id, String friendRemark) {
-        return friendMapper.updateById(Friend.builder().friendRemark(friendRemark).id(id).build());
+    public int updateFriendRemark(Integer friendId, String friendRemark) {
+        return friendMapper.update(Friend.builder().friendRemark(friendRemark).build(), new LambdaQueryWrapper<Friend>()
+                .eq(Friend::getFriendId, friendId)
+                .eq(Friend::getUserId, StpUtil.getLoginIdAsInt()));
     }
 
     @Transactional

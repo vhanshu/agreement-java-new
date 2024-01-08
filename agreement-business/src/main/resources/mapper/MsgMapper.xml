@@ -23,7 +23,7 @@
         <where>
             <if test="query.msgType != null">
                 msg_type = #{query.msgType}
-            </if>or
+            </if>
             <if test="query.isRead != null">
                 is_read = #{query.isRead}
             </if>

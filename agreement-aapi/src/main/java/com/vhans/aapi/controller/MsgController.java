@@ -52,6 +52,6 @@ public class MsgController extends BaseController {
 //    @SaCheckPermission("chat:msg:delete")
     @DeleteMapping("/delete")
     public Result<?> delete(@RequestBody List<Integer> idList) {
-        return toAjax(msgService.deleteMsgByIdIdList(idList));
+        return toAjax(msgService.deleteMsgByIdList(idList));
     }
 }
