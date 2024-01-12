@@ -143,7 +143,6 @@ public class AgreeRecordController extends BaseController {
     @ApiOperation(value = "根据标签查找记录列表")
     @PostMapping("/list/tags/{type}")
     public TableDataInfo<AgreeRecord> listRecordByTag(@RequestBody List<String> tagNames, @PathVariable String type) {
-        startPage();
         List<AgreeRecord> list = recordService.listRecordByTag(tagNames, "inter".equals(type));
         clearPage();
         return getDataTable(list);

@@ -19,7 +19,7 @@ public class UserAgreeDTO {
     private String keyword;
 
     /**
-     * 类别(0全部 1约会 2活动 3赛事 4帮忙)(0全部 1记录 2题目)(自由变化)
+     * 类别(0全部 1约会 2活动 3赛事 4帮忙 5其它)(0全部 1电子 2服饰 3装扮 4日用 5工具 6食品 7虚拟 8其它)(0全部 1记录 2题目 3商品)(自由变化)
      */
     @ApiModelProperty(value = "类别")
     private Integer type;

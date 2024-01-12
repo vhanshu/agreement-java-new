@@ -128,7 +128,6 @@ public class QuizController extends BaseController {
     @ApiOperation(value = "根据标签查找题目列表")
     @PostMapping("/list/tags/{type}")
     public TableDataInfo<Quiz> listQuizByTag(@RequestBody List<String> tagNames, @PathVariable String type) {
-        startPage();
         List<Quiz> list = quizService.listQuizByTag(tagNames, "inter".equals(type));
         clearPage();
         return getDataTable(list);

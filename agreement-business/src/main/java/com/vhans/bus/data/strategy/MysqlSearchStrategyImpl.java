@@ -1,6 +1,7 @@
 package com.vhans.bus.data.strategy;
 
 import com.vhans.bus.data.mapper.AgreeRecordMapper;
+import com.vhans.bus.data.mapper.ProductMapper;
 import com.vhans.bus.data.mapper.QuizMapper;
 import com.vhans.core.strategy.SearchStrategy;
 import com.vhans.core.utils.data.StringUtils;
@@ -14,7 +15,6 @@ import java.util.List;
 import static com.vhans.core.constant.ElasticConstant.POST_TAG;
 import static com.vhans.core.constant.ElasticConstant.PRE_TAG;
 import static com.vhans.core.constant.NumberConstant.ZERO;
-import static com.vhans.core.constant.TextContent.RECORD;
 
 /**
  * MySQL搜索策略
@@ -30,12 +30,15 @@ public class MysqlSearchStrategyImpl implements SearchStrategy {
     @Autowired
     private QuizMapper quizMapper;
 
+    @Autowired
+    private ProductMapper productMapper;
+
     @Override
     public List<SearchVO> search(String keyword, Integer type) {
         if (StringUtils.isBlank(keyword)) {
             return new ArrayList<>();
         }
-        List<SearchVO> searchVOList = type.equals(RECORD) ? recordMapper.searchRecord(keyword) : quizMapper.searchQuiz(keyword);
+        List<SearchVO> searchVOList = getSearchList(keyword, type);
         return searchVOList.stream().peek(item -> {
             item.setType(StringUtils.isNull(item.getType()) ? ZERO : item.getType());
             // 获取关键词第一次出现的位置
@@ -57,5 +60,14 @@ public class MysqlSearchStrategyImpl implements SearchStrategy {
             // 标题高亮
             item.setTitle(item.getTitle().replaceAll(keyword, PRE_TAG + keyword + POST_TAG));
         }).toList();
+    }
+
+    private List<SearchVO> getSearchList(String keyword, Integer type) {
+        return switch (type) {
+            case 1 -> recordMapper.searchRecord(keyword);
+            case 2 -> quizMapper.searchQuiz(keyword);
+            case 3 -> productMapper.searchProduct(keyword);
+            default -> new ArrayList<>();
+        };
     }
 }

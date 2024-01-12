@@ -47,9 +47,6 @@
             <if test="query.collectUid != null">
                 and #{query.collectUid} in (select uc.user_id from u_user_collect uc where uc.type = 1 and uc.type_id = p.id)
             </if>
-            <if test="query.likeUid != null">
-                and #{query.likeUid} in (select ul.user_id from u_user_like ul where ul.type = 1 and ul.type_id = p.id)
-            </if>
         </where>
         ORDER BY is_top DESC, is_recommend DESC, create_time DESC
     </select>

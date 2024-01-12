@@ -28,6 +28,7 @@ import com.vhans.core.strategy.context.SearchStrategyContext;
 import com.vhans.core.utils.BeanUtils;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
+import com.vhans.core.utils.web.PageUtils;
 import com.vhans.core.web.model.vo.SearchVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -186,13 +187,15 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
     @Override
     public List<AgreeRecord> listRecordByTag(List<String> tagNames, boolean isInter) {
         if (isInter) {
-            List<Integer> recordIds = tagMapper.selectTextIds(tagNames, RECORD); //这里已被分页
+            List<Integer> recordIds = tagMapper.selectTextIds(tagNames, RECORD);
             recordIds = recordIds.stream().filter(id -> {
                 List<String> tagAllNames = tagMapper.selectTagNameByTypeId(id, RECORD);
                 return new HashSet<>(tagAllNames).containsAll(tagNames);
             }).toList();
+            PageUtils.startPage();
             return StringUtils.isNotEmpty(recordIds) ? postRecord(recordMapper.selectRecordHomeListByIds(recordIds)) : new ArrayList<>();
         } else {
+            PageUtils.startPage();
             return postRecord(recordMapper.selectRecordByTag(tagNames));
         }
     }

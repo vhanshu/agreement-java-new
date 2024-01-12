@@ -32,7 +32,7 @@ public class SearchStrategyContext {
      * 执行搜索策略
      *
      * @param keyword 关键字
-     * @param type    类型(1记录 2题目)
+     * @param type    类型(1记录 2题目 3商品)
      * @return {@link List<SearchVO>} 搜索信息
      */
     public List<SearchVO> executeSearchStrategy(String keyword, Integer type) {

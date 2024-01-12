@@ -10,14 +10,8 @@ import com.vhans.bus.agree.domain.vo.AgreeVO;
 import com.vhans.bus.agree.service.IAgreeService;
 import com.vhans.bus.chat.domain.Friend;
 import com.vhans.bus.chat.mapper.FriendMapper;
-import com.vhans.bus.data.domain.AgreeRecord;
-import com.vhans.bus.data.domain.Comment;
-import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.domain.QuizAnswer;
-import com.vhans.bus.data.service.IAgreeRecordService;
-import com.vhans.bus.data.service.ICommentService;
-import com.vhans.bus.data.service.IQuizAnswerService;
-import com.vhans.bus.data.service.IQuizService;
+import com.vhans.bus.data.domain.*;
+import com.vhans.bus.data.service.*;
 import com.vhans.bus.subsidiary.model.dto.DisableDTO;
 import com.vhans.bus.subsidiary.model.dto.EmailDTO;
 import com.vhans.bus.subsidiary.model.dto.PasswdDTO;
@@ -85,6 +79,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private IQuizAnswerService quizAnswerService;
+
+    @Autowired
+    private IProductService productService;
 
     @Autowired
     private ICommentService commentService;
@@ -215,6 +212,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
+    public List<Product> getIssueProduct(Integer userId, UserAgreeDTO userAgree) {
+        Product.Query query = new Product.Query();
+        query.setIsDelete(FALSE);
+        query.setUserId(userId);
+        query.setTitle(userAgree.getKeyword());
+        query.setType(userAgree.getType());
+        return productService.listProduct(query);
+    }
+
+    @Override
     public List<Comment> getIssueComment(Integer userId, UserAgreeDTO userAgree) {
         Comment.Query query = new Comment.Query();
         query.setFromUid(userId);
@@ -238,6 +245,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         query.setCollectUid(userId);
         query.setTitle(userAgree.getKeyword());
         return quizService.listQuiz(query);
+    }
+
+    @Override
+    public List<Product> getCollectProduct(Integer userId, UserAgreeDTO userAgree) {
+        Product.Query query = new Product.Query();
+        query.setIsDelete(FALSE);
+        query.setCollectUid(userId);
+        query.setTitle(userAgree.getKeyword());
+        query.setType(userAgree.getType());
+        return productService.listProduct(query);
     }
 
     @Override

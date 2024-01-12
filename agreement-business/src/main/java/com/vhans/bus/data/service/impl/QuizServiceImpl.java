@@ -20,6 +20,7 @@ import com.vhans.bus.website.domain.SiteConfig;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.context.SearchStrategyContext;
 import com.vhans.core.utils.data.StringUtils;
+import com.vhans.core.utils.web.PageUtils;
 import com.vhans.core.web.model.vo.SearchVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -129,13 +130,15 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
     @Override
     public List<Quiz> listQuizByTag(List<String> tagNames, boolean isInter) {
         if (isInter) {
-            List<Integer> quizIds = tagMapper.selectTextIds(tagNames, QUIZ); //这里已被分页
+            List<Integer> quizIds = tagMapper.selectTextIds(tagNames, QUIZ);
             quizIds = quizIds.stream().filter(id -> {
                 List<String> tagAllNames = tagMapper.selectTagNameByTypeId(id, QUIZ);
                 return new HashSet<>(tagAllNames).containsAll(tagNames);
             }).toList();
+            PageUtils.startPage();
             return StringUtils.isNotEmpty(quizIds) ? postQuiz(quizMapper.selectQuizHomeListByIds(quizIds)) : new ArrayList<>();
         } else {
+            PageUtils.startPage();
             return postQuiz(quizMapper.selectQuizByTag(tagNames));
         }
     }

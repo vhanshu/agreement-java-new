@@ -15,7 +15,7 @@ public interface SearchStrategy {
      * 搜索记录
      *
      * @param keyword 关键字
-     * @param type    类型(1记录 2题目)
+     * @param type    类型(1记录 2题目 3商品)
      * @return {@link List<SearchVO>} 记录列表
      */
     List<SearchVO> search(String keyword, Integer type);

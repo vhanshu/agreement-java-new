@@ -162,9 +162,8 @@
     </select>
 
     <select id="selectQuizList" resultType="com.vhans.bus.data.domain.vo.OverviewVO">
-        select q.id, q.title, q.create_time, u.avatar as img
+        select q.id, q.title, q.create_time, q.cover as img
         from d_quiz q
-                 left join u_user u on u.id = q.user_id
         where is_check = 1
         order by create_time desc
     </select>

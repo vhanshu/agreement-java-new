@@ -2,10 +2,7 @@ package com.vhans.bus.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
-import com.vhans.bus.data.domain.AgreeRecord;
-import com.vhans.bus.data.domain.Comment;
-import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.domain.QuizAnswer;
+import com.vhans.bus.data.domain.*;
 import com.vhans.bus.subsidiary.model.dto.DisableDTO;
 import com.vhans.bus.subsidiary.model.dto.EmailDTO;
 import com.vhans.bus.subsidiary.model.dto.PasswdDTO;
@@ -85,6 +82,13 @@ public interface IUserService extends IService<User> {
     List<QuizAnswer> getIssueAnswer(Integer userId, UserAgreeDTO userAgree);
 
     /**
+     * 获取用户上架的商品
+     *
+     * @return 发表的记录
+     */
+    List<Product> getIssueProduct(Integer userId, UserAgreeDTO userAgree);
+
+    /**
      * 获取用户发表的评论
      *
      * @return 发表的评论
@@ -104,6 +108,13 @@ public interface IUserService extends IService<User> {
      * @return 收藏的题目
      */
     List<Quiz> getCollectQuiz(Integer userId, UserAgreeDTO userAgree);
+
+    /**
+     * 获取用户收藏的商品
+     *
+     * @return 收藏的记录
+     */
+    List<Product> getCollectProduct(Integer userId, UserAgreeDTO userAgree);
 
     /**
      * 获取用户点赞的记录

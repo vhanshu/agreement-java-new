@@ -26,6 +26,7 @@ import com.vhans.core.strategy.context.SearchStrategyContext;
 import com.vhans.core.utils.BeanUtils;
 import com.vhans.core.utils.SpringUtils;
 import com.vhans.core.utils.data.StringUtils;
+import com.vhans.core.utils.web.PageUtils;
 import com.vhans.core.web.model.vo.SearchVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -174,13 +175,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public List<Product> listProductByTag(List<String> tagNames, boolean isInter) {
         if (isInter) {
-            List<Integer> productIds = tagMapper.selectTextIds(tagNames, PRODUCT); //这里已被分页
+            List<Integer> productIds = tagMapper.selectTextIds(tagNames, PRODUCT);
             productIds = productIds.stream().filter(id -> {
                 List<String> tagAllNames = tagMapper.selectTagNameByTypeId(id, PRODUCT);
                 return new HashSet<>(tagAllNames).containsAll(tagNames);
             }).toList();
+            PageUtils.startPage();
             return StringUtils.isNotEmpty(productIds) ? postProduct(productMapper.selectProductHomeListByIds(productIds)) : new ArrayList<>();
         } else {
+            PageUtils.startPage();
             return postProduct(productMapper.selectProductByTag(tagNames));
         }
     }

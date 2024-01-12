@@ -3,10 +3,7 @@ package com.vhans.bapi.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.core.lang.Assert;
 import com.vhans.bus.agree.domain.vo.AgreeVO;
-import com.vhans.bus.data.domain.AgreeRecord;
-import com.vhans.bus.data.domain.Comment;
-import com.vhans.bus.data.domain.Quiz;
-import com.vhans.bus.data.domain.QuizAnswer;
+import com.vhans.bus.data.domain.*;
 import com.vhans.bus.subsidiary.model.dto.EmailDTO;
 import com.vhans.bus.subsidiary.model.dto.PasswdDTO;
 import com.vhans.bus.user.domain.User;
@@ -148,7 +145,7 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户参与的约起(type1~6)
+     * 获取用户参与的约起(type1~4)
      *
      * @return 参与的约起
      */
@@ -163,12 +160,12 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户发表的记录(type0~4)
+     * 获取用户发表的记录(type0~5)
      *
      * @return {@link AgreeRecord} 发表的记录
      */
     @SaCheckLogin
-    @ApiOperation(value = "发表的记录(type0~4)")
+    @ApiOperation(value = "发表的记录(type0~5)")
     @GetMapping("/getRecord/issue/{userId}")
     public TableDataInfo<AgreeRecord> getIssueRecord(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
@@ -208,12 +205,27 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户发表的评论(type0~2)
+     * 获取用户发表的商品(type0~8)
+     *
+     * @return {@link Product} 发表的商品
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "发表的商品(type0~8)")
+    @GetMapping("/getProduct/issue/{userId}")
+    public TableDataInfo<Product> getIssueProduct(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
+        startPage();
+        List<Product> list = userService.getIssueProduct(userId, userAgree);
+        clearPage();
+        return getDataTable(list);
+    }
+
+    /**
+     * 获取用户发表的评论(type0~3)
      *
      * @return {@link Comment} 用户发表的评论
      */
     @SaCheckLogin
-    @ApiOperation(value = "发表的评论(type0~2)")
+    @ApiOperation(value = "发表的评论(type0~3)")
     @GetMapping("/getComment/issue/{userId}")
     public TableDataInfo<Comment> getIssueComment(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
@@ -223,12 +235,12 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户收藏的记录(type0~4)
+     * 获取用户收藏的记录(type0~5)
      *
      * @return 收藏的记录
      */
     @SaCheckLogin
-    @ApiOperation(value = "收藏的记录(type0~4)")
+    @ApiOperation(value = "收藏的记录(type0~5)")
     @GetMapping("/getRecord/collect/{userId}")
     public TableDataInfo<AgreeRecord> getCollectRecord(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         startPage();
@@ -238,7 +250,7 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取登录用户收藏的题目(type无)
+     * 获取用户收藏的题目(type无)
      *
      * @return 收藏的题目
      */
@@ -253,12 +265,27 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户点赞的记录(type0~4)
+     * 获取用户收藏的商品(type0~8)
+     *
+     * @return 收藏的商品
+     */
+    @SaCheckLogin
+    @ApiOperation(value = "收藏的商品(type0~8)")
+    @GetMapping("/getProduct/collect/{userId}")
+    public TableDataInfo<Product> getCollectProduct(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
+        startPage();
+        List<Product> list = userService.getCollectProduct(userId, userAgree);
+        clearPage();
+        return getDataTable(list);
+    }
+
+    /**
+     * 获取用户点赞的记录(type0~5)
      *
      * @return 点赞的记录
      */
     @SaCheckLogin
-    @ApiOperation(value = "点赞的记录(type0~4)")
+    @ApiOperation(value = "点赞的记录(type0~5)")
     @GetMapping("/getRecord/like/{userId}")
     public TableDataInfo<AgreeRecord> getLikeRecord(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
@@ -307,12 +334,12 @@ public class UserController extends BaseController {
     }
 
     /**
-     * 获取用户点赞的评论(type0~2)
+     * 获取用户点赞的评论(type0~3)
      *
      * @return 点赞的评论
      */
     @SaCheckLogin
-    @ApiOperation(value = "点赞的评论(type0~2)")
+    @ApiOperation(value = "点赞的评论(type0~3)")
     @GetMapping("/getComment/like/{userId}")
     public TableDataInfo<Comment> getLikeComment(@PathVariable("userId") Integer userId, UserAgreeDTO userAgree) {
         Assert.notNull(userAgree.getFlag(), "缓存请求标记是必须的");
