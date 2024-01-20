@@ -6,9 +6,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * 管道初始化
@@ -25,6 +28,11 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
     protected void initChannel(SocketChannel ch) throws Exception {
         log.info("管道初始化中...");
         ChannelPipeline pipeline = ch.pipeline();
+        ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
+        ClassPathResource key = new ClassPathResource("/ssl/server.key");
+        //添加ssl证书支持wss
+        SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
+        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
 
         // 添加websocket的http编解码器
         pipeline.addLast("HttpServerCodec", new HttpServerCodec());

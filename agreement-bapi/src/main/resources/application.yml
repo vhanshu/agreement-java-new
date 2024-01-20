@@ -1,6 +1,10 @@
 server:
   # 端口
-  port: 8081
+  port: 8481
+  ssl:
+    key-store: classpath:agree.vhans.cloud.jks
+    key-store-type: PKCS12
+    key-store-password: 57bpqa4safjq
 spring:
   profiles:
     active: core,bus

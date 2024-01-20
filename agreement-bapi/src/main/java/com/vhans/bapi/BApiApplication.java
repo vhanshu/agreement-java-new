@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringBootApplication(scanBasePackages = {"com.vhans.core", "com.vhans.bus", "com.vhans.bapi"})
 public class BApiApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(BApiApplication.class, args);
     }
