@@ -1,6 +1,7 @@
 server:
   # 端口
   port: 8481
+  # 开启ssl以支持https
   ssl:
     key-store: classpath:agree.vhans.cloud.jks
     key-store-type: PKCS12

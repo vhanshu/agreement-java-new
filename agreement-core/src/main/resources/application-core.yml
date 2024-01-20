@@ -6,7 +6,7 @@ spring:
       max-file-size: 1024MB
   # redis配置
   redis:
-    host: 43.142.156.249
+    host: agree.vhans.cloud
     port: 6379
     password: luowei4628@()
     # 超时时间
@@ -24,7 +24,7 @@ spring:
 
   # rabbitmq配置
   rabbitmq:
-    host: 43.142.156.249
+    host: agree.vhans.cloud
     port: 5672
     username: vhans
     password: luowei4628@()
@@ -77,7 +77,7 @@ upload:
     bucketName: vhans-bucket-1314157378
   # minio存储
   minio:
-    endpointUrl: http://43.142.156.249:8050
+    endpointUrl: https://agree.vhans.cloud:8050
     accessKey: root
     secretKey: luowei4628@()
     bucketName: agree
