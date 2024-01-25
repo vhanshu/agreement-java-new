@@ -2,12 +2,11 @@ package com.vhans.bus.transmit;
 
 import com.vhans.bus.transmit.config.NettyChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,10 +14,12 @@ import org.springframework.stereotype.Component;
  *
  * @author vhans
  */
+@Log4j2
 @Component
 public class NettyServer {
 
-    private static final Logger log = LoggerFactory.getLogger(NettyServer.class);
+    @Value("${netty.ssl}")
+    private boolean ssl;
 
     /**
      * netty服务
@@ -48,7 +49,7 @@ public class NettyServer {
         server = new ServerBootstrap();
         server.group(mainGroup, subGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new NettyChannelInitializer());
+                .childHandler(new NettyChannelInitializer(ssl));
     }
 
     /**
@@ -58,5 +59,4 @@ public class NettyServer {
         server.bind(port);
         log.info("netty服务启动完毕 port=" + port);
     }
-
 }

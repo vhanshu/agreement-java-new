@@ -24,15 +24,30 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
     // 设置最大帧长度为1MB
     private static final int MAX_FRAME_LENGTH = 1024 * 1024;
 
+    // 是否开启wss加密通讯
+    private boolean ssl;
+
+    public NettyChannelInitializer() {
+        this.ssl = false;
+    }
+
+    public NettyChannelInitializer(boolean ssl) {
+        this.ssl = ssl;
+    }
+
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         log.info("管道初始化中...");
         ChannelPipeline pipeline = ch.pipeline();
-        ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
-        ClassPathResource key = new ClassPathResource("/ssl/server.key");
-        //添加ssl证书支持wss
-        SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
-        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+
+        if (ssl) {
+            //添加ssl证书支持wss
+            log.info("添加ssl证书...");
+            ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
+            ClassPathResource key = new ClassPathResource("/ssl/server.key");
+            SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
+            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+        }
 
         // 添加websocket的http编解码器
         pipeline.addLast("HttpServerCodec", new HttpServerCodec());
@@ -45,12 +60,12 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         // 针对客户端，如果在1分钟时没有向服务端发送读写心跳(ALL)，则主动断开
         // 如果是读空闲或者写空闲，不处理
         pipeline.addLast(new IdleStateHandler(8, 10, 12));
-//        pipeline.addLast(new HttpObjectAggregator(65536 * 2));
+        //pipeline.addLast(new HttpObjectAggregator(65536 * 2));
         // 以下是支持httpWebsocket 路由; 处理握手动作: handshaking（close, ping, pong） ping + pong = 心跳
         pipeline.addLast(new WebSocketServerProtocolHandler("/ws", null, true, MAX_FRAME_LENGTH));
         // 自定义的wsHandler
-		pipeline.addLast(new NettyWsChannelInboundHandler());
+        pipeline.addLast(new NettyWsChannelInboundHandler());
         // 自定义 http
-		pipeline.addLast(new NettyHttpChannelInboundHandler());
+        pipeline.addLast(new NettyHttpChannelInboundHandler());
     }
 }
