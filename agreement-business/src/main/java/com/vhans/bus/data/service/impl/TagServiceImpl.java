@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.Tag;
 import com.vhans.bus.data.domain.TagText;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
 import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.bus.data.mapper.TagMapper;
 import com.vhans.bus.data.mapper.TagTextMapper;
@@ -64,12 +63,12 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements ITagS
     }
 
     @Override
-    public List<TagOptionVO> listTagAllOption() {
+    public List<TagStatisticsVO> listTagAllOption() {
         return tagMapper.selectTagOptionAllList();
     }
 
     @Override
-    public List<TagOptionVO> listTagOption(Integer type) {
+    public List<TagStatisticsVO> listTagOption(Integer type) {
         return tagMapper.selectTagOptionList(type);
     }
 

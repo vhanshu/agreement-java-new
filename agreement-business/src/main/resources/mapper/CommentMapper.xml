@@ -55,11 +55,13 @@
                u.nickname as from_nickname,
                u.avatar,
                c.content,
+               c.type_id,
                c.like_number,
                c.create_time
         FROM d_comment c
                  INNER JOIN u_user u ON c.from_uid = u.id
         WHERE c.is_check = 1
+          and c.type = #{type}
         ORDER BY c.create_time DESC
         LIMIT 5
     </select>

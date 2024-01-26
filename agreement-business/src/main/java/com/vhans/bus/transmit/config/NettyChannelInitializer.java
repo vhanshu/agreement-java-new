@@ -10,7 +10,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -18,7 +17,6 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author vhans
  */
-@Log4j2
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     // 设置最大帧长度为1MB
@@ -37,25 +35,20 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        log.info("管道初始化中...");
         ChannelPipeline pipeline = ch.pipeline();
-
         if (ssl) {
             //添加ssl证书支持wss
-            log.info("添加ssl证书...");
             ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
             ClassPathResource key = new ClassPathResource("/ssl/server.key");
             SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));
         }
-
         // 添加websocket的http编解码器
         pipeline.addLast("HttpServerCodec", new HttpServerCodec());
         // 提供写大数据流支持
         pipeline.addLast(new ChunkedWriteHandler());
         // 对httpMessage进行聚合，聚合成FullHttpRequest或FullHttpResponse
         pipeline.addLast(new HttpObjectAggregator(1024 * 64));
-
         // 增加心跳支持 start
         // 针对客户端，如果在1分钟时没有向服务端发送读写心跳(ALL)，则主动断开
         // 如果是读空闲或者写空闲，不处理

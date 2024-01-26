@@ -3,7 +3,7 @@ package com.vhans.bus.data.domain;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.vhans.bus.subsidiary.model.vo.PaginationVO;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.core.annotation.Excel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -180,7 +180,7 @@ public class AgreeRecord {
     @TableField(exist = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @ApiModelProperty(value = "标签集")
-    private List<TagOptionVO> tagList;
+    private List<TagStatisticsVO> tagList;
 
     /**
      * 标签名称集

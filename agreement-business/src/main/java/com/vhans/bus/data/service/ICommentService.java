@@ -41,7 +41,7 @@ public interface ICommentService {
      *
      * @return 最新评论
      */
-    List<Comment> listRecentCommentVO();
+    List<Comment> listRecentCommentVO(Integer type);
 
     /**
      * 查看前台评论

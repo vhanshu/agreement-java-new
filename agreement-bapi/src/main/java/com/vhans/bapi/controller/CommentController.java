@@ -73,12 +73,13 @@ public class CommentController extends BaseController {
     /**
      * 查看最新评论
      *
+     * @param type 类型(1记录 2问答 3商品)
      * @return {@link List<Comment>}
      */
     @ApiOperation(value = "查看最新评论")
-    @GetMapping("/recent")
-    public Result<List<Comment>> listRecentCommentVO() {
-        return Result.success(commentService.listRecentCommentVO());
+    @GetMapping("/recent/{type}")
+    public Result<List<Comment>> listRecentCommentVO(@PathVariable Integer type) {
+        return Result.success(commentService.listRecentCommentVO(type));
     }
 
     /**

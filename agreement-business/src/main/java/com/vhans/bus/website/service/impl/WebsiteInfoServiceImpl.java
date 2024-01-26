@@ -16,7 +16,7 @@ import com.vhans.bus.data.domain.AgreeRecord;
 import com.vhans.bus.data.domain.Quiz;
 import com.vhans.bus.data.domain.vo.RankVO;
 import com.vhans.bus.data.domain.vo.StatisticsVO;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.bus.data.mapper.AgreeRecordMapper;
 import com.vhans.bus.data.mapper.QuizMapper;
 import com.vhans.bus.data.mapper.TagMapper;
@@ -108,7 +108,7 @@ public class WebsiteInfoServiceImpl implements IWebsiteInfoService {
         // 正在进行的约起量(类型->数量)
         List<WebsiteInfoVO.AgreeCount> agreeCount = getAgreeCount();
         // 标签数据
-        List<TagOptionVO> tagVOList = tagMapper.selectTagOptionAllList();
+        List<TagStatisticsVO> tagVOList = tagMapper.selectTagOptionAllList();
         // 查询前七天用户浏览
         DateTime startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new Date(), -7));
         DateTime endTime = DateUtil.endOfDay(new Date());

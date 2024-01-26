@@ -35,12 +35,14 @@ public interface CommentMapper extends BaseMapper<Comment> {
     /**
      * 查询最新评论
      *
+     * @param type 类型(1记录 2问答 3商品)
      * @return 最新评论
      */
-    List<Comment> selectRecentComment();
+    List<Comment> selectRecentComment(@Param("type") Integer type);
 
     /**
      * 查询评论信息
+     *
      * @param commentId 评论id
      * @return 评论信息
      */

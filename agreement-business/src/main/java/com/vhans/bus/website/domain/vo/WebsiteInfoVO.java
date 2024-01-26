@@ -3,7 +3,7 @@ package com.vhans.bus.website.domain.vo;
 import com.vhans.bus.log.domain.vo.UserViewVO;
 import com.vhans.bus.data.domain.vo.RankVO;
 import com.vhans.bus.data.domain.vo.StatisticsVO;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
@@ -55,7 +55,7 @@ public class WebsiteInfoVO {
      * 标签列表
      */
     @ApiModelProperty(value = "标签列表")
-    private List<TagOptionVO> tagList;
+    private List<TagStatisticsVO> tagList;
 
     /**
      * 记录贡献统计

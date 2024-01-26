@@ -57,6 +57,6 @@ public class NettyServer {
      */
     public void start(int port) {
         server.bind(port);
-        log.info("netty服务启动完毕 port=" + port);
+        log.info("netty服务启动完毕 port=" + port + " ssl=" + ssl);
     }
 }

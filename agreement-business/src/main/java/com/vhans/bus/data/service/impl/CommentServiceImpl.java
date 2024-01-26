@@ -111,8 +111,8 @@ public class CommentServiceImpl implements ICommentService {
     }
 
     @Override
-    public List<Comment> listRecentCommentVO() {
-        List<Comment> recentCommentVOS = commentMapper.selectRecentComment();
+    public List<Comment> listRecentCommentVO(Integer type) {
+        List<Comment> recentCommentVOS = commentMapper.selectRecentComment(type);
         recentCommentVOS.forEach(item -> {
             // 查询点赞量
             Integer likeNumber = redisService.getHash(COMMENT_LIKE_COUNT, item.getId().toString());

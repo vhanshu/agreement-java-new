@@ -2,7 +2,6 @@ package com.vhans.bus.data.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.vhans.bus.data.domain.Tag;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
 import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -58,7 +57,7 @@ public interface TagMapper extends BaseMapper<Tag> {
      * @param type   标签类型(1:记录标签,2:题目标签,3:商品标签)
      * @return 记录标签
      */
-    List<TagOptionVO> selectTagByTypeId(@Param("typeId") Integer typeId, @Param("type") Integer type);
+    List<TagStatisticsVO> selectTagByTypeId(@Param("typeId") Integer typeId, @Param("type") Integer type);
 
     /**
      * 查询对应标签统计列表
@@ -74,13 +73,13 @@ public interface TagMapper extends BaseMapper<Tag> {
      * @param type 标签类型(1:记录标签,2:题目标签,3:商品标签)
      * @return 标签列表
      */
-    List<TagOptionVO> selectTagOptionList(@Param("type") Integer type);
+    List<TagStatisticsVO> selectTagOptionList(@Param("type") Integer type);
 
     /**
      * 查询所有标签选项
      *
      * @return 标签列表
      */
-    List<TagOptionVO> selectTagOptionAllList();
+    List<TagStatisticsVO> selectTagOptionAllList();
 
 }

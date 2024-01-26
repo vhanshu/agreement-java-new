@@ -38,16 +38,14 @@
     <select id="selectTagNameByTypeId" resultType="java.lang.String">
         SELECT t.tag_name
         FROM d_tag t
-                 INNER JOIN d_tag_text tt
-                            ON t.id = tt.tag_id AND tt.type = #{type}
+                 INNER JOIN d_tag_text tt ON t.id = tt.tag_id AND tt.type = #{type}
         WHERE tt.type_id = #{typeId}
     </select>
 
-    <select id="selectTagByTypeId" resultType="com.vhans.bus.data.domain.vo.TagOptionVO">
+    <select id="selectTagByTypeId" resultType="com.vhans.bus.data.domain.vo.TagStatisticsVO">
         SELECT t.id, t.tag_name
         FROM d_tag t
-                 INNER JOIN d_tag_text tt
-                            ON t.id = tt.tag_id AND tt.type = #{type}
+                 INNER JOIN d_tag_text tt ON t.id = tt.tag_id AND tt.type = #{type}
         WHERE tt.type_id = #{typeId}
     </select>
 
@@ -56,22 +54,23 @@
                t.tag_name,
                COUNT(tt.tag_id) AS count
         FROM d_tag t
-                 LEFT JOIN d_tag_text tt
-                           ON t.id = tt.tag_id
+                 LEFT JOIN d_tag_text tt ON t.id = tt.tag_id
         where tt.type = #{type}
         GROUP BY t.id
     </select>
 
-    <select id="selectTagOptionList" resultType="com.vhans.bus.data.domain.vo.TagOptionVO">
+    <select id="selectTagOptionList" resultType="com.vhans.bus.data.domain.vo.TagStatisticsVO">
         SELECT t.id, t.tag_name
         FROM d_tag t
                  INNER JOIN d_tag_text tt
                             ON t.id = tt.tag_id AND tt.type = #{type}
     </select>
 
-    <select id="selectTagOptionAllList" resultType="com.vhans.bus.data.domain.vo.TagOptionVO">
-        SELECT t.id, t.tag_name
+    <select id="selectTagOptionAllList" resultType="com.vhans.bus.data.domain.vo.TagStatisticsVO">
+        SELECT t.id, t.tag_name, COUNT(tt.tag_id) AS count
         FROM d_tag t
+                 LEFT JOIN d_tag_text tt ON t.id = tt.tag_id
+        GROUP BY t.id
     </select>
 
 </mapper>

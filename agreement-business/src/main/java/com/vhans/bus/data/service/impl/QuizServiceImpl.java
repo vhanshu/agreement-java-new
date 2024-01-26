@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.Quiz;
 import com.vhans.bus.data.domain.TagText;
 import com.vhans.bus.data.domain.vo.OverviewVO;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.bus.data.mapper.QuizMapper;
 import com.vhans.bus.data.mapper.TagMapper;
 import com.vhans.bus.data.mapper.TagTextMapper;
@@ -114,7 +114,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         // 查询点赞量
         Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, quizId.toString());
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, QUIZ)).orElse(new ArrayList<>());
+        List<TagStatisticsVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, QUIZ)).orElse(new ArrayList<>());
         quiz.setViewCount(viewCount.intValue());
         // 设置当前点赞量为 持久点赞量 + 缓存点赞量
         quiz.setLikeNumber(quiz.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));
@@ -165,7 +165,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
         // 查询点赞量
         Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, quizId.toString());
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, QUIZ)).orElse(new ArrayList<>());
+        List<TagStatisticsVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(quizId, QUIZ)).orElse(new ArrayList<>());
         quiz.setLastQuiz(lastQuiz);
         quiz.setNextQuiz(nextQuiz);
         quiz.setViewCount(viewCount.intValue());
@@ -228,7 +228,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
             // 查询点赞量
             Integer likeNumber = redisService.getHash(QUIZ_LIKE_COUNT, item.getId().toString());
             // 查询标签
-            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), QUIZ)).orElse(new ArrayList<>());
+            List<TagStatisticsVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), QUIZ)).orElse(new ArrayList<>());
             item.setViewCount(viewCount.intValue());
             // 设置当前点赞量为 持久点赞量 + 缓存点赞量
             item.setLikeNumber(item.getLikeNumber() + Optional.ofNullable(likeNumber).orElse(0));

@@ -2,7 +2,6 @@ package com.vhans.bus.data.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.vhans.bus.data.domain.Tag;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
 import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 
 import java.util.List;
@@ -48,7 +47,7 @@ public interface ITagService extends IService<Tag> {
      *
      * @return 标签列表
      */
-    List<TagOptionVO> listTagAllOption();
+    List<TagStatisticsVO> listTagAllOption();
 
     /**
      * 搜索相应类型的标签选项
@@ -56,7 +55,7 @@ public interface ITagService extends IService<Tag> {
      * @param type 类型(1:记录标签,2:题目标签)
      * @return 标签列表
      */
-    List<TagOptionVO> listTagOption(Integer type);
+    List<TagStatisticsVO> listTagOption(Integer type);
 
     /**
      * 查看相应标签统计列表

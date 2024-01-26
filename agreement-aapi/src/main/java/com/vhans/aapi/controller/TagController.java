@@ -5,7 +5,7 @@ import com.vhans.core.annotation.OptLogger;
 import com.vhans.core.web.controller.BaseController;
 import com.vhans.core.web.model.Result;
 import com.vhans.core.web.model.page.TableDataInfo;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.bus.data.domain.Tag;
 import com.vhans.bus.data.service.ITagService;
 import io.swagger.annotations.Api;
@@ -95,11 +95,11 @@ public class TagController extends BaseController {
     /**
      * 查看所有标签选项
      *
-     * @return {@link Result<TagOptionVO>} 标签列表
+     * @return {@link Result<TagStatisticsVO>} 标签列表
      */
     @ApiOperation(value = "查看标签选项")
     @GetMapping("/option")
-    public Result<List<TagOptionVO>> listTagAllOption() {
+    public Result<List<TagStatisticsVO>> listTagAllOption() {
         return Result.success(tagService.listTagAllOption());
     }
 
@@ -107,11 +107,11 @@ public class TagController extends BaseController {
      * 查看相应类型的标签选项
      *
      * @param type 类型(1:记录标签,2:题目标签)
-     * @return {@link Result<TagOptionVO>} 记录标签列表
+     * @return {@link Result<TagStatisticsVO>} 记录标签列表
      */
     @ApiOperation(value = "查看相应类型的标签选项")
     @GetMapping("/option/{type}")
-    public Result<List<TagOptionVO>> listTagOption(@PathVariable Integer type) {
+    public Result<List<TagStatisticsVO>> listTagOption(@PathVariable Integer type) {
         return Result.success(tagService.listTagOption(type));
     }
 

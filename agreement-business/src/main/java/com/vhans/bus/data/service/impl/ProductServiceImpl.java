@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vhans.bus.data.domain.Product;
 import com.vhans.bus.data.domain.TagText;
 import com.vhans.bus.data.domain.vo.OverviewVO;
-import com.vhans.bus.data.domain.vo.TagOptionVO;
+import com.vhans.bus.data.domain.vo.TagStatisticsVO;
 import com.vhans.bus.data.mapper.ProductMapper;
 import com.vhans.bus.data.mapper.TagMapper;
 import com.vhans.bus.data.mapper.TagTextMapper;
@@ -143,7 +143,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         // 查询浏览量
         Double viewCount = Optional.ofNullable(redisService.getZsetScore(PRODUCT_VIEW_COUNT, productId)).orElse((double) 0);
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(productId, PRODUCT)).orElse(new ArrayList<>());
+        List<TagStatisticsVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(productId, PRODUCT)).orElse(new ArrayList<>());
         product.setViewCount(viewCount.intValue());
         product.setTagList(tags);
         return product;
@@ -209,7 +209,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         // 查询浏览量
         Double viewCount = Optional.ofNullable(redisService.getZsetScore(PRODUCT_VIEW_COUNT, productId)).orElse((double) 0);
         // 查询标签
-        List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(productId, PRODUCT)).orElse(new ArrayList<>());
+        List<TagStatisticsVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(productId, PRODUCT)).orElse(new ArrayList<>());
         product.setViewCount(viewCount.intValue());
         product.setLastProduct(lastProduct);
         product.setNextProduct(nextProduct);
@@ -310,7 +310,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             Double viewCount = Optional.ofNullable(redisService.getZsetScore(PRODUCT_VIEW_COUNT, item.getId()))
                     .orElse((double) 0);
             // 查询商品标签
-            List<TagOptionVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), PRODUCT)).orElse(new ArrayList<>());
+            List<TagStatisticsVO> tags = Optional.ofNullable(tagMapper.selectTagByTypeId(item.getId(), PRODUCT)).orElse(new ArrayList<>());
             item.setViewCount(viewCount.intValue());
             item.setTagList(tags);
         });
