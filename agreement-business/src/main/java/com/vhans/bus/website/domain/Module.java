@@ -40,10 +40,10 @@ public class Module {
     private Integer userId;
 
     /**
-     * 组件类型（1链接 2网页 3代码）
+     * 组件类型（1链接 2网页 3代码 4图片 5视频 6文字）
      */
     @NotNull(message = "组件类型不能为空")
-    @ApiModelProperty(value = "组件类型（1链接 2网页 3代码）")
+    @ApiModelProperty(value = "组件类型（1链接 2网页 3代码 4图片 5视频 6文字）")
     private Integer type;
 
     /**
