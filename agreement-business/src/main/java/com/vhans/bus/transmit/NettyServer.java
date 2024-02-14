@@ -6,7 +6,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,9 +16,6 @@ import org.springframework.stereotype.Component;
 @Log4j2
 @Component
 public class NettyServer {
-
-    @Value("${netty.ssl}")
-    private boolean ssl;
 
     /**
      * netty服务
@@ -49,7 +45,7 @@ public class NettyServer {
         server = new ServerBootstrap();
         server.group(mainGroup, subGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new NettyChannelInitializer(ssl));
+                .childHandler(new NettyChannelInitializer());
     }
 
     /**
@@ -57,6 +53,6 @@ public class NettyServer {
      */
     public void start(int port) {
         server.bind(port);
-        log.info("netty服务启动完毕 port=" + port + " ssl=" + ssl);
+        log.info("netty服务启动完毕 port=" + port);
     }
 }

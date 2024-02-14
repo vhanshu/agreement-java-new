@@ -22,27 +22,16 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
     // 设置最大帧长度为1MB
     private static final int MAX_FRAME_LENGTH = 1024 * 1024;
 
-    // 是否开启wss加密通讯
-    private boolean ssl;
-
-    public NettyChannelInitializer() {
-        this.ssl = false;
-    }
-
-    public NettyChannelInitializer(boolean ssl) {
-        this.ssl = ssl;
-    }
-
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        if (ssl) {
-            //添加ssl证书支持wss
-            ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
-            ClassPathResource key = new ClassPathResource("/ssl/server.key");
-            SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
-            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
-        }
+
+        //添加ssl证书支持wss
+        ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
+        ClassPathResource key = new ClassPathResource("/ssl/server.key");
+        SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
+        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+
         // 添加websocket的http编解码器
         pipeline.addLast("HttpServerCodec", new HttpServerCodec());
         // 提供写大数据流支持

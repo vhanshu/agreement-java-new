@@ -22,9 +22,9 @@ public interface IWebsiteInfoService {
     WebsiteInfoVO getWebsiteInfo();
 
     /**
-     * 查看关于开发者信息
+     * 查看系统配置信息
      *
-     * @return 关于我信息
+     * @return 系统配置信息
      */
     SiteConfig getSiteConfig();
 }

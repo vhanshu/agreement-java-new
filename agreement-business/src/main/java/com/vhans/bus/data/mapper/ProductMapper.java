@@ -26,7 +26,7 @@ public interface ProductMapper extends BaseMapper<Product> {
      * @param query 条件
      * @return 商品列表
      */
-    List<Product> selectProduct(@Param("query") Product.Query query);
+    List<Product> selectProductList(@Param("query") Product.Query query);
 
     /**
      * 商品搜索

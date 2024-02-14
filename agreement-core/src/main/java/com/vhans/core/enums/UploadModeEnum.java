@@ -15,7 +15,7 @@ public enum UploadModeEnum {
     /**
      * 本地
      */
-    LOCAL("local", "localUploadStrategyImpl"),
+    LOCAL("local", "localFileStrategyImpl"),
 
     /**
      * oss

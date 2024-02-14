@@ -94,7 +94,6 @@
         <dependency>
             <groupId>org.lionsoul</groupId>
             <artifactId>ip2region</artifactId>
-            <version>${ip2region.version}</version>
         </dependency>
         <!-- 过滤敏感词 -->
         <dependency>

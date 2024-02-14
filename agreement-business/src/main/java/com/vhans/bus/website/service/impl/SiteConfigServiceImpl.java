@@ -39,6 +39,7 @@ public class SiteConfigServiceImpl extends ServiceImpl<SiteConfigMapper, SiteCon
 
     @Override
     public void updateSiteConfig(SiteConfig siteConfig) {
+        siteConfig.setId(1);
         baseMapper.updateById(siteConfig);
         redisService.deleteObject(SITE_SETTING);
     }

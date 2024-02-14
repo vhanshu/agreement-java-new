@@ -10,7 +10,7 @@ import static com.vhans.core.enums.StatusCodeEnum.SUCCESS;
 /**
  * 结果返回类
  *
- * @author ican
+ * @author vhans
  */
 @Data
 @ApiModel(description = "结果返回类")

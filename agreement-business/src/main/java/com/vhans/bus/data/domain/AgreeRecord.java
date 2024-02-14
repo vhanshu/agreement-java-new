@@ -2,8 +2,8 @@ package com.vhans.bus.data.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.vhans.bus.subsidiary.model.vo.PaginationVO;
 import com.vhans.bus.data.domain.vo.TagStatisticsVO;
+import com.vhans.bus.subsidiary.model.vo.PaginationVO;
 import com.vhans.core.annotation.Excel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

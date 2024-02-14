@@ -46,7 +46,7 @@ import static com.vhans.core.constant.TextContent.PRODUCT;
 
 /**
  * 商品Service业务层处理
- * 
+ *
  * @author vhans
  * @date 2023-12-22
  */
@@ -76,7 +76,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public List<Product> listProduct(Product.Query query) {
         // 查询商品信息
-        List<Product> products = productMapper.selectProduct(query);
+        List<Product> products = productMapper.selectProductList(query);
         // 封装商品信息
         return postProduct(products);
     }
