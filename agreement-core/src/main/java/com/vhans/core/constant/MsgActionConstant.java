@@ -58,12 +58,12 @@ public class MsgActionConstant {
     public static final int REVOKE = 9;
 
     /**
-     * 推送消息
+     * 删除好友
      */
-    public static final int PUSH = 10;
+    public static final int DELETE_FRIEND = 10;
 
     /**
-     * 评论
+     * 推送消息
      */
-    public static final int COMMENT = 11;
+    public static final int PUSH = 20;
 }

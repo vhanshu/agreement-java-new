@@ -190,13 +190,9 @@ public class GroupServiceImpl implements IGroupService {
 
     @Transactional
     @Override
-    public void quitGroup(Group group) {
-        // 用户id
-        int userId = StpUtil.getLoginIdAsInt();
-        // 断言当前用户是否为群主
-        Assert.isTrue(group.getMasterId() != userId, "群主不允许退出");
-        groupUserMapper.delete(new LambdaQueryWrapper<GroupUser>()
-                .eq(GroupUser::getGroupId, group.getId())
+    public int quitGroup(Integer userId, Integer groupId) {
+        return groupUserMapper.delete(new LambdaQueryWrapper<GroupUser>()
+                .eq(GroupUser::getGroupId, groupId)
                 .eq(GroupUser::getUserId, userId));
     }
 

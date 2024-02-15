@@ -20,10 +20,9 @@ public interface FileRecordMapper extends BaseMapper<FileRecord> {
      * 查询文件下拉树
      *
      * @param basePath 文件路径
-     * @param userId   用户id
      * @return 文件下拉树
      */
-    List<FileTree> selectFileTree(@Param("basePath") String basePath, @Param("userId") Integer userId);
+    List<FileTree> selectFileTree(@Param("basePath") String basePath);
 
     /**
      * 查询所有文件下拉树

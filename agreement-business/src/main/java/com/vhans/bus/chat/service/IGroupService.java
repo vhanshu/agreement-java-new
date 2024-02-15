@@ -72,9 +72,11 @@ public interface IGroupService {
     /**
      * 退出群聊
      *
-     * @param group 群组
+     * @param userId 用户id
+     * @param groupId 群组id
+     * @return 影响行
      */
-    void quitGroup(Group group);
+    int quitGroup(Integer userId, Integer groupId);
 
     /**
      * 删除群

@@ -150,5 +150,17 @@ public class Msg {
         @ApiModelProperty(value = "结束时间")
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endTime;
+
+        /**
+         * 发出用户id
+         */
+        @ApiModelProperty(value = "发出用户id")
+        private Integer fromUid;
+
+        /**
+         * 目标用户id
+         */
+        @ApiModelProperty(value = "目标用户id")
+        private Integer toUid;
     }
 }

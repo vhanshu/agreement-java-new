@@ -99,19 +99,20 @@ public class RequestServiceImpl implements IRequestService {
         //这里要考虑之前请求的情况
         Request oldRequest = requestMapper.selectOne(new LambdaQueryWrapper<Request>()
                 .select(Request::getId, Request::getStatus)
+                .eq(Request::getType, request.getType())
                 .eq(Request::getFromUid, request.getFromUid())
                 .eq(Request::getToUid, request.getToUid()));
         if (StringUtils.isNull(oldRequest)) {
-            // 缓存中查找对方最近是否拒绝我
-            if (redisService.hasSetValue(REQUEST_REJECT, request.getToUid() + request.getFromUid())) {
-                throw new TransmitException("对方已拒绝,请3天后尝试再次请求");
+            // 缓存中查找今天对方最近是否拒绝我
+            if (redisService.hasSetValue(REQUEST_REJECT, request.getToUid() + "_" + request.getFromUid())) {
+                throw new TransmitException("对方已拒绝,请明天尝试再次请求");
             }
             // 添加好友请求
             return requestMapper.insert(request);
         } else {
             switch (oldRequest.getStatus()) {
                 case ONE -> throw new TransmitException("对方已同意,无需发送");
-                case TWO -> throw new TransmitException("已被对方拒绝,请3天后尝试再次请求");
+                case TWO -> throw new TransmitException("已被对方拒绝,请明天尝试再次请求");
                 case THREE -> throw new TransmitException("已发送请求,等待对方同意");
             }
             return 0;

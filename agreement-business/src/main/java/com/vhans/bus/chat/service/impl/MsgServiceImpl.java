@@ -38,9 +38,11 @@ public class MsgServiceImpl implements IMsgService {
         // 查询最后一条消息
         Msg msg = msgMapper.selectOne(new LambdaQueryWrapper<Msg>()
                 .select(Msg::getContent, Msg::getMsgType, Msg::getCreateTime)
+                .ne(Msg::getMsgType, ZERO)
                 .eq(Msg::getFromUid, friendId)
                 .eq(Msg::getToUid, userId)
                 .or()
+                .ne(Msg::getMsgType, ZERO)
                 .eq(Msg::getFromUid, userId)
                 .eq(Msg::getToUid, friendId)
                 .orderByDesc(Msg::getCreateTime)

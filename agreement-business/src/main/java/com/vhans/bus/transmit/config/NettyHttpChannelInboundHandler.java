@@ -6,17 +6,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * 自定义httpHandler
  *
  * @author vhans
  */
+@Log4j2
 public class NettyHttpChannelInboundHandler extends SimpleChannelInboundHandler<HttpObject> {
-
-    private static final Logger log = LoggerFactory.getLogger(NettyHttpChannelInboundHandler.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {

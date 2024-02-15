@@ -22,19 +22,25 @@
         left join s_file_record fr on fr.id = m.file_id
         <where>
             <if test="query.msgType != null">
-                msg_type = #{query.msgType}
+                m.msg_type = #{query.msgType}
             </if>
             <if test="query.isRead != null">
-                is_read = #{query.isRead}
+                and m.is_read = #{query.isRead}
             </if>
             <if test="query.content != null">
-                and content like concat('%',#{query.content},'%')
+                and m.content like concat('%',#{query.content},'%')
             </if>
             <if test="query.startTime != null">
-                and date_format(create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d %H:%i:%s')
+                and date_format(m.create_time,'%y%m%d %H:%i:%s') &gt;= date_format(#{query.startTime},'%y%m%d %H:%i:%s')
             </if>
             <if test="query.endTime != null">
-                and date_format(create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
+                and date_format(m.create_time,'%y%m%d %H:%i:%s') &lt;= date_format(#{query.endTime},'%y%m%d %H:%i:%s')
+            </if>
+            <if test="query.fromUid != null">
+                and m.from_uid = #{query.fromUid}
+            </if>
+            <if test="query.toUid != null">
+                and m.to_uid = #{query.toUid}
             </if>
         </where>
     </select>

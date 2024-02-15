@@ -5,11 +5,13 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.Friend;
 import com.vhans.bus.chat.domain.Msg;
+import com.vhans.bus.chat.domain.Request;
+import com.vhans.bus.chat.domain.vo.ConversationVO;
 import com.vhans.bus.chat.mapper.FriendMapper;
 import com.vhans.bus.chat.mapper.MsgMapper;
+import com.vhans.bus.chat.mapper.RequestMapper;
 import com.vhans.bus.chat.service.IFriendService;
 import com.vhans.bus.chat.service.IMsgService;
-import com.vhans.bus.chat.domain.vo.ConversationVO;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.utils.data.StringUtils;
@@ -21,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
+import static com.vhans.core.constant.NumberConstant.ONE;
+import static com.vhans.core.constant.NumberConstant.ZERO;
 import static com.vhans.core.constant.RedisConstant.LATELY_FRIEND_IDS;
 
 /**
@@ -40,6 +44,9 @@ public class FriendServiceImpl implements IFriendService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private RequestMapper requestMapper;
 
     @Autowired
     private IMsgService msgService;
@@ -72,6 +79,7 @@ public class FriendServiceImpl implements IFriendService {
         // 查询最近给我发新消息的用户并加入最近列表
         List<Msg> newFriends = msgMapper.selectList(new LambdaQueryWrapper<Msg>()
                 .select(Msg::getFromUid)
+                .ne(Msg::getMsgType, ZERO)
                 .eq(Msg::getIsRead, FALSE)
                 .eq(Msg::getToUid, userId));
         if (StringUtils.isNotEmpty(newFriends)) {
@@ -129,16 +137,24 @@ public class FriendServiceImpl implements IFriendService {
 
     @Transactional
     @Override
-    public int deleteFriend(Integer friendId) {
-        int userId = StpUtil.getLoginIdAsInt();
-        // 默认UserId是主动删除者的ID，FriendId是被动删除者的ID
-        // 正反收发者的信息均删除
+    public int deleteFriend(Integer userId, Integer friendId) {
+        // 默认UserId是执行删除者的ID，FriendId是要删除者的ID
+        // 1.删除正反好友请求
+        requestMapper.delete(new LambdaQueryWrapper<Request>()
+                .eq(Request::getType, ONE)
+                .eq(Request::getFromUid, userId)
+                .eq(Request::getToUid, friendId)
+                .or()
+                .eq(Request::getFromUid, friendId)
+                .eq(Request::getToUid, userId));
+        // 2.正反收发者的信息均删除
         msgMapper.delete(new LambdaQueryWrapper<Msg>()
                 .eq(Msg::getFromUid, userId)
                 .eq(Msg::getToUid, friendId)
                 .or()
                 .eq(Msg::getFromUid, friendId)
                 .eq(Msg::getToUid, userId));
+        // 3.删除正反好友
         return friendMapper.delete(new LambdaQueryWrapper<Friend>()
                 .eq(Friend::getUserId, userId)
                 .eq(Friend::getFriendId, friendId)

@@ -6,7 +6,6 @@ import com.vhans.bus.chat.domain.GroupMsg;
 import com.vhans.bus.chat.domain.Msg;
 import com.vhans.bus.chat.domain.Request;
 import com.vhans.bus.chat.service.*;
-import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.service.ICommentService;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.bus.transmit.model.DataContent;
@@ -34,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.vhans.core.constant.MsgActionConstant.*;
 import static com.vhans.core.constant.NumberConstant.THREE;
 import static com.vhans.core.constant.NumberConstant.TWO;
+import static com.vhans.core.constant.PushTypeConstant.PUSH_ONLINE;
+import static com.vhans.core.constant.PushTypeConstant.PUSH_WORLD;
 
 /**
  * 处理消息
@@ -54,7 +55,6 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private final IGroupMsgService groupMsgService = SpringUtils.getBean("groupMsgServiceImpl");
     private final IRequestService requestService = SpringUtils.getBean("requestServiceImpl");
     private final IFileRecordService fileRecordService = SpringUtils.getBean("fileRecordServiceImpl");
-    private final ICommentService commentService = SpringUtils.getBean("commentServiceImpl");
 
     /**
      * 用于记录和管理所有客户端的channel
@@ -103,10 +103,11 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 case SEND_REQUEST -> sendRequest(JSONUtil.toBean(dataContent.getData(), Request.class));
                 case DEAL_REQUEST -> dealRequest(JSONUtil.toBean(dataContent.getData(), Request.class));
                 case DELETE_GROUP -> deleteGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
-                case QUIT_GROUP -> quitGroup(JSONUtil.toBean(dataContent.getData(), GroupMsg.class));
+                case QUIT_GROUP -> quitGroup(JSONUtil.toBean(dataContent.getData(), Request.class));
                 case FORWARD -> forward(JSONUtil.toBean(dataContent.getData(), Forward.class));
                 case REVOKE -> revoke(JSONUtil.toBean(dataContent.getData(), Revoke.class));
-                case COMMENT -> comment(JSONUtil.toBean(dataContent.getData(), Comment.class));
+                case DELETE_FRIEND -> deleteFriend(JSONUtil.toBean(dataContent.getData(), Request.class));
+                case PUSH -> pushInfo(PUSH_WORLD, dataContent.getData(), 0);
                 default -> currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
             }
         } catch (Exception e) {
@@ -129,7 +130,6 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      */
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) {
-        users.remove(ctx.channel());
         removeByChannel(ctx.channel());
         log.info("客户端被移除,channelId={}", ctx.channel().id().asShortText());
     }
@@ -142,7 +142,6 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         cause.printStackTrace();
         ctx.channel().close();
         // 从ChannelGroup中移除channel
-        users.remove(ctx.channel());
         removeByChannel(ctx.channel());
         log.info("连接异常!!!,channelId={}", ctx.channel().id().asShortText());
     }
@@ -160,7 +159,10 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     private void connect(Integer userId, Channel channel) {
         // 把channel和userid关联起来
         manager.put(userId, channel);
-        sendTo(userId, JSONUtil.toJsonStr(DataContent.success(CONNECT, JSONUtil.toJsonStr(getOnlineUserIds()))), true);
+        // 给该用户发送成功信息
+        sendTo(userId, JSONUtil.toJsonStr(DataContent.success(CONNECT)), true);
+        // 给所有人发送在线用户ids
+        pushInfo(PUSH_ONLINE, JSONUtil.toJsonStr(getOnlineUserIds()), 0);
         log.info("userId={} 绑定通道成功", userId);
     }
 
@@ -291,22 +293,36 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     }
 
     /**
-     * 退出群聊,在请求退群接口后执行
+     * 离开群聊,在请求退群接口后执行
      */
-    private void quitGroup(GroupMsg groupMsg) {
-        // 增加一条系统通知来通知群主,groupMsg.getContent存放用户信息
-        // 获取群主id
-        int masterId = groupService.getGroupMasterId(groupMsg.getToUid());
-        Msg sysMsg = Msg.builder()
-                .msgType(0)
-                .fromUid(groupMsg.getFromUid())
-                .toUid(masterId)
-                .content("群友" + groupMsg.getContent() + "退出群").build();
-        int row = msgService.insertMsg(sysMsg);
+    private void quitGroup(Request request) {
+        int row = groupService.quitGroup(request.getFromUid(), request.getGroupId());
         if (row > 0) {
-            String jsonData = JSONUtil.toJsonStr(DataContent.success(QUIT_GROUP, JSONUtil.toJsonStr(sysMsg)));
-            sendTo(masterId, jsonData, true);
+            // 增加系统通知
+            if (request.getType() == 1) {
+                // 用户主动退出群,通知群主,这里toNickname为填入的群聊名称,同时先给该用户发送退群成功的信息
+                String jsonData = JSONUtil.toJsonStr(DataContent.success(QUIT_GROUP, JSONUtil.toJsonStr(request)));
+                sendTo(request.getFromUid(), jsonData, true);
+                msgService.insertMsg(Msg.builder()
+                        .msgType(0)
+                        .fromUid(request.getFromUid()) // 群友id
+                        .toUid(request.getToUid()) // 群主id
+                        .content(StringUtils.format("群友【{}】退出群【{}】", request.getNickname(), request.getToNickname())).build());
+            } else {
+                // 群主移除群友,通知该群友
+                msgService.insertMsg(Msg.builder()
+                        .msgType(0)
+                        .fromUid(request.getToUid()) // 群主id
+                        .toUid(request.getFromUid()) // 群友id
+                        .content("您已被移出群聊【" + request.getToNickname() + "】").build());
+            }
         }
+        // 线上通知还在群的所有群用户
+        List<Integer> userIdList = groupService.getUserIds(request.getGroupId());
+        userIdList.forEach(item -> {
+            String jsonData = JSONUtil.toJsonStr(DataContent.success(QUIT_GROUP, JSONUtil.toJsonStr(request)));
+            sendTo(item, jsonData, true);
+        });
     }
 
     /**
@@ -362,23 +378,28 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
     }
 
     /**
-     * 评论
+     * 删除好友
      */
-    private void comment(Comment comment) {
-        // 保存消息到数据库
-        int row = commentService.addComment(comment);
-        // 这里额外需要:avatar,fromNickname,toNickname
-        String jsonData = JSONUtil.toJsonStr(DataContent.success(COMMENT, JSONUtil.toJsonStr(comment)));
-        // 给自己发送响应消息
-        sendTo(comment.getFromUid(), jsonData, row > 0);
+    private void deleteFriend(Request request) {
+        // 给我与好友发送删除的系统通知
+        // 1.删除数据库好友信息
+        int row = friendService.deleteFriend(request.getFromUid(), request.getToUid());
         if (row > 0) {
-            List<Integer> onlineUserIds = getOnlineUserIds();
-            // 给所有在线用户发送信息
-            onlineUserIds.forEach(item -> {
-                if (!Objects.equals(item, comment.getFromUid())) {
-                    sendTo(item, jsonData, true);
-                }
-            });
+            // 2.增加我与好友的系统通知,并发送通知信息
+            Msg sysMsgI = Msg.builder().msgType(0).fromUid(request.getToUid()).toUid(request.getFromUid())
+                    .content(StringUtils.format("成功删除好友【{}】", request.getToNickname())).build();
+            Msg sysMsgF = Msg.builder().msgType(0).fromUid(request.getFromUid()).toUid(request.getToUid())
+                    .content(StringUtils.format("您已被【{}】解除好友关系", request.getNickname())).build();
+            int rowI = msgService.insertMsg(sysMsgI);
+            if (rowI > 0) {
+                String jsonDataI = JSONUtil.toJsonStr(DataContent.success(DELETE_FRIEND, JSONUtil.toJsonStr(sysMsgI)));
+                sendTo(request.getFromUid(), jsonDataI, true);
+            }
+            int rowF = msgService.insertMsg(sysMsgF);
+            if (rowF > 0) {
+                String jsonDataF = JSONUtil.toJsonStr(DataContent.success(DELETE_FRIEND, JSONUtil.toJsonStr(sysMsgF)));
+                sendTo(request.getToUid(), jsonDataF, true);
+            }
         }
     }
 
@@ -408,6 +429,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
      * 删除断开的用户连接
      */
     private void removeByChannel(Channel channel) {
+        users.remove(channel);
         Iterator<Map.Entry<Integer, Channel>> iterator = manager.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, Channel> entry = iterator.next();
@@ -416,5 +438,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 break;
             }
         }
+        //更新在线用户ids
+        pushInfo(PUSH_ONLINE, JSONUtil.toJsonStr(getOnlineUserIds()), 0);
     }
 }

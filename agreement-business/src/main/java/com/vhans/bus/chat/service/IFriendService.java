@@ -56,8 +56,9 @@ public interface IFriendService {
     /**
      * 删除好友
      *
+     * @param userId 用户id
      * @param friendId 需要删除的好友id
      * @return 影响行
      */
-    int deleteFriend(Integer friendId);
+    int deleteFriend(Integer userId, Integer friendId);
 }

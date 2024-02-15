@@ -65,17 +65,4 @@ public class FriendController extends BaseController {
     public Result<?> updateFriendRemark(@PathVariable("friendId") Integer friendId, @PathVariable("friendRemark") String friendRemark) {
         return toAjax(friendService.updateFriendRemark(friendId, friendRemark));
     }
-
-    /**
-     * 删除好友
-     *
-     * @param friendId 好友id
-     * @return {@link Result} 结果
-     */
-    @SaCheckLogin
-    @ApiOperation(value = "删除好友")
-    @DeleteMapping("/delete/{friendId}")
-    public Result<?> deleteFriend(@PathVariable("friendId") Integer friendId) {
-        return toAjax(friendService.deleteFriend(friendId));
-    }
 }

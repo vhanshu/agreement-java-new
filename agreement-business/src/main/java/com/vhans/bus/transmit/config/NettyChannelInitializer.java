@@ -27,10 +27,10 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
 
         //添加ssl证书支持wss
-        ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
-        ClassPathResource key = new ClassPathResource("/ssl/server.key");
-        SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
-        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+//        ClassPathResource pem = new ClassPathResource("/ssl/agree.vhans.cloud_bundle.pem");
+//        ClassPathResource key = new ClassPathResource("/ssl/server.key");
+//        SslContext sslCtx = SslContextBuilder.forServer(pem.getInputStream(), key.getInputStream()).build();
+//        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
 
         // 添加websocket的http编解码器
         pipeline.addLast("HttpServerCodec", new HttpServerCodec());
