@@ -1,12 +1,8 @@
 package com.vhans.bus.transmit.config;
 
 import cn.hutool.json.JSONUtil;
-import com.vhans.bus.chat.domain.Friend;
-import com.vhans.bus.chat.domain.GroupMsg;
-import com.vhans.bus.chat.domain.Msg;
-import com.vhans.bus.chat.domain.Request;
+import com.vhans.bus.chat.domain.*;
 import com.vhans.bus.chat.service.*;
-import com.vhans.bus.data.service.ICommentService;
 import com.vhans.bus.system.service.IFileRecordService;
 import com.vhans.bus.transmit.model.DataContent;
 import com.vhans.bus.transmit.model.Forward;
@@ -31,8 +27,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.vhans.core.constant.MsgActionConstant.*;
-import static com.vhans.core.constant.NumberConstant.THREE;
-import static com.vhans.core.constant.NumberConstant.TWO;
+import static com.vhans.core.constant.NumberConstant.*;
 import static com.vhans.core.constant.PushTypeConstant.PUSH_ONLINE;
 import static com.vhans.core.constant.PushTypeConstant.PUSH_WORLD;
 
@@ -44,7 +39,7 @@ import static com.vhans.core.constant.PushTypeConstant.PUSH_WORLD;
  * @author vhans
  */
 @Log4j2
-public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+public class NettyWsHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
     /**
      * 获取业务处理bean: 好友、群组、用户消息、群消息、请求、文件、评论
@@ -107,6 +102,7 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 case FORWARD -> forward(JSONUtil.toBean(dataContent.getData(), Forward.class));
                 case REVOKE -> revoke(JSONUtil.toBean(dataContent.getData(), Revoke.class));
                 case DELETE_FRIEND -> deleteFriend(JSONUtil.toBean(dataContent.getData(), Request.class));
+                case JOIN_GROUP -> joinGroup(JSONUtil.toBean(dataContent.getData(), Group.class));
                 case PUSH -> pushInfo(PUSH_WORLD, dataContent.getData(), 0);
                 default -> currentChannel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(DataContent.fail())));
             }
@@ -242,23 +238,48 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         request.setUpdateTime(LocalDateTime.now());
         String jsonData = JSONUtil.toJsonStr(DataContent.success(DEAL_REQUEST, JSONUtil.toJsonStr(request)));
         if (request.getStatus() == 1) { // 同意
-            // 添加好友或者群友
-            int row = request.getType() == 1 ? friendService.insertFriend(
-                    Friend.builder()
-                            .userId(request.getToUid())
-                            .friendId(request.getFromUid())
-                            .friendRemark(request.getNickname())
-                            .build()) :
-                    (request.getType() == 2 ? groupService.addNewGroupUser(
-                            Request.builder()
-                                    .groupId(request.getGroupId())
-                                    .fromUid(request.getFromUid())
-                                    .build()) : 0);
-            // 给自己发送响应消息
-            sendTo(request.getToUid(), jsonData, row > 0);
-            if (row > 0) {
-                // 通知发送方,你的请求我同意了
-                sendTo(request.getFromUid(), jsonData, true);
+            if (request.getType() == 1) {
+                //添加好友
+                int row = friendService.insertFriend(Friend.builder()
+                        .userId(request.getToUid())
+                        .friendId(request.getFromUid())
+                        .friendRemark(request.getNickname())
+                        .build());
+                // 给自己发送响应消息
+                sendTo(request.getToUid(), jsonData, row > 0);
+                if (row > 0) {
+                    // 给请求方发送新增好友通知
+                    sendTo(request.getFromUid(), jsonData, true);
+                }
+            } else {
+                //添加群友
+                int row = groupService.addNewGroupUser(Request.builder()
+                        .groupId(request.getGroupId())
+                        .fromUid(request.getFromUid())
+                        .build());
+                // 给自己发送响应消息
+                sendTo(request.getToUid(), jsonData, row > 0);
+                if (row > 0) {
+                    GroupMsg groupMsg = GroupMsg.builder()
+                            .msgType(ONE)
+                            .fromUid(request.getFromUid())
+                            .toUid(request.getGroupId())
+                            .content("【" + request.getNickname() + "】加入群,热烈欢迎🎉🎉🎉")
+                            .avatar(request.getAvatar())
+                            .nickname(request.getNickname())
+                            .fileUrl(request.getReason()) // fileUrl与request.reason一致,均存放群名称
+                            .createTime(LocalDateTime.now()).build();
+                    String jsonDataM = JSONUtil.toJsonStr(DataContent.success(JOIN_GROUP, JSONUtil.toJsonStr(groupMsg)));
+                    // 给请求方发送新入群通知
+                    sendTo(request.getFromUid(), jsonDataM, true);
+                    // 给群中其他群用户发送加入群信息
+                    List<Integer> userIdList = groupService.getUserIds(request.getGroupId());
+                    userIdList.forEach(id -> {
+                        if (!Objects.equals(id, request.getFromUid())) {
+                            sendTo(id, jsonDataM, true);
+                        }
+                    });
+                }
             }
         } else if (request.getStatus() == 2) { // 拒绝
             // 给自己发送响应消息
@@ -278,12 +299,12 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
         List<Integer> userIdList = groupService.getUserIds(groupMsg.getToUid());
         // 给所有在线群用户发送群删除的系统通知
         userIdList.forEach(item -> {
-            // 增加一条系统通知,groupMsg.getContent()存放群信息
+            // 增加一条系统通知,groupMsg.getContent()存放群名称
             Msg sysMsg = Msg.builder()
                     .msgType(0)
                     .fromUid(groupMsg.getFromUid())
                     .toUid(item)
-                    .content(groupMsg.getContent() + "群已被删除").build();
+                    .content("【" + groupMsg.getContent() + "】群已被删除").build();
             int row = msgService.insertMsg(sysMsg);
             if (row > 0) {
                 String jsonData = JSONUtil.toJsonStr(DataContent.success(DELETE_GROUP, JSONUtil.toJsonStr(sysMsg)));
@@ -401,6 +422,34 @@ public class NettyWsChannelInboundHandler extends SimpleChannelInboundHandler<Te
                 sendTo(request.getToUid(), jsonDataF, true);
             }
         }
+    }
+
+    /**
+     * 拉入群友
+     */
+    private void joinGroup(Group group) {
+        List<Integer> oldUserIds = groupService.getUserIds(group.getId());
+        group.getUserList().forEach(item -> {
+            //添加群友至数据库
+            int row = groupService.addNewGroupUser(Request.builder().groupId(group.getId()).fromUid(item.getId()).build());
+            if (row > 0) {
+                GroupMsg groupMsg = GroupMsg.builder()
+                        .msgType(ONE)
+                        .fromUid(item.getId())
+                        .toUid(group.getId())
+                        .content("【" + item.getNickname() + "】加入群,热烈欢迎🎉🎉🎉")
+                        .avatar(item.getAvatar())
+                        .nickname(item.getNickname())
+                        .fileUrl(group.getName()) // 用fileUrl存放群名称
+                        .createTime(LocalDateTime.now()).build();
+                String jsonData = JSONUtil.toJsonStr(DataContent.success(JOIN_GROUP, JSONUtil.toJsonStr(groupMsg)));
+                //给本人发送新入群通知
+                sendTo(item.getId(), jsonData, true);
+                //给群中其他群用户发送加入群信息
+                oldUserIds.forEach(id -> sendTo(id, jsonData, true));
+            }
+        });
+
     }
 
     /**

@@ -6,6 +6,8 @@ import com.vhans.bus.chat.domain.GroupUser;
 import com.vhans.bus.chat.mapper.GroupMsgMapper;
 import com.vhans.bus.chat.mapper.GroupUserMapper;
 import com.vhans.bus.chat.service.IGroupMsgService;
+import com.vhans.bus.user.domain.User;
+import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.utils.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,9 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
 
     @Autowired
     private GroupUserMapper groupUserMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public List<GroupMsg> selectGroupMsgList(GroupMsg.Query query) {
@@ -67,17 +72,26 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
         if (StringUtils.isNull(groupMsg)) {
             return GroupMsg.builder().content("初创约盟,打个招呼吧").build();
         } else {
-            // 查询发送人称呼
-            String username = groupUserMapper.selectOne(new LambdaQueryWrapper<GroupUser>()
+            String username;
+            // 查询最后一条消息的发送人
+            GroupUser groupUser = groupUserMapper.selectOne(new LambdaQueryWrapper<GroupUser>()
                     .select(GroupUser::getUsername)
                     .eq(GroupUser::getUserId, groupMsg.getFromUid())
-                    .eq(GroupUser::getGroupId, groupId)).getUsername();
-            switch (groupMsg.getMsgType()) {
-                case THREE -> groupMsg.setContent("[图片]");
-                case FOUR -> groupMsg.setContent("[视频]");
-                case FIVE -> groupMsg.setContent("[语音]");
+                    .eq(GroupUser::getGroupId, groupId));
+            if (StringUtils.isNull(groupUser)) {
+                //不存在表示该用户已被移出群
+                User user = userMapper.selectById(groupMsg.getFromUid());
+                username = user.getNickname() + "(已出群)";
+            } else {
+                username = groupUser.getUsername();
             }
-            groupMsg.setContent(username + ":" + groupMsg.getContent());
+            switch (groupMsg.getMsgType()) {
+                case TWO -> groupMsg.setContent(username + ":[文件]");
+                case THREE -> groupMsg.setContent(username + ":[图片]");
+                case FOUR -> groupMsg.setContent(username + ":[视频]");
+                case FIVE -> groupMsg.setContent(username + ":[语音]");
+                default -> groupMsg.setContent(username + ":" + groupMsg.getContent());
+            }
             return groupMsg;
         }
     }

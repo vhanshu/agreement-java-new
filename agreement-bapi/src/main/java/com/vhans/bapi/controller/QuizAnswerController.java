@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.json.JSONUtil;
 import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.service.IQuizAnswerService;
-import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
+import com.vhans.bus.transmit.config.NettyWsHandler;
 import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.enums.LikeTypeEnum;
 import com.vhans.core.strategy.context.LikeStrategyContext;
@@ -64,7 +64,7 @@ public class QuizAnswerController extends BaseController {
     public Result<?> add(@Validated @RequestBody QuizAnswer quizAnswer) {
         int rows = quizAnswerService.insertAnswer(quizAnswer);
         if (rows > 0) {
-            NettyWsChannelInboundHandler.pushInfo(PUSH_ANSWER, JSONUtil.toJsonStr(quizAnswer), 0);
+            NettyWsHandler.pushInfo(PUSH_ANSWER, JSONUtil.toJsonStr(quizAnswer), 0);
         }
         return toAjax(rows);
     }

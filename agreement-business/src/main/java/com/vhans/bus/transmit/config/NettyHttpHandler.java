@@ -14,7 +14,7 @@ import lombok.extern.log4j.Log4j2;
  * @author vhans
  */
 @Log4j2
-public class NettyHttpChannelInboundHandler extends SimpleChannelInboundHandler<HttpObject> {
+public class NettyHttpHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {

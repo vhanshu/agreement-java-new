@@ -6,18 +6,15 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * 管道初始化
  *
  * @author vhans
  */
-public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class NettyInitializer extends ChannelInitializer<SocketChannel> {
 
     // 设置最大帧长度为1MB
     private static final int MAX_FRAME_LENGTH = 1024 * 1024;
@@ -46,8 +43,8 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         // 以下是支持httpWebsocket 路由; 处理握手动作: handshaking（close, ping, pong） ping + pong = 心跳
         pipeline.addLast(new WebSocketServerProtocolHandler("/ws", null, true, MAX_FRAME_LENGTH));
         // 自定义的wsHandler
-        pipeline.addLast(new NettyWsChannelInboundHandler());
+        pipeline.addLast(new NettyWsHandler());
         // 自定义 http
-        pipeline.addLast(new NettyHttpChannelInboundHandler());
+        pipeline.addLast(new NettyHttpHandler());
     }
 }

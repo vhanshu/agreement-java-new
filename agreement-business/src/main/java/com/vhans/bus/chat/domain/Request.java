@@ -108,7 +108,7 @@ public class Request {
     private String nickname;
 
     /**
-     * 接收者昵称(仅前端websocket使用)
+     * 接收者昵称或群名称(仅前端websocket使用)
      */
     @ApiModelProperty(value = "接收者昵称")
     @TableField(exist = false)

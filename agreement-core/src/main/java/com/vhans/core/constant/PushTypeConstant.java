@@ -31,6 +31,11 @@ public class PushTypeConstant {
     public static final int PUSH_ONLINE = 4;
 
     /**
+     * 群聊创建
+     */
+    public static final int PUSH_GROUP_CREATE = 5;
+
+    /**
      * 实时世界窗(//用户id id: number;//用户称呼 name: string;//用户头像 avatar: string;//窗口数据(富文本) data: string;//发送时间 time: string;)
      */
     public static final int PUSH_WORLD = 10;

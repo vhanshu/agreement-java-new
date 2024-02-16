@@ -4,7 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.data.domain.Comment;
-import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
+import com.vhans.bus.transmit.config.NettyWsHandler;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.LikeStrategy;
 import com.vhans.bus.data.mapper.CommentMapper;
@@ -56,7 +56,7 @@ public class CommentLikeStrategyImpl implements LikeStrategy {
             redisService.decrHash(COMMENT_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
             String push = Objects.isNull(obj.getParentId()) ? "comment#" + id + "#-1" : "reply#" + id + "#-1#" + obj.getParentId();
-            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, push, 0);
+            NettyWsHandler.pushInfo(PUSH_LIKE, push, 0);
         } else {
             // 点赞则在用户id中记录评论id
             redisService.setSet(key, id);
@@ -66,7 +66,7 @@ public class CommentLikeStrategyImpl implements LikeStrategy {
             redisService.incrHash(COMMENT_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
             String push = Objects.isNull(obj.getParentId()) ? "comment#" + id + "#1" : "reply#" + id + "#1#" + obj.getParentId();
-            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, push, 0);
+            NettyWsHandler.pushInfo(PUSH_LIKE, push, 0);
         }
     }
 }

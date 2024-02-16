@@ -2,6 +2,7 @@ package com.vhans.bus.chat.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.chat.domain.*;
 import com.vhans.bus.chat.domain.vo.ConversationVO;
@@ -12,6 +13,7 @@ import com.vhans.bus.chat.mapper.GroupMsgMapper;
 import com.vhans.bus.chat.mapper.GroupUserMapper;
 import com.vhans.bus.chat.service.IGroupMsgService;
 import com.vhans.bus.chat.service.IGroupService;
+import com.vhans.bus.transmit.config.NettyWsHandler;
 import com.vhans.bus.user.domain.User;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.redis.RedisService;
@@ -25,9 +27,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.vhans.core.constant.CommonConstant.FALSE;
 import static com.vhans.core.constant.NumberConstant.*;
+import static com.vhans.core.constant.PushTypeConstant.PUSH_GROUP_CREATE;
 import static com.vhans.core.constant.RedisConstant.LATELY_GROUP_IDS;
 import static com.vhans.core.enums.ZoneEnum.SHANGHAI;
 
@@ -114,14 +118,14 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     public int updateGroup(Group group) {
         Group oldGroup = groupMapper.selectById(group.getId());
-        if(!oldGroup.getMasterId().equals(group.getMasterId())){
+        if (!oldGroup.getMasterId().equals(group.getMasterId())) {
             groupMsgMapper.insert(GroupMsg.builder()
                     .msgType(ZERO)
                     .fromUid(group.getMasterId())
                     .toUid(group.getId())
                     .content("群主之位发生改变").build());
         }
-        if(!oldGroup.getName().equals(group.getName())){
+        if (!oldGroup.getName().equals(group.getName())) {
             groupMsgMapper.insert(GroupMsg.builder()
                     .msgType(ZERO)
                     .fromUid(group.getMasterId())
@@ -180,11 +184,17 @@ public class GroupServiceImpl implements IGroupService {
                         .userId(item.getId())
                         .username(item.getNickname()).build()));
         // 4.添加一条建群消息
-        groupMsgMapper.insert(GroupMsg.builder()
+        GroupMsg groupMsg = GroupMsg.builder()
                 .msgType(ZERO)
                 .fromUid(group.getMasterId())
                 .toUid(group.getId())
-                .content(group.getRemark()).build());
+                .content(group.getRemark()).build();
+        groupMsgMapper.insert(groupMsg);
+        // 5.异步给每个群用户推送群创建信息
+        CompletableFuture.runAsync(() -> {
+            groupMsg.setContent("您已被拉入新创建的群【" + group.getName() + "】");
+            group.getUserList().forEach(item -> NettyWsHandler.pushInfo(PUSH_GROUP_CREATE, JSONUtil.toJsonStr(groupMsg), item.getId()));
+        });
         return row;
     }
 
@@ -244,19 +254,26 @@ public class GroupServiceImpl implements IGroupService {
     @Transactional
     @Override
     public int addNewGroupUser(Request request) {
-        // 默认用户在群中的称呼为昵称
-        // 增加群用户
-        groupUserMapper.insert(GroupUser.builder()
+        GroupUser groupUser = groupUserMapper.selectOne(new LambdaQueryWrapper<GroupUser>()
+                .eq(GroupUser::getGroupId, request.getGroupId())
+                .eq(GroupUser::getUserId, request.getFromUid()));
+        // 已存在该群用户
+        if(StringUtils.isNotNull(groupUser)){
+            return 0;
+        }
+        // 1.增加群用户
+        int row = groupUserMapper.insert(GroupUser.builder()
                 .groupId(request.getGroupId())
                 .userId(request.getFromUid())
-                .username(request.getNickname()).build());
-        //添加一条群消息
+                .username(request.getNickname()).build()); // 默认用户在群中的称呼为昵称
+        // 2.添加一条群消息
         GroupMsg groupMsg = GroupMsg.builder()
                 .msgType(ONE)
                 .fromUid(request.getFromUid())
                 .toUid(request.getGroupId())
-                .content(request.getNickname() + " 加入群,热烈欢迎").build();
-        return groupMsgMapper.insert(groupMsg);
+                .content("【" + request.getNickname() + "】加入群,热烈欢迎🎉🎉🎉").build();
+        groupMsgMapper.insert(groupMsg);
+        return row;
     }
 
     @Override

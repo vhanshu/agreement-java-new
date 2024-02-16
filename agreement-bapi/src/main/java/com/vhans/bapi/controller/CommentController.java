@@ -5,7 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.vhans.bus.data.domain.Comment;
 import com.vhans.bus.data.service.ICommentService;
 import com.vhans.bus.data.domain.vo.ReplyVO;
-import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
+import com.vhans.bus.transmit.config.NettyWsHandler;
 import com.vhans.core.annotation.AccessLimit;
 import com.vhans.core.enums.LikeTypeEnum;
 import com.vhans.core.strategy.context.LikeStrategyContext;
@@ -50,7 +50,7 @@ public class CommentController extends BaseController {
     public Result<?> addComment(@Validated @RequestBody Comment comment) {
         int rows = commentService.addComment(comment);
         if (rows > 0) {
-            NettyWsChannelInboundHandler.pushInfo(PUSH_COMMENT, JSONUtil.toJsonStr(comment), 0);
+            NettyWsHandler.pushInfo(PUSH_COMMENT, JSONUtil.toJsonStr(comment), 0);
         }
         return toAjax(rows);
     }

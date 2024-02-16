@@ -37,7 +37,7 @@ public class MsgServiceImpl implements IMsgService {
     public Msg getLastMsg(Integer userId, Integer friendId) {
         // 查询最后一条消息
         Msg msg = msgMapper.selectOne(new LambdaQueryWrapper<Msg>()
-                .select(Msg::getContent, Msg::getMsgType, Msg::getCreateTime)
+                .select(Msg::getContent, Msg::getMsgType, Msg::getFromUid, Msg::getCreateTime)
                 .ne(Msg::getMsgType, ZERO)
                 .eq(Msg::getFromUid, friendId)
                 .eq(Msg::getToUid, userId)
@@ -50,10 +50,13 @@ public class MsgServiceImpl implements IMsgService {
         if (StringUtils.isNull(msg)) {
             return Msg.builder().content("初次相约,打个招呼吧").build();
         } else {
+            String tag = msg.getFromUid().equals(StpUtil.getLoginIdAsInt()) ? "I:" : "TA:";
             switch (msg.getMsgType()) {
-                case THREE -> msg.setContent("[图片]");
-                case FOUR -> msg.setContent("[视频]");
-                case FIVE -> msg.setContent("[语音]");
+                case TWO -> msg.setContent(tag + "[文件]");
+                case THREE -> msg.setContent(tag + "[图片]");
+                case FOUR -> msg.setContent(tag + "[视频]");
+                case FIVE -> msg.setContent(tag + "[语音]");
+                default -> msg.setContent(tag + msg.getContent());
             }
             return msg;
         }

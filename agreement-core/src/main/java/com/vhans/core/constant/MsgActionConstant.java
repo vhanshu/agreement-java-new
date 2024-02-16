@@ -63,6 +63,11 @@ public class MsgActionConstant {
     public static final int DELETE_FRIEND = 10;
 
     /**
+     * 用户入群
+     */
+    public static final int JOIN_GROUP = 11;
+
+    /**
      * 推送消息
      */
     public static final int PUSH = 20;

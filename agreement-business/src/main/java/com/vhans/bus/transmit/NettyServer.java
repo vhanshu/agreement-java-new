@@ -1,6 +1,6 @@
 package com.vhans.bus.transmit;
 
-import com.vhans.bus.transmit.config.NettyChannelInitializer;
+import com.vhans.bus.transmit.config.NettyInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -45,7 +45,7 @@ public class NettyServer {
         server = new ServerBootstrap();
         server.group(mainGroup, subGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new NettyChannelInitializer());
+                .childHandler(new NettyInitializer());
     }
 
     /**

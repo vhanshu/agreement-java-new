@@ -5,7 +5,7 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vhans.bus.data.domain.QuizAnswer;
 import com.vhans.bus.data.mapper.QuizAnswerMapper;
-import com.vhans.bus.transmit.config.NettyWsChannelInboundHandler;
+import com.vhans.bus.transmit.config.NettyWsHandler;
 import com.vhans.bus.user.mapper.UserMapper;
 import com.vhans.core.redis.RedisService;
 import com.vhans.core.strategy.LikeStrategy;
@@ -52,7 +52,7 @@ public class AnswerLikeStrategyImpl implements LikeStrategy {
             // 作答点赞量-1
             redisService.decrHash(ANSWER_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化-1
-            NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#-1#" + obj.getQuizId(), 0);
+            NettyWsHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#-1#" + obj.getQuizId(), 0);
         } else {
             // 点赞则在用户id中记录作答id
             redisService.setSet(key, id);
@@ -61,7 +61,7 @@ public class AnswerLikeStrategyImpl implements LikeStrategy {
             // 作答点赞量+1
             redisService.incrHash(ANSWER_LIKE_COUNT, id.toString(), 1L);
             // 推送点赞量变化+1
-        NettyWsChannelInboundHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#1#" + obj.getQuizId(), 0);
+        NettyWsHandler.pushInfo(PUSH_LIKE, "answer#" + id + "#1#" + obj.getQuizId(), 0);
         }
     }
 }
