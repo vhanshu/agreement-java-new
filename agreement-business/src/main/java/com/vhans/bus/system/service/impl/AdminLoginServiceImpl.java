@@ -19,6 +19,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -99,16 +100,15 @@ public class AdminLoginServiceImpl implements IAdminLoginService {
         Assert.notNull(type, "未指定人员类型");
         // 查询所有会话token
         List<String> tokenList = StpUtil.searchTokenSessionId("", 0, -1, false);
-        return tokenList.stream()
+        List<OnlineVO> list = tokenList.stream()
                 .map(token -> {
                     // 获取tokenSession
                     SaSession sessionBySessionId = StpUtil.getSessionBySessionId(token);
-                    return (OnlineVO) sessionBySessionId.get(type == ONE ? ONLINE_ADMIN : ONLINE_USER);
-                })
-                .filter(onlineVO -> StringUtils.isEmpty(name) ||
-                        StringUtils.isNotNull(onlineVO) && onlineVO.getNickname().contains(name))
+                    return (OnlineVO) sessionBySessionId.get(type == ONE ? ONLINE_USER : ONLINE_ADMIN);
+                }).filter(onlineVO -> StringUtils.isEmpty(name) || StringUtils.isNotNull(onlineVO) && onlineVO.getNickname().contains(name))
                 .sorted(Comparator.comparing(OnlineVO::getLoginTime).reversed())
                 .toList();
+        return StringUtils.isNotEmpty(list) && list.get(0) != null ? list : new ArrayList<>();
     }
 
     /**

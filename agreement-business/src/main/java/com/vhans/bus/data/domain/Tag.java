@@ -60,6 +60,13 @@ public class Tag {
     @ApiModelProperty(value = "该类型数量")
     private Integer count;
 
+    /**
+     * 该类型
+     */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "该类型")
+    private Integer type;
+
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {

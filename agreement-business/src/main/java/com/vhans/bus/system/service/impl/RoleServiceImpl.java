@@ -14,6 +14,7 @@ import com.vhans.bus.system.domain.dto.RoleStatusDTO;
 import com.vhans.bus.system.service.IRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -73,6 +74,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements IR
         });
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateRole(Role role, Integer isMenu) {
         Assert.isFalse(role.getId().equals(ADMIN) && role.getIsDisable().equals(TRUE),

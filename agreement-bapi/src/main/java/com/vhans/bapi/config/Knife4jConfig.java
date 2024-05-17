@@ -27,7 +27,7 @@ public class Knife4jConfig {
         return new Docket(DocumentationType.SWAGGER_2)
                 .groupName("agreement-bApi")
                 .protocols(Collections.singleton("https"))
-                .host("https://agreement.vhans.cloud")
+                .host("https://agree.vhanshu.com")
                 .apiInfo(bApiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.vhans.bapi.controller"))
@@ -39,7 +39,7 @@ public class Knife4jConfig {
         return new ApiInfoBuilder()
                 .title("三缺一前台API文档")
                 .description("校园学生交流项目")
-                .termsOfServiceUrl("https://agreement.vhans.cloud/bapi")
+                .termsOfServiceUrl("https://agree.vhanshu.com/bapi")
                 .contact(new Contact("Vhans", "https://gitee.com/v-function", "2873585297@qq.com"))
                 .version("1.0.0")
                 .build();

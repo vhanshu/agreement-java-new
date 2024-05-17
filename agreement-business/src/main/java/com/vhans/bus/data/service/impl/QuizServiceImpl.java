@@ -252,7 +252,7 @@ public class QuizServiceImpl extends ServiceImpl<QuizMapper, Quiz> implements IQ
             // 提供覆盖的标签
             List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
             // 将所有的新标签绑定到题目标签关联表
-            tagTextMapper.saveBatchTag(quiz.getId(), QUIZ, coverTagIds);
+            tagTextMapper.saveBatchTag(QUIZ, quiz.getId(), coverTagIds);
         }
     }
 }

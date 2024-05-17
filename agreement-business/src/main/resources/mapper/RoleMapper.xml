@@ -9,6 +9,14 @@
           AND r.is_disable = 0
     </select>
 
+    <select id="selectRoleObjListByAdminId" resultType="com.vhans.bus.system.domain.vo.AdminRoleVO">
+        SELECT r.id, r.role_name
+        FROM s_role r
+                 INNER JOIN s_admin_role ur ON r.id = ur.role_id
+        WHERE ur.admin_id = #{adminId}
+          AND r.is_disable = 0
+    </select>
+
     <select id="selectRoleCount" resultType="java.lang.Long">
         SELECT
         COUNT(id)

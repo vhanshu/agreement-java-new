@@ -60,6 +60,7 @@ public class EsSearchStrategyImpl implements SearchStrategy {
         }
         return new ArrayList<>();
     }
+
     private List<SearchVO> handleRecordResponse(SearchResponse<SearchVO> response, Integer type) {
         // 解析结果并返回
         return response.hits().hits().stream()

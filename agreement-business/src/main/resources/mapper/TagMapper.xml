@@ -8,11 +8,11 @@
         LEFT JOIN d_tag_text tt
         ON t.id = tt.tag_id
         <where>
-            <if test="query.tagName != null">
+            <if test="query.tagName != null and query.tagName != ''">
                 t.tag_name like concat('%',#{query.tagName},'%')
             </if>
             <if test="query.type != null">
-                tt.type = #{query.type}
+                and tt.type = #{query.type}
             </if>
         </where>
         GROUP BY t.id

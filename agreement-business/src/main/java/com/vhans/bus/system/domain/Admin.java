@@ -116,11 +116,5 @@ public class Admin {
          */
         @ApiModelProperty(value = "管理员名")
         private String adminName;
-
-        /**
-         * 管理员昵称
-         */
-        @ApiModelProperty(value = "管理员昵称")
-        private String nickname;
     }
 }

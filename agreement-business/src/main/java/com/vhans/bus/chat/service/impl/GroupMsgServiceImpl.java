@@ -81,7 +81,7 @@ public class GroupMsgServiceImpl implements IGroupMsgService {
             if (StringUtils.isNull(groupUser)) {
                 //不存在表示该用户已被移出群
                 User user = userMapper.selectById(groupMsg.getFromUid());
-                username = user.getNickname() + "(已出群)";
+                username = user.getNickname() + "(离群)";
             } else {
                 username = groupUser.getUsername();
             }

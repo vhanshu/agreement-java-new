@@ -70,7 +70,7 @@ public class FileController extends BaseController {
      * @param fileId 文件id
      */
     @ApiOperation(value = "下载或响应文件")
-    @GetMapping("/file/download/{fileId}")
+    @GetMapping("/download/{fileId}")
     public void downloadFile(@PathVariable("fileId") Integer fileId) {
         fileService.downloadFile(fileId);
     }

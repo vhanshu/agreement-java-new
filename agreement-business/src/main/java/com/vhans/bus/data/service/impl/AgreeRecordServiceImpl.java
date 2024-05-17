@@ -354,7 +354,7 @@ public class AgreeRecordServiceImpl extends ServiceImpl<AgreeRecordMapper, Agree
             // 提供覆盖的标签
             List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
             // 将所有的新标签绑定到记录标签关联表
-            tagTextMapper.saveBatchTag(record.getId(), RECORD, coverTagIds);
+            tagTextMapper.saveBatchTag(RECORD, record.getId(), coverTagIds);
         }
     }
 }

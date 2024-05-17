@@ -210,7 +210,7 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
                 } else {
                     // 云端压缩(这里不区分上下级,直接压缩所有子文件入一个包)
                     List<FileRecord> fileRecords = fileRecordMapper.selectList(new LambdaQueryWrapper<FileRecord>()
-                            .select(FileRecord::getFileUrl, FileRecord::getFileName, FileRecord::getExtendName)
+                            .select(FileRecord::getFileUrl, FileRecord::getFileName, FileRecord::getExtendName, FileRecord::getFilePath)
                             .eq(FileRecord::getIsDir, FALSE)
                             .likeRight(FileRecord::getFilePath, fileRecord.getFilePath() + fileRecord.getFileName() + "/"));
                     Assert.notEmpty(fileRecords, "该目录下没有任何文件");
@@ -347,9 +347,12 @@ public class FileRecordServiceImpl extends ServiceImpl<FileRecordMapper, FileRec
      */
     private static void toCloudZip(List<FileRecord> fileList, ZipOutputStream zipOutputStream, String fileName) throws IOException {
         for (FileRecord fileRecord : fileList) {
-            String currentName = fileRecord.getFileName() + "." + fileRecord.getExtendName();
+            String md5 = fileRecord.getFileUrl().substring(fileRecord.getFileUrl().indexOf("/") + 1);
+            String pathStr = fileRecord.getFilePath().replace('/', '-');
+            //唯一文件名
+            String soleName = "ag" + pathStr + md5;
             // 要放入的压缩文件
-            ZipEntry zipEntry = new ZipEntry(fileName + "/" + currentName);
+            ZipEntry zipEntry = new ZipEntry(fileName + "/" + soleName);
             // 绑定压缩文件
             zipOutputStream.putNextEntry(zipEntry);
             // 下载文件并写入 ZipOutputStream

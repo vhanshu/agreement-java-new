@@ -77,7 +77,6 @@ public class NettyWsHandler extends SimpleChannelInboundHandler<TextWebSocketFra
                 channel.writeAndFlush(new TextWebSocketFrame(jsonData));
             }
         }
-
     }
 
     /**
@@ -256,7 +255,7 @@ public class NettyWsHandler extends SimpleChannelInboundHandler<TextWebSocketFra
                 int row = groupService.addNewGroupUser(Request.builder()
                         .groupId(request.getGroupId())
                         .fromUid(request.getFromUid())
-                        .build());
+                        .nickname(request.getNickname()).build());
                 // 给自己发送响应消息
                 sendTo(request.getToUid(), jsonData, row > 0);
                 if (row > 0) {
@@ -431,7 +430,10 @@ public class NettyWsHandler extends SimpleChannelInboundHandler<TextWebSocketFra
         List<Integer> oldUserIds = groupService.getUserIds(group.getId());
         group.getUserList().forEach(item -> {
             //添加群友至数据库
-            int row = groupService.addNewGroupUser(Request.builder().groupId(group.getId()).fromUid(item.getId()).build());
+            int row = groupService.addNewGroupUser(Request.builder()
+                    .groupId(group.getId())
+                    .fromUid(item.getId())
+                    .nickname(item.getNickname()).build());
             if (row > 0) {
                 GroupMsg groupMsg = GroupMsg.builder()
                         .msgType(ONE)

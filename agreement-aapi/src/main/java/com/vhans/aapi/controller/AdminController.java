@@ -46,7 +46,7 @@ public class AdminController extends BaseController {
      */
     @SaCheckLogin
     @ApiOperation(value = "获取后台登录管理员信息")
-    @GetMapping("/getAdminInfo")
+    @GetMapping("/getInfo")
     public Result<AdminInfo> getAdminInfo() {
         return Result.success(adminService.getAdminInfo());
     }
@@ -57,7 +57,7 @@ public class AdminController extends BaseController {
      * @return {@link RouterVO} 登录管理员菜单
      */
     @ApiOperation(value = "获取登录管理员菜单")
-    @GetMapping("/getAdminMenu")
+    @GetMapping("/getMenu")
     public Result<List<RouterVO>> getAdminMenu() {
         return Result.success(adminService.getAdminMenu());
     }
@@ -93,15 +93,15 @@ public class AdminController extends BaseController {
     /**
      * 修改管理员
      *
-     * @param admin 管理员信息
+     * @param admin  管理员信息
      * @param isRole 是否修改角色信息
      * @return 结果
      */
     @OptLogger(value = UPDATE)
     @ApiOperation(value = "修改管理员")
     @SaCheckPermission("system:admin:update")
-    @PutMapping("/update")
-    public Result<?> updateAdmin(@Validated @RequestBody Admin admin, Integer isRole) {
+    @PutMapping("/update/{isRole}")
+    public Result<?> updateAdmin(@Validated @RequestBody Admin admin, @PathVariable Integer isRole) {
         adminService.updateAdmin(admin, isRole);
         return Result.success();
     }

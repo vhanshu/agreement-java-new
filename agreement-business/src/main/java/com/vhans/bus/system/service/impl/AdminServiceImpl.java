@@ -99,7 +99,12 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public List<Admin> listAdmin(Admin.Query query) {
-        return adminMapper.listAdmin(query);
+        List<Admin> admins = adminMapper.listAdmin(query);
+        admins.forEach(admin -> {
+            List<AdminRoleVO> adminRoleVOS = roleMapper.selectRoleObjListByAdminId(admin.getId());
+            admin.setRoleList(adminRoleVOS);
+        });
+        return admins;
     }
 
     @Override
@@ -108,6 +113,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         return roleMapper.selectAdminRoleList();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateAdmin(Admin admin, Integer isRole) {
         // 更新管理员信息
@@ -155,8 +161,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                     SaSession sessionBySessionId = StpUtil.getSessionBySessionId(token);
                     return (OnlineVO) sessionBySessionId.get(ONLINE_ADMIN);
                 })
-                .filter(item -> StringUtils.isEmpty(query.getNickname()) ||
-                        StringUtils.isNotNull(item) && item.getNickname().contains(query.getNickname()))
+                .filter(item -> StringUtils.isEmpty(query.getAdminName()) ||
+                        StringUtils.isNotNull(item) && item.getNickname().contains(query.getAdminName()))
                 .sorted(Comparator.comparing(OnlineVO::getLoginTime).reversed())
                 .collect(Collectors.toList());
     }

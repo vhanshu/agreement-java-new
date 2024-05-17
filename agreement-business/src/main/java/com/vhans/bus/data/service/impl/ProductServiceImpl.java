@@ -333,7 +333,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             // 提供覆盖的标签
             List<Integer> coverTagIds = tagService.getCoverTag(tagNameList);
             // 将所有的新标签绑定到商品标签关联表
-            tagTextMapper.saveBatchTag(product.getId(), PRODUCT, coverTagIds);
+            tagTextMapper.saveBatchTag(PRODUCT, product.getId(), coverTagIds);
         }
     }
 }

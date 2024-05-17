@@ -25,6 +25,14 @@ public interface RoleMapper extends BaseMapper<Role> {
     List<String> selectRoleListByAdminId(@Param("adminId") Object adminId);
 
     /**
+     * 根据管理员id查询管理员角色对象
+     *
+     * @param adminId 管理员id
+     * @return 角色
+     */
+    List<AdminRoleVO> selectRoleObjListByAdminId(@Param("adminId") Object adminId);
+
+    /**
      * 查询后台角色数量
      *
      * @param query 查询条件

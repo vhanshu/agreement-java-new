@@ -67,13 +67,6 @@ public class VisitLog {
     @ApiModelProperty(value = "添加时间")
     private LocalDateTime createTime;
 
-    /**
-     * 更新时间
-     */
-    @TableField(fill = FieldFill.UPDATE)
-    @ApiModelProperty(value = "更新时间")
-    private LocalDateTime updateTime;
-
     /* 定义需要查询的字段对象 */
     @Data
     public static class Query {

@@ -87,8 +87,8 @@ public class RoleController extends BaseController {
     @OptLogger(value = UPDATE)
     @ApiOperation(value = "修改角色")
     @SaCheckPermission("system:role:update")
-    @PutMapping("/update")
-    public Result<?> updateRole(@Validated @RequestBody Role role, Integer isMenu) {
+    @PutMapping("/update/{isMenu}")
+    public Result<?> updateRole(@Validated @RequestBody Role role, @PathVariable Integer isMenu) {
         roleService.updateRole(role, isMenu);
         return Result.success();
     }
